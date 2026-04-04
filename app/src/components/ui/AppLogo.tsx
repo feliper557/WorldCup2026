@@ -39,8 +39,7 @@ const AppLogo = memo(function AppLogo(
     bordered = false,
     borderColor,
     sx = {},
-  }: AppLogoProps,
-  ref: React.Ref<HTMLDivElement>
+  }: AppLogoProps
 ) {
   const theme = useTheme();
 
@@ -72,7 +71,6 @@ const AppLogo = memo(function AppLogo(
 
   return (
     <Box
-      ref={ref}
       className={className}
       sx={containerSx}
       onClick={onClick}

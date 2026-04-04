@@ -84,8 +84,8 @@ export function RafflesPage() {
             value={tabValue}
             onChange={handleTabChange}
             aria-label="raffle tabs"
-            variant={{ xs: 'scrollable', sm: 'fullWidth' }}
-            scrollButtons={{ xs: 'auto', sm: false }}
+            variant="scrollable"
+            scrollButtons="auto"
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',

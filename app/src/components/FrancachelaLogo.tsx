@@ -26,7 +26,7 @@ export function FrancachelaLogo({ variant = 'watermark', size = 200, opacity = 0
     );
   }
 
-  if (variant === 'decorative') {
+  if (variant === 'full') {
     // Versión decorativa más visible para usar como elemento principal
     return (
       <svg width={size} height={size} viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">

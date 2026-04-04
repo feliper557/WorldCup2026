@@ -49,8 +49,7 @@ const AppImage = memo(function AppImage(
     style = {},
     objectFit = 'cover',
     ...props
-  }: AppImageProps,
-  ref: React.Ref<HTMLImageElement>
+  }: AppImageProps
 ) {
   const theme = useTheme();
   const [imageSrc, setImageSrc] = useState(src);
@@ -111,7 +110,6 @@ const AppImage = memo(function AppImage(
         onClick={onClick}
       >
         <img
-          ref={ref}
           src={imageSrc}
           alt={alt}
           loading={priority ? 'eager' : loading}
@@ -137,7 +135,6 @@ const AppImage = memo(function AppImage(
   return (
     <Box
       component="img"
-      ref={ref}
       src={imageSrc}
       alt={alt}
       loading={priority ? 'eager' : loading}

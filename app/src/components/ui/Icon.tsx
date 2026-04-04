@@ -1,6 +1,7 @@
 import React from 'react';
 import * as MuiIcons from '@mui/icons-material';
-import { HelpOutline, useTheme } from '@mui/material';
+import { HelpOutline } from '@mui/icons-material';
+import { useTheme } from '@mui/material';
 
 type IconVariant = 'outline' | 'filled';
 

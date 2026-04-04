@@ -91,8 +91,8 @@ export function MatchesPage() {
           <Tabs
             value={tabValue}
             onChange={handleTabChange}
-            variant={{ xs: 'scrollable', sm: 'fullWidth' }}
-            scrollButtons={{ xs: 'auto', sm: false }}
+            variant="scrollable"
+            scrollButtons="auto"
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',

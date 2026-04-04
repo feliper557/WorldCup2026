@@ -158,7 +158,7 @@ export function ChampionPicker() {
             {/* Grid de grupos */}
             <Grid container spacing={3}>
               {WORLD_CUP_2026_GROUPS.map((group) => (
-                <Grid item xs={12} sm={6} md={4} key={group.letter}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={group.letter}>
                   <Box
                     sx={{
                       p: 2,
@@ -263,7 +263,7 @@ export function ChampionPicker() {
           {/* Grid de equipos en el dialog */}
           <Grid container spacing={2}>
             {WORLD_CUP_2026_GROUPS.map((group) => (
-              <Grid item xs={12} key={group.letter}>
+              <Grid size={12} key={group.letter}>
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 1, display: 'block' }}>
                     Grupo {group.letter}
