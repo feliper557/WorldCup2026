@@ -1,0 +1,89 @@
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using WorldCup.Api.Infrastructure;
+using WorldCup.Api.Infrastructure.Repositories.Implementations;
+using WorldCup.Api.Infrastructure.Repositories.Interfaces;
+using WorldCup.Api.Services;
+
+var builder = FunctionsApplication.CreateBuilder(args);
+
+builder.ConfigureFunctionsWebApplication();
+
+// Configure CORS for Azure Static Web Apps integration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowStaticWebApp", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:5173",  // Vite dev server
+            "https://*.azurestaticapps.net"  // Production SWA
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+
+// Configure Cosmos DB options using IOptions pattern
+builder.Services.Configure<CosmosOptions>(options =>
+{
+    options.EndpointUri = Environment.GetEnvironmentVariable("CosmosEndpointUri") ?? "";
+    options.PrimaryKey = Environment.GetEnvironmentVariable("CosmosPrimaryKey") ?? "";
+    options.DatabaseId = Environment.GetEnvironmentVariable("CosmosDatabaseId") ?? "worldcup-db";
+    options.MatchesContainerId = Environment.GetEnvironmentVariable("CosmosMatchesContainerId") ?? "matches";
+    options.PredictionsContainerId = Environment.GetEnvironmentVariable("CosmosPredictionsContainerId") ?? "predictions";
+    options.ScoresContainerId = Environment.GetEnvironmentVariable("CosmosScoresContainerId") ?? "scores";
+});
+
+// Register CosmosContext
+builder.Services.AddSingleton<CosmosContext>();
+
+// Register CosmosDbInitializer
+builder.Services.AddSingleton<CosmosDbInitializer>();
+
+// Register repositories
+builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+builder.Services.AddScoped<IPredictionRepository, PredictionRepository>();
+builder.Services.AddScoped<IScoreRepository, ScoreRepository>();
+
+// Register services
+builder.Services.AddSingleton<ITimeProviderService, TimeProviderService>();
+builder.Services.AddScoped<IScoringService, ScoringService>();
+
+// Register HttpClient for API-Football (legacy)
+builder.Services.AddHttpClient<IApiFootballService, ApiFootballService>();
+
+// Register HttpClient for FIFA API (primary data source)
+builder.Services.AddHttpClient<IFifaApiService, FifaApiService>();
+
+// Application Insights telemetry
+builder.Services
+    .AddApplicationInsightsTelemetryWorkerService()
+    .ConfigureFunctionsApplicationInsights();
+
+var app = builder.Build();
+
+// Initialize Cosmos DB (creates database and containers if they don't exist)
+// Commented out for troubleshooting - uncomment when Cosmos DB is available
+// await InitializeCosmosDbAsync(app.Services);
+
+app.Run();
+
+static async Task InitializeCosmosDbAsync(IServiceProvider services)
+{
+    try
+    {
+        var initializer = services.GetRequiredService<CosmosDbInitializer>();
+        await initializer.InitializeAsync();
+        Console.WriteLine("✅ Cosmos DB initialized successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️  Warning: Could not initialize Cosmos DB: {ex.Message}");
+        Console.WriteLine("The application will continue, but database operations may fail.");
+    }
+}

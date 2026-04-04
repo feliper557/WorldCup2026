@@ -1,0 +1,92 @@
+using Microsoft.EntityFrameworkCore;
+using WorldCup.Api.Infrastructure.Entities;
+
+namespace WorldCup.Api.Infrastructure;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<InvitationEntity> Invitations => Set<InvitationEntity>();
+    public DbSet<MatchEntity> Matches => Set<MatchEntity>();
+    public DbSet<PredictionEntity> Predictions => Set<PredictionEntity>();
+    public DbSet<ScoreEntity> Scores => Set<ScoreEntity>();
+    public DbSet<EventEntity> Events => Set<EventEntity>();
+    public DbSet<RaffleEntity> Raffles => Set<RaffleEntity>();
+    public DbSet<RaffleParticipantEntity> RaffleParticipants => Set<RaffleParticipantEntity>();
+    public DbSet<RaffleWinnerEntity> RaffleWinners => Set<RaffleWinnerEntity>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // UserEntity
+        modelBuilder.Entity<UserEntity>(e => {
+            e.HasKey(u => u.Id);
+            e.HasIndex(u => u.Email).IsUnique();
+            e.Property(u => u.Email).HasMaxLength(256).IsRequired();
+            e.Property(u => u.DisplayName).HasMaxLength(100).IsRequired();
+            e.Property(u => u.Role).HasMaxLength(20);
+            e.Property(u => u.Status).HasMaxLength(20);
+            e.Property(u => u.Gender).HasMaxLength(20);
+        });
+
+        // InvitationEntity
+        modelBuilder.Entity<InvitationEntity>(e => {
+            e.HasKey(i => i.Id);
+            e.HasIndex(i => i.Token).IsUnique();
+            e.Property(i => i.Email).HasMaxLength(256).IsRequired();
+            e.Property(i => i.Token).HasMaxLength(512).IsRequired();
+            e.Property(i => i.Status).HasMaxLength(20);
+        });
+
+        // MatchEntity
+        modelBuilder.Entity<MatchEntity>(e => {
+            e.HasKey(m => m.Id);
+            e.Property(m => m.HomeTeam).HasMaxLength(100).IsRequired();
+            e.Property(m => m.AwayTeam).HasMaxLength(100).IsRequired();
+        });
+
+        // PredictionEntity
+        modelBuilder.Entity<PredictionEntity>(e => {
+            e.HasKey(p => p.Id);
+            e.HasIndex(p => new { p.UserId, p.MatchId }).IsUnique();
+            e.HasOne(p => p.User).WithMany(u => u.Predictions).HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(p => p.Match).WithMany(m => m.Predictions).HasForeignKey(p => p.MatchId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ScoreEntity
+        modelBuilder.Entity<ScoreEntity>(e => {
+            e.HasKey(s => s.Id);
+            e.HasIndex(s => s.UserId).IsUnique();
+            e.HasOne(s => s.User).WithMany(u => u.Scores).HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // EventEntity
+        modelBuilder.Entity<EventEntity>(e => {
+            e.HasKey(ev => ev.Id);
+            e.Property(ev => ev.Title).HasMaxLength(200).IsRequired();
+            e.Property(ev => ev.Type).HasMaxLength(30);
+        });
+
+        // RaffleEntity
+        modelBuilder.Entity<RaffleEntity>(e => {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Title).HasMaxLength(200).IsRequired();
+            e.Property(r => r.ParticipationMode).HasMaxLength(20);
+        });
+
+        // RaffleParticipantEntity (junction, composite PK)
+        modelBuilder.Entity<RaffleParticipantEntity>(e => {
+            e.HasKey(rp => new { rp.RaffleId, rp.UserId });
+            e.HasOne(rp => rp.Raffle).WithMany(r => r.Participants).HasForeignKey(rp => rp.RaffleId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(rp => rp.User).WithMany(u => u.RaffleParticipations).HasForeignKey(rp => rp.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // RaffleWinnerEntity (junction, composite PK)
+        modelBuilder.Entity<RaffleWinnerEntity>(e => {
+            e.HasKey(rw => new { rw.RaffleId, rw.UserId });
+            e.HasOne(rw => rw.Raffle).WithMany(r => r.Winners).HasForeignKey(rw => rw.RaffleId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(rw => rw.User).WithMany(u => u.RaffleWins).HasForeignKey(rw => rw.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+}

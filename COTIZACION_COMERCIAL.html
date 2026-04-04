@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cotización Comercial — Predictor Mundial 2026</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      padding: 40px 20px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #d32f2f 100%);
+      padding: 44px 48px 36px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .header-left h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .header-left .sub {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+    .header-right {
+      text-align: right;
+    }
+    .header-right .quote-num {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+    .header-right .date {
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .badge-mundial {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      margin-top: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── BODY ── */
+    .body { padding: 40px 48px; }
+
+    /* Partes */
+    .parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .party-box {
+      background: #f8f9fd;
+      border-left: 4px solid #1a237e;
+      border-radius: 6px;
+      padding: 16px 20px;
+    }
+    .party-box.client { border-left-color: #d32f2f; }
+    .party-box h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .party-box p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+    }
+    .party-box strong { color: #1a237e; }
+
+    /* Sección */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a237e;
+      border-bottom: 2px solid #e8eaf6;
+      padding-bottom: 8px;
+      margin-bottom: 18px;
+      margin-top: 36px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Descripción del producto */
+    .product-card {
+      background: linear-gradient(135deg, #e8eaf6, #fce4ec);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 10px;
+    }
+    .product-card h2 {
+      font-size: 20px;
+      color: #1a237e;
+      margin-bottom: 6px;
+    }
+    .product-card p {
+      font-size: 13.5px;
+      color: #444;
+      line-height: 1.7;
+    }
+
+    /* Features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fafafa;
+      border: 1px solid #e8eaf6;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .feature-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .feature-item h4 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a237e;
+      margin-bottom: 2px;
+    }
+    .feature-item p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Tabla de precios */
+    table.pricing {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    table.pricing thead tr {
+      background: #1a237e;
+      color: #fff;
+    }
+    table.pricing thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.pricing thead th:last-child { text-align: right; }
+    table.pricing tbody tr:nth-child(even) { background: #f8f9fd; }
+    table.pricing tbody tr:hover { background: #e8eaf6; }
+    table.pricing tbody td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #eee;
+      color: #333;
+      vertical-align: top;
+    }
+    table.pricing tbody td:last-child {
+      text-align: right;
+      font-weight: 600;
+      color: #1a237e;
+      white-space: nowrap;
+    }
+    table.pricing tbody td .desc {
+      font-size: 11.5px;
+      color: #888;
+      margin-top: 2px;
+    }
+    table.pricing tfoot td {
+      padding: 14px 16px;
+      font-weight: 700;
+    }
+    .row-subtotal td {
+      background: #f0f2f5 !important;
+      font-size: 13px;
+      font-style: italic;
+      color: #555 !important;
+    }
+    .row-subtotal td:last-child {
+      color: #555 !important;
+    }
+    .row-total td {
+      background: #1a237e !important;
+      color: #fff !important;
+      font-size: 16px;
+      border-radius: 0;
+    }
+    .row-total td:last-child {
+      color: #ffeb3b !important;
+      font-size: 20px;
+    }
+    .row-iva td {
+      background: #e8eaf6 !important;
+      font-size: 13px;
+      color: #555 !important;
+    }
+    .row-iva td:last-child { color: #555 !important; }
+
+    /* Tech stack */
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pill {
+      background: #e8eaf6;
+      color: #1a237e;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill.red { background: #fce4ec; color: #c62828; }
+    .pill.green { background: #e8f5e9; color: #2e7d32; }
+    .pill.orange { background: #fff3e0; color: #e65100; }
+
+    /* Infraestructura */
+    .infra-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .infra-table th {
+      background: #283593;
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .infra-table th:last-child { text-align: right; }
+    .infra-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #eee;
+      color: #444;
+    }
+    .infra-table td:last-child { text-align: right; font-weight: 600; }
+    .infra-table tr:nth-child(even) { background: #f8f9fd; }
+    .infra-total td {
+      background: #283593;
+      color: #fff;
+      font-weight: 700;
+    }
+    .infra-total td:last-child { color: #ffeb3b; }
+
+    /* Info boxes */
+    .info-box {
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+    .info-box.blue {
+      background: #e3f2fd;
+      border-left: 4px solid #1976d2;
+      color: #0d47a1;
+    }
+    .info-box.green {
+      background: #e8f5e9;
+      border-left: 4px solid #388e3c;
+      color: #1b5e20;
+    }
+    .info-box.yellow {
+      background: #fffde7;
+      border-left: 4px solid #f9a825;
+      color: #4e342e;
+    }
+    .info-box strong { display: block; margin-bottom: 4px; font-size: 13.5px; }
+
+    /* Timeline */
+    .timeline { margin-top: 10px; }
+    .tl-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .tl-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #1a237e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .tl-content h4 { font-size: 13.5px; color: #1a237e; margin-bottom: 2px; }
+    .tl-content p { font-size: 12.5px; color: #666; line-height: 1.5; }
+
+    /* Terms */
+    .terms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .term-item { font-size: 13px; color: #444; line-height: 1.6; }
+    .term-item strong { color: #1a237e; display: block; margin-bottom: 2px; }
+
+    /* Footer */
+    .footer {
+      background: #1a237e;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      padding: 24px 48px;
+      font-size: 12px;
+      margin-top: 40px;
+    }
+    .footer strong { color: #fff; display: block; margin-bottom: 6px; font-size: 13px; }
+
+    /* Firma */
+    .firma-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 40px;
+    }
+    .firma-box {
+      border-top: 2px solid #1a237e;
+      padding-top: 10px;
+    }
+    .firma-box p { font-size: 12.5px; color: #555; margin-top: 4px; }
+    .firma-box strong { font-size: 13px; color: #1a237e; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <h1>⚽ Predictor Mundial 2026</h1>
+      <div class="sub">Plataforma de predicciones deportivas · Edición FIFA World Cup 2026</div>
+      <div class="badge-mundial">Canadá · México · Estados Unidos</div>
+    </div>
+    <div class="header-right">
+      <div class="quote-num">Cotización N.º <strong>WC26-001</strong></div>
+      <div class="date">29 de marzo de 2026</div>
+      <div class="badge-mundial" style="margin-top:8px;">Vigencia: 15 días</div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- PARTES -->
+    <div class="section-title">Partes involucradas</div>
+    <div class="parties">
+      <div class="party-box">
+        <h3>Proveedor del servicio</h3>
+        <p>
+          <strong>[Tu Nombre / Empresa]</strong><br/>
+          Desarrollo de Software & Soluciones Digitales<br/>
+          📧 [correo@tuempresa.com]<br/>
+          📱 [+1 000 000 0000]
+        </p>
+      </div>
+      <div class="party-box client">
+        <h3>Cliente</h3>
+        <p>
+          <strong>[Nombre del Restaurante]</strong><br/>
+          Industria: Restauración / Hostelería<br/>
+          📍 [Dirección del restaurante]<br/>
+          👤 Contacto: [Nombre del contacto]
+        </p>
+      </div>
+    </div>
+
+    <!-- DESCRIPCIÓN DEL PRODUCTO -->
+    <div class="section-title">Descripción del producto</div>
+    <div class="product-card">
+      <h2>🏆 Predictor Copa del Mundo 2026 — Licencia de Temporada</h2>
+      <p>
+        Plataforma web completa para que los <strong>empleados y/o clientes del restaurante</strong>
+        participen en un torneo de predicciones de la Copa del Mundo FIFA 2026.
+        Cada participante predice los marcadores de los 104 partidos del torneo, acumula puntos y compite
+        en un ranking en tiempo real. La plataforma opera en la nube durante toda la duración del torneo
+        <strong>(11 de junio – 19 de julio de 2026)</strong> sin necesidad de instalación local.
+      </p>
+    </div>
+
+    <!-- FUNCIONALIDADES -->
+    <div class="section-title">Funcionalidades incluidas</div>
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🔐</div>
+        <div>
+          <h4>Acceso con autenticación</h4>
+          <p>Login seguro para participantes invitados. Solo acceden las personas autorizadas por el restaurante.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚽</div>
+        <div>
+          <h4>Predicciones en vivo</h4>
+          <p>Los participantes predicen el marcador de cada partido antes de que inicie. Datos en tiempo real vía API oficial.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🏅</div>
+        <div>
+          <h4>Ranking competitivo</h4>
+          <p>Tabla de posiciones actualizada automáticamente. Sistema de puntos: exacto = 3 pts, ganador = 1 pt.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <div>
+          <h4>Estadísticas por participante</h4>
+          <p>Perfil personal con historial de predicciones, aciertos, exactos y evolución en el torneo.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📱</div>
+        <div>
+          <h4>100% responsive</h4>
+          <p>Funciona perfectamente en celular, tablet y computadora. Sin apps que descargar.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">☁️</div>
+        <div>
+          <h4>Infraestructura cloud</h4>
+          <p>Alojado en Microsoft Azure. Alta disponibilidad durante los 104 partidos del torneo.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔴</div>
+        <div>
+          <h4>Partidos en vivo</h4>
+          <p>Marcadores actualizados en tiempo real durante los partidos para máxima emoción.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎨</div>
+        <div>
+          <h4>Personalización básica</h4>
+          <p>Nombre del restaurante y colores corporativos incorporados en la plataforma.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STACK TECNOLÓGICO -->
+    <div class="section-title">Stack tecnológico</div>
+    <div class="tech-pills">
+      <span class="pill">React 19 + TypeScript</span>
+      <span class="pill">Material UI v7</span>
+      <span class="pill red">.NET 8 Azure Functions</span>
+      <span class="pill red">Azure Cosmos DB</span>
+      <span class="pill green">Azure Static Web Apps</span>
+      <span class="pill orange">API-Football (datos en vivo)</span>
+      <span class="pill">Vite 8</span>
+      <span class="pill">REST / OpenAPI</span>
+    </div>
+
+    <!-- INFRAESTRUCTURA CLOUD -->
+    <div class="section-title">Infraestructura cloud (costo de operación)</div>
+    <table class="infra-table">
+      <thead>
+        <tr>
+          <th>Servicio Azure</th>
+          <th>Descripción</th>
+          <th>Costo / mes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Azure Functions (Consumption)</td>
+          <td>Backend API — escalado automático, pago por uso</td>
+          <td>~$5 USD</td>
+        </tr>
+        <tr>
+          <td>Azure Cosmos DB (Serverless)</td>
+          <td>Base de datos de partidos, predicciones y ranking</td>
+          <td>~$25 USD</td>
+        </tr>
+        <tr>
+          <td>Azure Static Web Apps</td>
+          <td>Hosting del frontend React con CDN global</td>
+          <td>~$9 USD</td>
+        </tr>
+        <tr>
+          <td>API-Football (plan de datos)</td>
+          <td>Fixtures, marcadores en vivo, standings del Mundial</td>
+          <td>~$15 USD</td>
+        </tr>
+        <tr>
+          <td>Azure App Insights</td>
+          <td>Monitoreo, logs y alertas de la aplicación</td>
+          <td>~$5 USD</td>
+        </tr>
+        <tr class="infra-total">
+          <td colspan="2"><strong>Total infraestructura mensual</strong></td>
+          <td><strong>~$59 USD / mes</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="info-box blue" style="margin-top:10px;">
+      <strong>Duración del torneo: ~6 semanas (11 jun – 19 jul 2026)</strong>
+      Costo total de infraestructura para el período del torneo: <strong>~$118 USD</strong> (2 meses facturados).
+      Este costo está incluido dentro del precio del paquete — el cliente no paga Azure directamente.
+    </div>
+
+    <!-- COTIZACIÓN -->
+    <div class="section-title">Desglose de la cotización</div>
+    <table class="pricing">
+      <thead>
+        <tr>
+          <th style="width:40%">Concepto</th>
+          <th>Detalle</th>
+          <th>Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- DESARROLLO -->
+        <tr>
+          <td colspan="3" style="background:#e8eaf6; font-weight:700; color:#1a237e; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; padding: 10px 16px;">
+            A. Desarrollo de Software
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Backend API completo
+            <div class="desc">Azure Functions · Cosmos DB · Repositorios · Swagger · CORS</div>
+          </td>
+          <td>60 hs de desarrollo</td>
+          <td>$1,200 USD</td>
+        </tr>
+        <tr>
+          <td>
+            Frontend React completo
+            <div class="desc">5 vistas: Login, Partidos, Ranking, Participantes, Reglas · MUI · Responsive</div>
+          </td>
+          <td>55 hs de desarrollo</td>
+          <td>$1,100 USD</td>
+        </tr>
+        <tr>
+          <td>
+            Integraciones y configuración
+            <div class="desc">API-Football · Auth Azure SWA · CI/CD GitHub Actions · OpenAPI</div>
+          </td>
+          <td>20 hs de desarrollo</td>
+          <td>$400 USD</td>
+        </tr>
+
+        <tr class="row-subtotal">
+          <td colspan="2">Subtotal Desarrollo (135 hs × $20 USD/h promedio)</td>
+          <td>$2,700 USD</td>
+        </tr>
+
+        <!-- SETUP -->
+        <tr>
+          <td colspan="3" style="background:#e8eaf6; font-weight:700; color:#1a237e; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; padding: 10px 16px;">
+            B. Configuración, despliegue y personalización
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Despliegue en Azure
+            <div class="desc">Creación de recursos, configuración de entorno productivo, DNS, dominio</div>
+          </td>
+          <td>Servicio único</td>
+          <td>$300 USD</td>
+        </tr>
+        <tr>
+          <td>
+            Personalización de marca
+            <div class="desc">Logo del restaurante, paleta de colores, nombre en la plataforma</div>
+          </td>
+          <td>Incluido</td>
+          <td>$150 USD</td>
+        </tr>
+        <tr>
+          <td>
+            Carga de participantes y configuración inicial
+            <div class="desc">Alta de usuarios invitados, configuración de torneos y reglas</div>
+          </td>
+          <td>Hasta 50 usuarios</td>
+          <td>$100 USD</td>
+        </tr>
+
+        <tr class="row-subtotal">
+          <td colspan="2">Subtotal Configuración</td>
+          <td>$550 USD</td>
+        </tr>
+
+        <!-- INFRAESTRUCTURA -->
+        <tr>
+          <td colspan="3" style="background:#e8eaf6; font-weight:700; color:#1a237e; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; padding: 10px 16px;">
+            C. Infraestructura cloud (incluida — torneo completo)
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Licencia de infraestructura Azure
+            <div class="desc">Azure Functions + Cosmos DB + Static Web Apps + App Insights · 2 meses</div>
+          </td>
+          <td>11 jun – 19 jul 2026</td>
+          <td>$118 USD</td>
+        </tr>
+        <tr>
+          <td>
+            API-Football — datos del Mundial
+            <div class="desc">Fixtures, marcadores en tiempo real, standings, 104 partidos</div>
+          </td>
+          <td>Torneo completo</td>
+          <td>$30 USD</td>
+        </tr>
+
+        <tr class="row-subtotal">
+          <td colspan="2">Subtotal Infraestructura</td>
+          <td>$148 USD</td>
+        </tr>
+
+        <!-- SOPORTE -->
+        <tr>
+          <td colspan="3" style="background:#e8eaf6; font-weight:700; color:#1a237e; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; padding: 10px 16px;">
+            D. Soporte y mantenimiento durante el torneo
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Soporte técnico durante el torneo
+            <div class="desc">Atención de incidencias, monitoreo proactivo, actualizaciones de datos</div>
+          </td>
+          <td>6 semanas · L–V</td>
+          <td>$350 USD</td>
+        </tr>
+        <tr>
+          <td>
+            Garantía post-torneo
+            <div class="desc">Exportación de datos de resultados finales y ranking oficial para premiación</div>
+          </td>
+          <td>Hasta 2 sem. después</td>
+          <td>$50 USD</td>
+        </tr>
+
+        <tr class="row-subtotal">
+          <td colspan="2">Subtotal Soporte</td>
+          <td>$400 USD</td>
+        </tr>
+
+        <!-- TOTALES -->
+        <tr style="height:8px;"><td colspan="3"></td></tr>
+        <tr class="row-iva">
+          <td colspan="2">Subtotal general</td>
+          <td>$3,798 USD</td>
+        </tr>
+        <tr class="row-iva">
+          <td colspan="2">Descuento por pago adelantado (si aplica)</td>
+          <td style="color:#388e3c !important;">−$198 USD</td>
+        </tr>
+        <tr class="row-total">
+          <td colspan="2"><strong>💰 TOTAL DE LA COTIZACIÓN</strong></td>
+          <td><strong>$3,600 USD</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- NOTAS DE PRECIO -->
+    <div class="info-box green" style="margin-top: 16px;">
+      <strong>✅ Todo incluido — sin costos ocultos</strong>
+      El precio cubre el 100% del desarrollo, infraestructura en la nube durante el torneo, personalización
+      con la marca del restaurante, soporte técnico y entrega de datos finales. El cliente no necesita
+      contratar ningún servicio adicional.
+    </div>
+
+    <div class="info-box yellow" style="margin-top:10px;">
+      <strong>💡 Paquete adicional — Usuarios extra</strong>
+      El paquete base incluye hasta 50 participantes. Si el restaurante desea habilitar más usuarios:
+      <strong>+$2 USD por usuario adicional</strong> (bloques de 25 usuarios).
+    </div>
+
+    <!-- CRONOGRAMA -->
+    <div class="section-title">Cronograma de implementación</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot">1</div>
+        <div class="tl-content">
+          <h4>Semana 1 — Firma y configuración inicial</h4>
+          <p>Firma del contrato, pago inicial (50%), configuración de entorno Azure, carga de participantes y personalización de marca.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">2</div>
+        <div class="tl-content">
+          <h4>Semana 2–3 — Integración y pruebas</h4>
+          <p>Conexión con API-Football, pruebas de la plataforma completa, ajustes de diseño, capacitación del administrador del restaurante.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">3</div>
+        <div class="tl-content">
+          <h4>Semana 4 — Lanzamiento (antes del 11 jun)</h4>
+          <p>Plataforma en línea. Se envían invitaciones a los participantes. Período de prueba abierto con partidos amistosos.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#d32f2f;">⚽</div>
+        <div class="tl-content">
+          <h4>11 jun – 19 jul 2026 — Torneo en vivo</h4>
+          <p>La plataforma opera durante todos los 104 partidos del Mundial. Soporte activo durante este período.</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:#388e3c;">🏆</div>
+        <div class="tl-content">
+          <h4>Post-torneo — Cierre y entrega</h4>
+          <p>Ranking final oficial, exportación de datos para premiación, cierre de la plataforma o extensión de contrato.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDICIONES COMERCIALES -->
+    <div class="section-title">Condiciones comerciales</div>
+    <div class="terms-grid">
+      <div class="term-item">
+        <strong>💳 Forma de pago</strong>
+        50% al firmar el contrato<br/>
+        50% al momento del lanzamiento (antes del 11 jun 2026)
+      </div>
+      <div class="term-item">
+        <strong>📅 Vigencia de la cotización</strong>
+        15 días calendario desde la fecha de emisión.<br/>
+        Precios en USD, sujetos a actualización posterior.
+      </div>
+      <div class="term-item">
+        <strong>🌐 Propiedad intelectual</strong>
+        El software es propiedad del proveedor. Se otorga una licencia de uso exclusivo al cliente durante el torneo.
+      </div>
+      <div class="term-item">
+        <strong>🔒 Confidencialidad</strong>
+        Los datos de los participantes son propiedad del restaurante y no serán compartidos con terceros.
+      </div>
+      <div class="term-item">
+        <strong>📦 Entregables</strong>
+        Plataforma en línea, acceso de administrador, manual de uso básico, datos exportados al cierre.
+      </div>
+      <div class="term-item">
+        <strong>⚠️ No incluye</strong>
+        Dominio personalizado (costo adicional ~$15 USD/año), cambios de alcance fuera del paquete cotizado.
+      </div>
+    </div>
+
+    <!-- FIRMA -->
+    <div class="firma-section">
+      <div class="firma-box">
+        <strong>Proveedor del servicio</strong>
+        <p style="margin-top:40px;">_______________________________</p>
+        <p>[Nombre y firma]</p>
+        <p style="margin-top:8px;">Fecha: ____________________</p>
+      </div>
+      <div class="firma-box" style="border-color:#d32f2f;">
+        <strong style="color:#d32f2f;">Cliente — [Nombre del Restaurante]</strong>
+        <p style="margin-top:40px;">_______________________________</p>
+        <p>[Nombre, cargo y firma]</p>
+        <p style="margin-top:8px;">Fecha: ____________________</p>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <strong>⚽ Predictor Copa del Mundo 2026 — Cotización WC26-001</strong>
+    Para consultas o ajustes al alcance, contactar al proveedor antes del vencimiento de esta cotización.<br/>
+    FIFA World Cup 2026 · Canadá · México · Estados Unidos · 11 junio – 19 julio 2026
+  </div>
+
+</div><!-- /page -->
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(func start:*)",
+      "Bash(curl -s http://localhost:7071/api/footballdata/colombia -w \"\\\\n\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:7071/api/footballdata/fixtures -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(powershell -Command \"Stop-Process -Id 33436 -Force -ErrorAction SilentlyContinue; Write-Host ''Proceso detenido''; Start-Sleep -Seconds 3\")",
+      "Bash(curl -s http://localhost:7071/api/footballdata/colombia)",
+      "Bash(curl -s http://localhost:7071/api/footballdata/colombia -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(curl -s -H \"X-Auth-Token: 16adbf9e6c97444b878dfa6b5ddacfbf\" \"https://api.football-data.org/v4/competitions?filters=code:CO\")",
+      "Bash(curl -s -H \"X-Auth-Token: 16adbf9e6c97444b878dfa6b5ddacfbf\" \"https://api.football-data.org/v4/competitions\")",
+      "Bash(powershell -Command \"Get-Process | Where-Object {$_ProcessName -like ''*func*''} | Stop-Process -Force -ErrorAction SilentlyContinue; Write-Host ''Proceso detenido''; Start-Sleep -Seconds 2\")",
+      "Bash(curl -s http://localhost:7071/api/footballdata/laliga -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:7071/api/footballdata/laliga)",
+      "Bash(dotnet build:*)",
+      "Bash(netstat -ano)",
+      "Read(//c/Users/lfeli/OneDrive/Documents/Mundial/WorldCup2026/api/**)",
+      "Bash(xargs -I {} powershell -Command \"Stop-Process -Id {} -Force -ErrorAction SilentlyContinue\")",
+      "Bash(curl -s http://localhost:7071/api/footballdata/laliga/results -w \"\\\\nStatus: %{http_code}\\\\n\")"
+    ]
+  }
+}
