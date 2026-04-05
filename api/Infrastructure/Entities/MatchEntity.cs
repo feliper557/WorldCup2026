@@ -13,6 +13,7 @@ public class MatchEntity
     public int? AwayScore { get; set; }
     public string? Venue { get; set; }
     public int? ExternalId { get; set; }
+    public string? TournamentId { get; set; }  // For identifying La Liga vs World Cup
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<PredictionEntity> Predictions { get; set; } = new List<PredictionEntity>();

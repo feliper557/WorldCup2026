@@ -37,7 +37,7 @@ public class ScheduledFetchLaLigaMatchesFunction
             // Fetch La Liga matches
             var laLigaMatches = await _footballDataService.GetSpanishLaLigaMatches();
 
-            if (laLigaMatches.Count == 0)
+            if (laLigaMatches.Count() == 0)
             {
                 _logger.LogWarning("No La Liga matches retrieved from Football-Data.org");
                 return;

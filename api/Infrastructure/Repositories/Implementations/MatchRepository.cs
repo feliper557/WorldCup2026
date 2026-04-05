@@ -48,6 +48,16 @@ public class MatchRepository : IMatchRepository
         return match;
     }
 
+    public async Task<MatchEntity> UpsertAsync(MatchEntity match)
+    {
+        var existing = await GetByIdAsync(match.Id);
+        if (existing != null)
+        {
+            return await UpdateAsync(match);
+        }
+        return await CreateAsync(match);
+    }
+
     public async Task DeleteAsync(string id)
     {
         var match = await GetByIdAsync(id);

@@ -23,15 +23,19 @@ export const router = createBrowserRouter([
   },
   {
     path: '/',
-    element: <RequireAuth />,
+    element: <Layout />,
     children: [
       {
-        element: <Layout />,
+        index: true,
+        element: <InfoPage />,
+      },
+      {
+        path: 'info',
+        element: <InfoPage />,
+      },
+      {
+        element: <RequireAuth />,
         children: [
-          {
-            index: true,
-            element: <InfoPage />,
-          },
           {
             path: 'matches',
             element: <MatchesPage />,
@@ -47,10 +51,6 @@ export const router = createBrowserRouter([
           {
             path: 'raffles',
             element: <RafflesPage />,
-          },
-          {
-            path: 'info',
-            element: <InfoPage />,
           },
           {
             path: 'admin',

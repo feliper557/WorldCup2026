@@ -37,7 +37,7 @@ public class ScheduledFetchMatchesFunction
             // Fetch World Cup matches
             var worldCupMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (worldCupMatches.Count == 0)
+            if (worldCupMatches.Count() == 0)
             {
                 _logger.LogWarning("No matches retrieved from Football-Data.org");
                 return;

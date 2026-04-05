@@ -51,7 +51,7 @@ public class ScheduledFetchSmartMatchesFunction
         {
             // Check if database is empty - if so, do initial load regardless of time
             var allMatches = await _matchRepository.GetAllAsync();
-            bool isDbEmpty = allMatches.Count == 0;
+            bool isDbEmpty = allMatches.Count() == 0;
 
             if (isDbEmpty)
             {
@@ -112,7 +112,7 @@ public class ScheduledFetchSmartMatchesFunction
         {
             var laLigaMatches = await _footballDataService.GetSpanishLaLigaMatches();
 
-            if (laLigaMatches.Count == 0)
+            if (laLigaMatches.Count() == 0)
             {
                 _logger.LogWarning("No La Liga matches retrieved");
                 return;
@@ -153,7 +153,7 @@ public class ScheduledFetchSmartMatchesFunction
         {
             var wcMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (wcMatches.Count == 0)
+            if (wcMatches.Count() == 0)
             {
                 _logger.LogWarning("No World Cup matches retrieved");
                 return;
@@ -201,7 +201,7 @@ public class ScheduledFetchSmartMatchesFunction
         {
             var wcMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (wcMatches.Count == 0)
+            if (wcMatches.Count() == 0)
             {
                 _logger.LogWarning("No World Cup matches retrieved");
                 return;
@@ -272,7 +272,7 @@ public class ScheduledFetchSmartMatchesFunction
         {
             var wcMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (wcMatches.Count == 0)
+            if (wcMatches.Count() == 0)
             {
                 _logger.LogWarning("No World Cup matches retrieved");
                 return;

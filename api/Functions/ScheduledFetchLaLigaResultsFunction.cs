@@ -59,7 +59,7 @@ public class ScheduledFetchLaLigaResultsFunction
                     && m.KickoffAtUtc <= now.AddMinutes(-BufferMinutesAfterKickoff))
                 .ToList();
 
-            if (matchesToCheck.Count == 0)
+            if (matchesToCheck.Count() == 0)
             {
                 _logger.LogInformation("No La Liga matches to check for results at this time");
                 return;

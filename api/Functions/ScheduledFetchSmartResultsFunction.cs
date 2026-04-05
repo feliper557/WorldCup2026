@@ -54,7 +54,7 @@ public class ScheduledFetchSmartResultsFunction
         {
             // Check if database is empty - if so, nothing to process yet
             var allMatches = await _matchRepository.GetAllAsync();
-            if (allMatches.Count == 0)
+            if (allMatches.Count() == 0)
             {
                 _logger.LogInformation("📊 No matches in database yet - skipping results processing");
                 return;
@@ -108,7 +108,7 @@ public class ScheduledFetchSmartResultsFunction
                     && m.KickoffAtUtc <= now.AddMinutes(-BufferMinutes))
                 .ToList();
 
-            if (toCheck.Count == 0)
+            if (toCheck.Count() == 0)
             {
                 return;
             }
@@ -170,7 +170,7 @@ public class ScheduledFetchSmartResultsFunction
                     && m.KickoffAtUtc <= now.AddMinutes(-BufferMinutes))
                 .ToList();
 
-            if (toCheck.Count == 0)
+            if (toCheck.Count() == 0)
             {
                 return;
             }

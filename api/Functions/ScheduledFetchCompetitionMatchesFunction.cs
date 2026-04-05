@@ -97,7 +97,7 @@ public class ScheduledFetchCompetitionMatchesFunction
         {
             var laLigaMatches = await _footballDataService.GetSpanishLaLigaMatches();
 
-            if (laLigaMatches.Count == 0)
+            if (laLigaMatches.Count() == 0)
             {
                 _logger.LogWarning("No La Liga matches retrieved");
                 return;
@@ -149,7 +149,7 @@ public class ScheduledFetchCompetitionMatchesFunction
         {
             var worldCupMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (worldCupMatches.Count == 0)
+            if (worldCupMatches.Count() == 0)
             {
                 _logger.LogWarning("No World Cup matches retrieved");
                 return;
@@ -204,7 +204,7 @@ public class ScheduledFetchCompetitionMatchesFunction
         {
             var worldCupMatches = await _footballDataService.GetWorldCupMatches();
 
-            if (worldCupMatches.Count == 0)
+            if (worldCupMatches.Count() == 0)
             {
                 _logger.LogWarning("No World Cup matches retrieved");
                 return;

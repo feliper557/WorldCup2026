@@ -11,5 +11,6 @@ public interface IMatchRepository
     Task<IEnumerable<MatchEntity>> GetByStatusAsync(string status);
     Task<MatchEntity> CreateAsync(MatchEntity match);
     Task<MatchEntity> UpdateAsync(MatchEntity match);
+    Task<MatchEntity> UpsertAsync(MatchEntity match);
     Task DeleteAsync(string id);
 }
