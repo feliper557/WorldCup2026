@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Services;
 
+using WorldCup.Api.Extensions;
 namespace WorldCup.Api.Functions;
 
 /// <summary>
@@ -117,7 +118,7 @@ public class ScheduledFetchCompetitionMatchesFunction
             // Store matches
             foreach (var match in upcomingMatches)
             {
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
                 _logger.LogInformation(
                     "La Liga: {HomeTeam} vs {AwayTeam} - {KickoffTime}",
                     match.HomeTeam,
@@ -171,7 +172,7 @@ public class ScheduledFetchCompetitionMatchesFunction
                 // Store ALL matches for the tournament period
                 foreach (var match in allMatches)
                 {
-                    await _matchRepository.UpsertAsync(match);
+                    await _matchRepository.UpsertAsync(match.ToEntity());
                     _logger.LogInformation(
                         "🌍 World Cup: {HomeTeam} vs {AwayTeam} - {KickoffTime} ({Stage})",
                         match.HomeTeam,
@@ -224,7 +225,7 @@ public class ScheduledFetchCompetitionMatchesFunction
             // Store matches
             foreach (var match in confirmedMatches)
             {
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
                 _logger.LogInformation(
                     "🌍 World Cup: {HomeTeam} vs {AwayTeam} - {KickoffTime} ({Stage})",
                     match.HomeTeam,

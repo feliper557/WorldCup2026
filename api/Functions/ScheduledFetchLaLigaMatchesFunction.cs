@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Services;
 
+using WorldCup.Api.Extensions;
 namespace WorldCup.Api.Functions;
 
 /// <summary>
@@ -66,7 +67,7 @@ public class ScheduledFetchLaLigaMatchesFunction
                         match.AwayTeam,
                         match.KickoffAtUtc);
 
-                    await _matchRepository.UpsertAsync(match);
+                    await _matchRepository.UpsertAsync(match.ToEntity());
                 }
 
                 _logger.LogInformation(

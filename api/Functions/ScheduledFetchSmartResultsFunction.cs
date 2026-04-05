@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Infrastructure.Entities;
 using WorldCup.Api.Services;
+using WorldCup.Api.Extensions;
 
 namespace WorldCup.Api.Functions;
 
@@ -129,13 +130,13 @@ public class ScheduledFetchSmartResultsFunction
                         "📊 FINISHED: {HomeTeam} {H}-{A} {AwayTeam}",
                         upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
 
-                    await _matchRepository.UpsertAsync(upd);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
                     await ProcessPredictions(upd);
                     count++;
                 }
                 else if (upd.Status == "LIVE" || upd.Status == "IN_PLAY")
                 {
-                    await _matchRepository.UpsertAsync(upd);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
                 }
             }
 
@@ -192,13 +193,13 @@ public class ScheduledFetchSmartResultsFunction
                         upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam,
                         upd.Stage);
 
-                    await _matchRepository.UpsertAsync(upd);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
                     await ProcessPredictions(upd);
                     count++;
                 }
                 else if (upd.Status == "LIVE" || upd.Status == "IN_PLAY")
                 {
-                    await _matchRepository.UpsertAsync(upd);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
                 }
             }
 

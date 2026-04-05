@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Infrastructure.Entities;
 using WorldCup.Api.Services;
+using WorldCup.Api.Extensions;
 
 namespace WorldCup.Api.Functions;
 

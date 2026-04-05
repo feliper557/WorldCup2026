@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Services;
 
+using WorldCup.Api.Extensions;
 namespace WorldCup.Api.Functions;
 
 /// <summary>
@@ -131,7 +132,7 @@ public class ScheduledFetchSmartMatchesFunction
 
             foreach (var match in upcomingMatches)
             {
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
             }
 
             _logger.LogInformation("✅ La Liga: Stored {Count} matches", upcomingMatches.Count);
@@ -172,7 +173,7 @@ public class ScheduledFetchSmartMatchesFunction
 
             foreach (var match in allMatches)
             {
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
                 _logger.LogInformation(
                     "  {HomeTeam} vs {AwayTeam} - {Date} ({Stage})",
                     match.HomeTeam,
@@ -246,7 +247,7 @@ public class ScheduledFetchSmartMatchesFunction
                     inserted++;
                 }
 
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
             }
 
             _logger.LogInformation(
@@ -297,7 +298,7 @@ public class ScheduledFetchSmartMatchesFunction
 
             foreach (var match in confirmedMatches)
             {
-                await _matchRepository.UpsertAsync(match);
+                await _matchRepository.UpsertAsync(match.ToEntity());
                 _logger.LogInformation(
                     "  ✓ {HomeTeam} vs {AwayTeam} - {Date} ({Stage})",
                     match.HomeTeam,
