@@ -141,13 +141,13 @@ public class ScheduledFetchCompetitionResultsFunction
                         updatedMatch.AwayScoreFinal,
                         updatedMatch.AwayTeam);
 
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     await ProcessMatchPredictions(updatedMatch);
                     updatedCount++;
                 }
                 else if (updatedMatch.Status == "LIVE" || updatedMatch.Status == "IN_PLAY")
                 {
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                 }
             }
@@ -217,13 +217,13 @@ public class ScheduledFetchCompetitionResultsFunction
                         updatedMatch.AwayTeam,
                         updatedMatch.Stage ?? "UNKNOWN");
 
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     await ProcessMatchPredictions(updatedMatch);
                     updatedCount++;
                 }
                 else if (updatedMatch.Status == "LIVE" || updatedMatch.Status == "IN_PLAY")
                 {
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                 }
             }

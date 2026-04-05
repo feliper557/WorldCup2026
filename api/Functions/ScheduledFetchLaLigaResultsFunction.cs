@@ -99,7 +99,7 @@ public class ScheduledFetchLaLigaResultsFunction
                         updatedMatch.AwayTeam);
 
                     // Update match in database
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                     resultCount++;
 
@@ -114,7 +114,7 @@ public class ScheduledFetchLaLigaResultsFunction
                         updatedMatch.AwayTeam);
 
                     // Update match status
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                 }
                 else if (updatedMatch.Status == "IN_PLAY")
@@ -124,7 +124,7 @@ public class ScheduledFetchLaLigaResultsFunction
                         updatedMatch.HomeTeam,
                         updatedMatch.AwayTeam);
 
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                 }
             }

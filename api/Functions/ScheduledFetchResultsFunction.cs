@@ -94,7 +94,7 @@ public class ScheduledFetchResultsFunction
                         updatedMatch.AwayTeam);
 
                     // Update match in database
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
 
                     // Calculate and award points to predictions for this match
@@ -109,7 +109,7 @@ public class ScheduledFetchResultsFunction
                         updatedMatch.AwayTeam);
 
                     // Update match status
-                    await _matchRepository.UpsertAsync(updatedMatch);
+                    await _matchRepository.UpsertAsync(updatedMatch.ToEntity());
                     updatedCount++;
                 }
             }
