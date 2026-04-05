@@ -1,29 +1,29 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using WorldCup.Api.Infrastructure.Repositories.Interfaces;
-using WorldCup.Api.Infrastructure.Entities;
-using WorldCup.Api.Services;
 using WorldCup.Api.Extensions;
+using WorldCup.Api.Infrastructure.Entities;
+using WorldCup.Api.Infrastructure.Repositories.Interfaces;
+using WorldCup.Api.Services;
 
-namespace WorldCup.Api.Functions;
+namespace ApiTimer.Functions;
 
 /// <summary>
 /// UNIFIED SMART Function - Fetch results with same logic
 /// Auto-switches La Liga ↔ World Cup based on date
 /// Runs every 5 minutes
+/// Calculates points: 3 (exact), 1 (correct winner), 0 (wrong)
+/// Bonuses: +5 for Colombia (World Cup) or Barcelona/Real Madrid (La Liga demo)
 /// </summary>
-public class ScheduledFetchSmartResultsFunction
+public class ScheduledFetchSmartResults
 {
     private readonly IFootballDataService _footballDataService;
     private readonly IMatchRepository _matchRepository;
     private readonly IPredictionRepository _predictionRepository;
     private readonly IScoringService _scoringService;
-    private readonly ILogger<ScheduledFetchSmartResultsFunction> _logger;
+    private readonly ILogger<ScheduledFetchSmartResults> _logger;
 
-    // Buffer: 90 min game + 15 min stoppage
     private const int BufferMinutes = 105;
 
-    // World Cup dates
     private static readonly DateTime WC_FULL_LOAD_START = new DateTime(2026, 6, 1);
     private static readonly DateTime WC_FULL_LOAD_END = new DateTime(2026, 6, 2, 23, 59, 59);
     private static readonly DateTime WC_MATCHES_START = new DateTime(2026, 6, 11);
@@ -31,12 +31,12 @@ public class ScheduledFetchSmartResultsFunction
     private static readonly DateTime WC_LIVE_START = new DateTime(2026, 6, 10);
     private static readonly DateTime WC_FINALS_START = new DateTime(2026, 6, 25);
 
-    public ScheduledFetchSmartResultsFunction(
+    public ScheduledFetchSmartResults(
         IFootballDataService footballDataService,
         IMatchRepository matchRepository,
         IPredictionRepository predictionRepository,
         IScoringService scoringService,
-        ILogger<ScheduledFetchSmartResultsFunction> logger)
+        ILogger<ScheduledFetchSmartResults> logger)
     {
         _footballDataService = footballDataService;
         _matchRepository = matchRepository;
@@ -47,7 +47,7 @@ public class ScheduledFetchSmartResultsFunction
 
     [Function("ScheduledFetchSmartResults")]
     public async Task Run(
-        [TimerTrigger("*/5 * * * *")] TimerInfo timer) // Every 5 minutes
+        [TimerTrigger("*/5 * * * *")] TimerInfo timer)
     {
         var now = DateTime.UtcNow;
 
@@ -63,17 +63,14 @@ public class ScheduledFetchSmartResultsFunction
 
             if (now < WC_FULL_LOAD_START)
             {
-                // PHASE 1: LA LIGA results
                 await FetchLaLigaResults(now);
             }
             else if (now >= WC_FULL_LOAD_START && now <= WC_FULL_LOAD_END)
             {
-                // PHASE 2: Waiting for World Cup (no results yet)
                 _logger.LogInformation("⏳ PHASE 2: Loading World Cup - no results yet");
             }
             else if (now >= WC_LIVE_START)
             {
-                // PHASE 3: World Cup results
                 await FetchWorldCupResults(now);
             }
 
@@ -91,9 +88,6 @@ public class ScheduledFetchSmartResultsFunction
         }
     }
 
-    /// <summary>
-    /// Fetch La Liga results for completed matches
-    /// </summary>
     private async Task FetchLaLigaResults(DateTime now)
     {
         try
@@ -106,7 +100,7 @@ public class ScheduledFetchSmartResultsFunction
 
             var toCheck = laLigaMatches
                 .Where(m => m.Status != "FINISHED"
-                    && m.KickoffAtUtc <= now.AddMinutes(-BufferMinutes))
+                    && m.MatchDate <= now.AddMinutes(-BufferMinutes))
                 .ToList();
 
             if (toCheck.Count() == 0)
@@ -114,7 +108,7 @@ public class ScheduledFetchSmartResultsFunction
                 return;
             }
 
-            _logger.LogInformation("📊 La Liga: Checking {Count} for results", toCheck.Count);
+            _logger.LogInformation("📊 La Liga: Checking {Count} for results", toCheck.Count());
 
             var updated = await _footballDataService.GetSpanishLaLigaMatches();
             int count = 0;
@@ -124,11 +118,11 @@ public class ScheduledFetchSmartResultsFunction
                 var upd = updated.FirstOrDefault(m => m.Id == match.Id);
                 if (upd == null) continue;
 
-                if (upd.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                if (upd.Status == "FINISHED" && upd.HomeScore.HasValue && upd.AwayScore.HasValue)
                 {
                     _logger.LogInformation(
                         "📊 FINISHED: {HomeTeam} {H}-{A} {AwayTeam}",
-                        upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
+                        upd.HomeTeam, upd.HomeScore, upd.AwayScore, upd.AwayTeam);
 
                     await _matchRepository.UpsertAsync(upd.ToEntity());
                     await ProcessPredictions(upd);
@@ -149,9 +143,6 @@ public class ScheduledFetchSmartResultsFunction
         }
     }
 
-    /// <summary>
-    /// Fetch World Cup results for completed matches
-    /// </summary>
     private async Task FetchWorldCupResults(DateTime now)
     {
         try
@@ -168,7 +159,7 @@ public class ScheduledFetchSmartResultsFunction
 
             var toCheck = wcMatches
                 .Where(m => m.Status != "FINISHED"
-                    && m.KickoffAtUtc <= now.AddMinutes(-BufferMinutes))
+                    && m.MatchDate <= now.AddMinutes(-BufferMinutes))
                 .ToList();
 
             if (toCheck.Count() == 0)
@@ -176,7 +167,7 @@ public class ScheduledFetchSmartResultsFunction
                 return;
             }
 
-            _logger.LogInformation("🌍 World Cup: Checking {Count} for results", toCheck.Count);
+            _logger.LogInformation("🌍 World Cup: Checking {Count} for results", toCheck.Count());
 
             var updated = await _footballDataService.GetWorldCupMatches();
             int count = 0;
@@ -186,11 +177,11 @@ public class ScheduledFetchSmartResultsFunction
                 var upd = updated.FirstOrDefault(m => m.Id == match.Id);
                 if (upd == null) continue;
 
-                if (upd.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                if (upd.Status == "FINISHED" && upd.HomeScore.HasValue && upd.AwayScore.HasValue)
                 {
                     _logger.LogInformation(
                         "🌍 FINISHED: {HomeTeam} {H}-{A} {AwayTeam} ({Stage})",
-                        upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam,
+                        upd.HomeTeam, upd.HomeScore, upd.AwayScore, upd.AwayTeam,
                         upd.Stage);
 
                     await _matchRepository.UpsertAsync(upd.ToEntity());
@@ -212,19 +203,13 @@ public class ScheduledFetchSmartResultsFunction
         }
     }
 
-    /// <summary>
-    /// Process predictions and award points based on match result
-    /// Calculates points: 3 (exact), 1 (correct winner), 0 (wrong)
-    /// Bonuses: +5 for Colombia matches (World Cup) or Barcelona/Real Madrid (La Liga demo)
-    /// </summary>
-    private async Task ProcessPredictions(Models.Match match)
+    private async Task ProcessPredictions(WorldCup.Api.Models.Match match)
     {
         try
         {
             _logger.LogInformation("⚙️ Processing predictions for {MatchId}: {HomeTeam} vs {AwayTeam}",
                 match.Id, match.HomeTeam, match.AwayTeam);
 
-            // Get all predictions for this match
             var predictions = await _predictionRepository.GetByMatchIdAsync(match.Id);
 
             if (!predictions.Any())
@@ -233,11 +218,10 @@ public class ScheduledFetchSmartResultsFunction
                 return;
             }
 
-            // Check if this is a demo match (La Liga) or World Cup
             var isDemo = match.Stage?.ToUpper().Contains("REGULAR") ?? false;
             var bonusTeams = isDemo
-                ? new[] { "BARCELONA", "REAL MADRID" }  // Demo bonus teams
-                : new[] { "COLOMBIA" };  // World Cup bonus team
+                ? new[] { "BARCELONA", "REAL MADRID" }
+                : new[] { "COLOMBIA" };
 
             var hasBonus = bonusTeams.Contains(match.HomeTeam?.ToUpper()) ||
                           bonusTeams.Contains(match.AwayTeam?.ToUpper());
@@ -246,18 +230,14 @@ public class ScheduledFetchSmartResultsFunction
 
             foreach (var prediction in predictions)
             {
-                // Calculate base points (3, 1, or 0)
-                int basePoints = _scoringService.CalculatePoints(match, new Models.Prediction
+                int basePoints = _scoringService.CalculatePoints(match, new WorldCup.Api.Models.Prediction
                 {
                     HomeScorePred = prediction.PredictedHomeScore,
                     AwayScorePred = prediction.PredictedAwayScore
                 });
 
-                // Apply team bonus: if exact score (3 pts) on Colombia/Barcelona/Real Madrid match → 5 pts
-                // Otherwise use base points
                 int totalPoints = (basePoints == 3 && hasBonus) ? 5 : basePoints;
 
-                // Update prediction with earned points
                 var predictionEntity = new PredictionEntity
                 {
                     Id = prediction.Id,
