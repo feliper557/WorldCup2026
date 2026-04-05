@@ -88,6 +88,7 @@ export function Navbar() {
   };
 
   const getUserInitial = () => {
+    if (!user) return '?';
     // Para JWT users, obtener de displayName
     if ('displayName' in user) {
       return user.displayName?.charAt(0).toUpperCase() || '?';
@@ -97,6 +98,7 @@ export function Navbar() {
   };
 
   const getUserLabel = () => {
+    if (!user) return 'Usuario';
     // Para JWT users, mostrar displayName
     if ('displayName' in user) {
       return user.displayName || 'Usuario';

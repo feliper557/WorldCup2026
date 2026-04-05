@@ -57,7 +57,16 @@ export function ParticipantsPage() {
   }, [ranking, searchText, sortBy]);
 
   const isCurrentUser = (userId: string) => {
-    return user?.userId === userId;
+    if (!user) return false;
+    // Para JWT users (UserProfile)
+    if ('id' in user) {
+      return user.id === userId;
+    }
+    // Para GitHub users (ClientPrincipal)
+    if ('clientPrincipalId' in user) {
+      return user.clientPrincipalId === userId;
+    }
+    return false;
   };
 
   const getAvatarLabel = (name: string) => {
