@@ -45,8 +45,11 @@ public class SecureTokenService
     /// - Role in JWT doesn't match database role (CRITICAL - possible tampering)
     /// - User is not active
     /// </summary>
-    public async Task<UserContext?> ValidateTokenAndVerifyRole(string token)
+    public async Task<UserContext?> ValidateTokenAndVerifyRole(string? token)
     {
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
         try
         {
             // Step 1: Validate JWT signature and expiration
@@ -120,7 +123,7 @@ public class SecureTokenService
     /// Validate token and ensure user has admin role
     /// Use this for all admin-only endpoints
     /// </summary>
-    public async Task<UserContext?> ValidateAdminToken(string token)
+    public async Task<UserContext?> ValidateAdminToken(string? token)
     {
         var userContext = await ValidateTokenAndVerifyRole(token);
         if (userContext == null)
