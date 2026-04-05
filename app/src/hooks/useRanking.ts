@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Score } from '../types';
 import { getRanking } from '../services/apiClient';
-import { MOCK_RANKING } from '../services/mockData';
 
 export interface UseRankingResult {
   ranking: Score[];
@@ -22,14 +21,7 @@ export function useRanking(): UseRankingResult {
       setRanking(data);
       setError(null);
     } catch (err) {
-      console.warn('Error fetching ranking, using mock data:', err);
-      // En desarrollo, usar mock data si hay error
-      if (import.meta.env.DEV) {
-        setRanking(MOCK_RANKING);
-        setError(null);
-      } else {
-        setError(err instanceof Error ? err : new Error('Failed to fetch ranking'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to fetch ranking'));
     } finally {
       setLoading(false);
     }

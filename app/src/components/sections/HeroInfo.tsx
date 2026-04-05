@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Container, Typography, useTheme } from '@mui/material';
+import { Box, Container, Typography, useTheme, Button } from '@mui/material';
+import { WhatsApp } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
 export function HeroInfo() {
@@ -47,9 +48,9 @@ export function HeroInfo() {
         sx={{
           position: 'absolute',
           left: '50%',
-          top: '50%',
+          top: { xs: '12%', sm: '24%' },
           transform: 'translate(-50%, -50%)',
-          opacity: 0.35,
+          opacity: 0.15,
           zIndex: 1,
           pointerEvents: 'none',
         }}
@@ -88,10 +89,34 @@ export function HeroInfo() {
               lineHeight: 1.6,
               maxWidth: '500px',
               color: theme.palette.text.secondary,
+              mb: 3,
             }}
           >
             Conoce las reglas del juego, datos del torneo y mantente al día con los últimos avisos
           </Typography>
+
+          {/* Register Button */}
+          <Button
+            className="fade-up"
+            variant="contained"
+            color="success"
+            startIcon={<WhatsApp />}
+            onClick={() => {
+              const message = encodeURIComponent(
+                'Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉'
+              );
+              const whatsappUrl = `https://wa.me/573133195197?text=${message}`;
+              window.open(whatsappUrl, '_blank');
+            }}
+            sx={{
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              fontSize: '0.95rem',
+            }}
+          >
+            Registrarme
+          </Button>
         </Box>
 
         {/* Decorative Border */}

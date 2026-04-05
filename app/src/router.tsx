@@ -9,12 +9,17 @@ import {
   InfoPage,
   RafflesPage,
   AdminPage,
+  PaymentResultPage,
 } from './pages';
 
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/pago-resultado',
+    element: <PaymentResultPage />,
   },
   {
     path: '/',
@@ -25,7 +30,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <MatchesPage />,
+            element: <InfoPage />,
           },
           {
             path: 'matches',

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Raffle, RaffleJoinRequest, RaffleCreateRequest } from '../types';
 import { getRaffles, joinRaffle, createRaffle, drawRaffle } from '../services/apiClient';
-import { MOCK_RAFFLES } from '../services/mockData';
 
 export interface UseRafflesResult {
   raffles: Raffle[];
@@ -27,14 +26,7 @@ export function useRaffles(): UseRafflesResult {
       setRaffles(data);
       setError(null);
     } catch (err) {
-      console.warn('Error fetching raffles, using mock data:', err);
-      // En desarrollo, usar mock data si hay error
-      if (import.meta.env.DEV) {
-        setRaffles(MOCK_RAFFLES);
-        setError(null);
-      } else {
-        setError(err instanceof Error ? err : new Error('Failed to fetch raffles'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to fetch raffles'));
     } finally {
       setLoading(false);
     }
@@ -63,26 +55,7 @@ export function useRaffles(): UseRafflesResult {
       await fetchRaffles();
     } catch (err) {
       console.error('Error creating raffle:', err);
-      if (import.meta.env.DEV) {
-        // En desarrollo, simular creación
-        const newRaffle: Raffle = {
-          id: `raffle-${Date.now()}`,
-          title: data.title,
-          description: data.description,
-          prize: data.prize,
-          status: 'OPEN',
-          maxParticipants: data.maxParticipants || null,
-          participantCount: 0,
-          createdAtUtc: new Date().toISOString(),
-          drawAtUtc: data.drawAtUtc,
-          winnerId: null,
-          winnerName: null,
-          participants: [],
-        };
-        setRaffles([...raffles, newRaffle]);
-      } else {
-        setError(err instanceof Error ? err : new Error('Failed to create raffle'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to create raffle'));
     } finally {
       setLoading(false);
     }
@@ -96,25 +69,7 @@ export function useRaffles(): UseRafflesResult {
       await fetchRaffles();
     } catch (err) {
       console.error('Error drawing raffle:', err);
-      if (import.meta.env.DEV) {
-        // En desarrollo, simular sorteo
-        setRaffles(
-          raffles.map((r) => {
-            if (r.id === raffleId && r.participants.length > 0) {
-              const winner = r.participants[Math.floor(Math.random() * r.participants.length)];
-              return {
-                ...r,
-                status: 'COMPLETED' as const,
-                winnerId: winner.userId,
-                winnerName: winner.displayName,
-              };
-            }
-            return r;
-          })
-        );
-      } else {
-        setError(err instanceof Error ? err : new Error('Failed to draw raffle'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to draw raffle'));
     } finally {
       setLoading(false);
     }

@@ -42,6 +42,7 @@ builder.Services.AddScoped<IPredictionRepository, PredictionRepository>();
 builder.Services.AddScoped<IScoreRepository, ScoreRepository>();
 builder.Services.AddScoped<IRaffleRepository, RaffleRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // Register services
 builder.Services.AddSingleton<ITimeProviderService, TimeProviderService>();
@@ -56,6 +57,9 @@ builder.Services.AddScoped<JwtService>();
 // Register SecureTokenService for secure token validation with database verification
 // Prevents privilege escalation attacks by verifying role against DB
 builder.Services.AddScoped<SecureTokenService>();
+
+// Register EmailService for sending emails via Resend
+builder.Services.AddHttpClient<EmailService>();
 
 // Register HttpClient for Football-Data.org API
 builder.Services.AddHttpClient<IFootballDataService, FootballDataService>();

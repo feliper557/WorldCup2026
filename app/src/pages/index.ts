@@ -5,3 +5,4 @@ export { ParticipantsPage } from './ParticipantsPage';
 export { RafflesPage } from './RafflesPage';
 export { InfoPage } from './InfoPage';
 export { AdminPage } from './AdminPage';
+export { PaymentResultPage } from './PaymentResultPage';

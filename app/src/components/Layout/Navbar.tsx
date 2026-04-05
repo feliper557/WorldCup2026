@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { getLogoutUrl } from '../../services/auth';
+import { getLogoutUrl, logout, getStoredToken } from '../../services/auth';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -77,11 +77,32 @@ export function Navbar() {
   };
 
   const handleLogout = () => {
-    window.location.href = getLogoutUrl();
+    // Si es JWT login (localStorage), usar logout local
+    if (getStoredToken()) {
+      logout();
+      navigate('/');
+    } else {
+      // Si es GitHub login, usar Azure logout
+      window.location.href = getLogoutUrl();
+    }
   };
 
   const getUserInitial = () => {
+    // Para JWT users, obtener de displayName
+    if ('displayName' in user) {
+      return user.displayName?.charAt(0).toUpperCase() || '?';
+    }
+    // Para GitHub users, obtener de userDetails
     return user?.userDetails?.charAt(0).toUpperCase() || '?';
+  };
+
+  const getUserLabel = () => {
+    // Para JWT users, mostrar displayName
+    if ('displayName' in user) {
+      return user.displayName || 'Usuario';
+    }
+    // Para GitHub users, mostrar userDetails
+    return user?.userDetails || 'Usuario';
   };
 
   return (
@@ -111,7 +132,7 @@ export function Navbar() {
         >
           {/* Logo + Brand */}
           <Box
-            onClick={() => navigate('/ranking')}
+            onClick={() => navigate('/matches')}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -248,7 +269,7 @@ export function Navbar() {
                   open={Boolean(anchorEl)}
                   onClose={handleMenuClose}
                 >
-                  <MenuItem disabled>{user.userDetails}</MenuItem>
+                  <MenuItem disabled>{getUserLabel()}</MenuItem>
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
               </>

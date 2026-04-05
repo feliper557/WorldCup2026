@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(grep -n \"GenerateToken\" /c/Users/lfeli/OneDrive/Documents/Mundial/WorldCup2026/api/Services/*.cs)",
-      "Bash(dotnet ef:*)"
+      "Bash(dotnet ef:*)",
+      "Bash(grep -E \"\\\\.cs$\")"
     ]
   }
 }

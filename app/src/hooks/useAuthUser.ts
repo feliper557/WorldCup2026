@@ -1,34 +1,35 @@
 import { useEffect, useState } from 'react';
-import { getAuthMe } from '../services/auth';
-import type { ClientPrincipal } from '../services/auth';
+import { getAuthMe, getStoredUser, getStoredToken } from '../services/auth';
+import type { ClientPrincipal, UserProfile } from '../services/auth';
 
 export interface AuthUser {
-  user: ClientPrincipal | null;
+  user: ClientPrincipal | UserProfile | null;
   loading: boolean;
   error: Error | null;
 }
 
-// Mock user para desarrollo (comentar en producción)
-const DEV_MOCK_USER: ClientPrincipal = {
-  identityProvider: 'github',
-  userId: 'dev-user-123',
-  userDetails: 'DevUser',
-  userRoles: ['user'],
-};
-
 export function useAuthUser(): AuthUser {
-  const [user, setUser] = useState<ClientPrincipal | null>(null);
+  const [user, setUser] = useState<ClientPrincipal | UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     async function fetchAuth() {
       try {
+        // Primero intentar obtener JWT token del localStorage
+        const token = getStoredToken();
+        if (token) {
+          const storedUser = getStoredUser();
+          if (storedUser) {
+            setUser(storedUser);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Si no hay JWT, intentar Azure Static Web Apps auth
         const authMe = await getAuthMe();
-        // MODO DESARROLLO: Si no hay usuario, usar mock
-        if (!authMe.clientPrincipal && import.meta.env.DEV) {
-          setUser(DEV_MOCK_USER);
-        } else {
+        if (authMe.clientPrincipal) {
           setUser(authMe.clientPrincipal);
         }
       } catch (err) {

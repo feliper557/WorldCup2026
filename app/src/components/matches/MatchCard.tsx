@@ -20,6 +20,9 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   // Verificar si la predicción está disponible (solo en estado SCHEDULED)
   const isPredictionAvailable = match.status === 'SCHEDULED';
 
+  // Detectar si es La Liga (DEMO)
+  const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
+
   const getAvatarColor = (initial: string) => {
     const colors = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.warning.main];
     return colors[initial.charCodeAt(0) % colors.length];
@@ -28,8 +31,11 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   return (
     <Card sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Chip label={match.stage} size="small" color="primary" />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Chip label={match.stage} size="small" color="primary" />
+            {isDemo && <Chip label="🎯 DEMO" size="small" color="warning" sx={{ fontWeight: 600 }} />}
+          </Box>
           <Chip label={formattedDate} size="small" color="primary" />
         </Box>
 

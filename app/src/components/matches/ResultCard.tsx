@@ -15,6 +15,9 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
     year: '2-digit',
   });
 
+  // Detectar si es La Liga (DEMO)
+  const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
+
   const determinePointsColor = (points: number | null) => {
     if (points === 3) return 'success';
     if (points === 1) return 'warning';
@@ -38,8 +41,11 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
   return (
     <Card sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Chip label={match.stage} size="small" color="primary" />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Chip label={match.stage} size="small" color="primary" />
+            {isDemo && <Chip label="🎯 DEMO" size="small" color="warning" sx={{ fontWeight: 600 }} />}
+          </Box>
           <Chip label={formattedDate} size="small" color="primary" />
         </Box>
 

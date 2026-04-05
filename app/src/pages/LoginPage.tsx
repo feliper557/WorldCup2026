@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Box, Paper, Typography, Button, Divider, ToggleButton, ToggleButtonGroup, useTheme } from '@mui/material';
-import { GitHub, AppRegistration } from '@mui/icons-material';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Box, Paper, Typography, Button, Divider, useTheme, TextField, Alert, CircularProgress } from '@mui/material';
+import { Email, Lock, WhatsApp } from '@mui/icons-material';
 import { useAuthUser } from '../hooks/useAuthUser';
-import { getLoginUrl } from '../services/auth';
+import { loginWithCredentials } from '../services/auth';
 import { FrancachelaWatermark, FrancachelaLogo } from '../components/FrancachelaLogo';
 
 export function LoginPage() {
   const { user, loading } = useAuthUser();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const theme = useTheme();
+  const navigate = useNavigate();
 
   // Si ya está autenticado, redirigir a matches
   if (!loading && user) {
@@ -19,6 +23,25 @@ export function LoginPage() {
   if (loading) {
     return null;
   }
+
+  const handleCredentialLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await loginWithCredentials(email, password);
+      if (response.success) {
+        navigate('/matches');
+      } else {
+        setError(response.message || 'Error al iniciar sesión');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -42,8 +65,6 @@ export function LoginPage() {
         },
       }}
     >
-      {/* Watermark decorativo */}
-      <FrancachelaWatermark position="bottom-right" />
       <Paper
         elevation={12}
         sx={{
@@ -99,8 +120,8 @@ export function LoginPage() {
 
         <Divider sx={{ my: 3, borderColor: theme.palette.primary.main, opacity: 0.5 }} />
 
-        {/* Toggle entre Login y Registro */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        {/* Toggle entre Login y Registro (Registro temporalmente oculto) */}
+        {/* <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
           <ToggleButtonGroup
             value={mode}
             exclusive
@@ -118,54 +139,85 @@ export function LoginPage() {
               Registrarse
             </ToggleButton>
           </ToggleButtonGroup>
-        </Box>
+        </Box> */}
 
         <Box sx={{ textAlign: 'center' }}>
-          {mode === 'login' ? (
-            <>
-              <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                Accede con tu cuenta GitHub
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<GitHub />}
-                href={getLoginUrl('github')}
-                color="primary"
-                sx={{
-                  width: '100%',
-                  py: 1.5,
-                  fontSize: '1rem',
-                }}
-              >
-                Continuar con GitHub
-              </Button>
-            </>
-          ) : (
-            <>
-              <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-                Crea tu cuenta para participar
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<AppRegistration />}
-                href={getLoginUrl('github')}
-                color="success"
-                sx={{
-                  width: '100%',
-                  py: 1.5,
-                  fontSize: '1rem',
-                }}
-              >
-                Registrarse con GitHub
-              </Button>
-              <Typography variant="caption" sx={{ display: 'block', mt: 3, color: theme.palette.warning.main }}>
-                ⚠️ Nota: El registro es por invitación únicamente. <br />
-                Solicita acceso al administrador.
-              </Typography>
-            </>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
           )}
+
+          <form onSubmit={handleCredentialLogin}>
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              margin="normal"
+              variant="outlined"
+              disabled={isLoading}
+              required
+              slotProps={{
+                input: {
+                  startAdornment: <Email sx={{ mr: 1, color: theme.palette.primary.main }} />,
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Contraseña"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              margin="normal"
+              variant="outlined"
+              disabled={isLoading}
+              required
+              slotProps={{
+                input: {
+                  startAdornment: <Lock sx={{ mr: 1, color: theme.palette.primary.main }} />,
+                },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              sx={{
+                py: 1.5,
+                fontSize: '1rem',
+                mt: 2,
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? <CircularProgress size={24} /> : 'Iniciar Sesión'}
+            </Button>
+          </form>
+
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<WhatsApp />}
+            fullWidth
+            onClick={() => {
+              const message = encodeURIComponent(
+                'Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉'
+              );
+              const whatsappUrl = `https://wa.me/573133195197?text=${message}`;
+              window.open(whatsappUrl, '_blank');
+            }}
+            sx={{
+              py: 1.5,
+              fontSize: '1rem',
+              mt: 2,
+              fontWeight: 600,
+            }}
+          >
+            Registrarme por WhatsApp
+          </Button>
 
           <Typography variant="caption" sx={{ display: 'block', mt: 3, color: theme.palette.text.secondary }}>
             🌎 Solo participantes autorizados

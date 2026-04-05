@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Prediction, PredictionRequest } from '../types';
 import { getMyPredictions, upsertPrediction as apiUpsertPrediction } from '../services/apiClient';
-import { MOCK_PREDICTIONS } from '../services/mockData';
 
 export interface UsePredictionsResult {
   predictions: Prediction[];
@@ -23,14 +22,7 @@ export function usePredictions(): UsePredictionsResult {
       setPredictions(data);
       setError(null);
     } catch (err) {
-      console.warn('Error fetching predictions, using mock data:', err);
-      // En desarrollo, usar mock data si hay error
-      if (import.meta.env.DEV) {
-        setPredictions(MOCK_PREDICTIONS);
-        setError(null);
-      } else {
-        setError(err instanceof Error ? err : new Error('Failed to fetch predictions'));
-      }
+      setError(err instanceof Error ? err : new Error('Failed to fetch predictions'));
     } finally {
       setLoading(false);
     }

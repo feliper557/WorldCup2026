@@ -14,8 +14,11 @@ import {
   useTheme,
   Stack,
   Paper,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import { EmojiEvents } from '@mui/icons-material';
+import { useRanking } from '../../hooks/useRanking';
 
 interface Participant {
   rank: number;
@@ -26,27 +29,6 @@ interface Participant {
   ganadores: number;
   points: number;
 }
-
-const PARTICIPANTS: Participant[] = [
-  { rank: 1, name: 'Daniela Rodríguez', avatar: 'DR', predictions: 48, exactos: 9, ganadores: 21, points: 187 },
-  { rank: 2, name: 'Camilo Herrera', avatar: 'CH', predictions: 48, exactos: 7, ganadores: 24, points: 171 },
-  { rank: 3, name: 'Valentina Ospina', avatar: 'VO', predictions: 48, exactos: 8, ganadores: 19, points: 163 },
-  { rank: 4, name: 'Sebastián Torres', avatar: 'ST', predictions: 46, exactos: 6, ganadores: 22, points: 154 },
-  { rank: 5, name: 'Mariana Gómez', avatar: 'MG', predictions: 47, exactos: 5, ganadores: 23, points: 148 },
-  { rank: 6, name: 'Andrés Morales', avatar: 'AM', predictions: 45, exactos: 6, ganadores: 20, points: 142 },
-  { rank: 7, name: 'Laura Castillo', avatar: 'LC', predictions: 48, exactos: 4, ganadores: 22, points: 136 },
-  { rank: 8, name: 'Felipe Vargas', avatar: 'FV', predictions: 44, exactos: 5, ganadores: 18, points: 129 },
-  { rank: 9, name: 'Natalia Jiménez', avatar: 'NJ', predictions: 46, exactos: 3, ganadores: 21, points: 121 },
-  { rank: 10, name: 'Mateo Sánchez', avatar: 'MS', predictions: 43, exactos: 4, ganadores: 17, points: 115 },
-  { rank: 11, name: 'Isabella Peña', avatar: 'IP', predictions: 45, exactos: 3, ganadores: 19, points: 109 },
-  { rank: 12, name: 'Juan Ramírez', avatar: 'JR', predictions: 42, exactos: 2, ganadores: 20, points: 102 },
-  { rank: 13, name: 'Sofía Mendoza', avatar: 'SM', predictions: 40, exactos: 3, ganadores: 16, points: 95 },
-  { rank: 14, name: 'Tomás Guerrero', avatar: 'TG', predictions: 38, exactos: 2, ganadores: 15, points: 87 },
-  { rank: 15, name: 'Alejandra Cruz', avatar: 'AC', predictions: 36, exactos: 1, ganadores: 14, points: 79 },
-  { rank: 16, name: 'Nicolás Flores', avatar: 'NF', predictions: 35, exactos: 1, ganadores: 13, points: 71 },
-  { rank: 17, name: 'Gabriela Ríos', avatar: 'GR', predictions: 30, exactos: 0, ganadores: 11, points: 55 },
-  { rank: 18, name: 'Diego Medina', avatar: 'DM', predictions: 28, exactos: 0, ganadores: 9, points: 45 },
-];
 
 const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
@@ -68,8 +50,22 @@ export function LeaderboardTable() {
   const theme = useTheme();
   const [visibleRows, setVisibleRows] = useState(0);
   const tableRef = useRef<HTMLDivElement>(null);
+  const { ranking, loading, error } = useRanking();
+
+  // Convertir datos de API a formato de participante
+  const participants: Participant[] = ranking.map((score) => ({
+    rank: score.rank,
+    name: score.displayName,
+    avatar: score.displayName.substring(0, 2).toUpperCase(),
+    predictions: score.totalPredictions,
+    exactos: score.exactScores,
+    ganadores: score.correctWinners,
+    points: score.totalPoints,
+  }));
 
   useEffect(() => {
+    if (participants.length === 0) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -78,7 +74,7 @@ export function LeaderboardTable() {
             const interval = setInterval(() => {
               count++;
               setVisibleRows(count);
-              if (count >= PARTICIPANTS.length) clearInterval(interval);
+              if (count >= participants.length) clearInterval(interval);
             }, 55);
             observer.disconnect();
           }
@@ -88,7 +84,19 @@ export function LeaderboardTable() {
     );
     if (tableRef.current) observer.observe(tableRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [participants.length]);
+
+  if (error) {
+    return (
+      <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2 } }}>
+          <Alert severity="error">
+            Error al cargar el ranking: {error.message}
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
@@ -116,7 +124,7 @@ export function LeaderboardTable() {
                 Ranking Competitivo
               </Typography>
               <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                {PARTICIPANTS.length} participantes · Fase de grupos
+                {participants.length} participantes · Fase de grupos
               </Typography>
             </Box>
           </Stack>
@@ -147,6 +155,11 @@ export function LeaderboardTable() {
         </Stack>
 
         {/* Table Container */}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
         <Box sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <TableContainer
             component={Paper}
@@ -210,7 +223,7 @@ export function LeaderboardTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {PARTICIPANTS.map((p, idx) => {
+              {participants.map((p, idx) => {
                 const isVisible = idx < visibleRows;
                 const medal = MEDALS[p.rank];
                 const avatarColors = getAvatarColors(p.rank);
@@ -322,9 +335,7 @@ export function LeaderboardTable() {
           </Table>
           </TableContainer>
         </Box>
-
-        {/* Points System */}
-        <PointsSystem />
+        )}
       </Container>
 
       <style>{`
@@ -334,86 +345,5 @@ export function LeaderboardTable() {
         }
       `}</style>
     </Box>
-  );
-}
-
-function PointsSystem() {
-  const theme = useTheme();
-
-  const items = [
-    { label: 'Resultado exacto', pts: '+15 pts', icon: '🎯', color: theme.palette.warning.main },
-    { label: 'Ganador correcto', pts: '+7 pts', icon: '✅', color: theme.palette.primary.main },
-    { label: 'Campeón mundial', pts: '+25 pts', icon: '🏆', color: theme.palette.warning.main },
-    { label: 'Goleador top', pts: '+10 pts', icon: '⚽', color: theme.palette.secondary.main },
-  ];
-
-  return (
-    <Paper
-      sx={{
-        mt: 4,
-        p: { xs: 2, sm: 3 },
-        backgroundColor: `rgba(30,30,30,0.6)`,
-        border: `1px solid ${theme.palette.primary.main}15`,
-        backdropFilter: 'blur(8px)',
-        borderRadius: 2,
-      }}
-    >
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <Typography sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }}>🌮</Typography>
-        <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.primary.main, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-          Sistema de Puntos
-        </Typography>
-      </Stack>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
-          gap: { xs: 1.5, sm: 2 },
-        }}
-      >
-        {items.map((item) => (
-          <Paper
-            key={item.label}
-            sx={{
-              p: { xs: 1.5, sm: 2 },
-              backgroundColor: 'rgba(37,37,37,0.6)',
-              border: `1px solid ${theme.palette.primary.main}10`,
-              display: 'flex',
-              gap: 1,
-              borderRadius: 1.5,
-            }}
-          >
-            <Typography sx={{ fontSize: { xs: '1rem', sm: '1.2rem' }, flexShrink: 0 }}>{item.icon}</Typography>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: item.color,
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                  display: 'block',
-                }}
-              >
-                {item.pts}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: theme.palette.text.secondary,
-                  display: 'block',
-                  mt: 0.25,
-                  lineHeight: 1.2,
-                  fontSize: { xs: '0.6rem', sm: '0.7rem' },
-                  wordBreak: 'break-word',
-                }}
-              >
-                {item.label}
-              </Typography>
-            </Box>
-          </Paper>
-        ))}
-      </Box>
-    </Paper>
   );
 }

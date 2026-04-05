@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getStoredToken } from '../services/auth';
 
 export interface ChampionPrediction {
   team: string;
@@ -7,7 +8,17 @@ export interface ChampionPrediction {
 }
 
 const CHAMPIONSHIP_DEADLINE = new Date('2026-06-11T00:00:00Z'); // Primer partido
-const STORAGE_KEY = 'champion-prediction';
+
+const getAuthHeaders = () => {
+  const token = getStoredToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 export function useChampionPrediction() {
   const [prediction, setPrediction] = useState<ChampionPrediction | null>(null);
@@ -15,26 +26,19 @@ export function useChampionPrediction() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Determinar si la predicción está bloqueada (fuera de desarrollo y pasó la fecha límite)
-  const isLocked = !import.meta.env.DEV && new Date() >= CHAMPIONSHIP_DEADLINE;
+  // Determinar si la predicción está bloqueada (pasó la fecha límite)
+  const isLocked = new Date() >= CHAMPIONSHIP_DEADLINE;
 
   // Cargar predicción guardada
   useEffect(() => {
     const loadPrediction = async () => {
       try {
-        if (import.meta.env.DEV) {
-          // En desarrollo: usar localStorage
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) {
-            setPrediction(JSON.parse(stored));
-          }
-        } else {
-          // En producción: llamar a API
-          const response = await fetch('/api/champion-prediction/me');
-          if (response.ok) {
-            const data = await response.json();
-            setPrediction(data);
-          }
+        const response = await fetch('/api/champion-prediction/me', {
+          headers: getAuthHeaders(),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setPrediction(data);
         }
         setError(null);
       } catch (err) {
@@ -58,33 +62,19 @@ export function useChampionPrediction() {
       setSaving(true);
       setError(null);
 
-      const newPrediction: ChampionPrediction = {
-        team,
-        flag,
-        savedAt: new Date().toISOString(),
-      };
+      const response = await fetch('/api/champion-prediction', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ team, flag }),
+      });
 
-      if (import.meta.env.DEV) {
-        // En desarrollo: guardar en localStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newPrediction));
-        setPrediction(newPrediction);
-      } else {
-        // En producción: enviar a API
-        const response = await fetch('/api/champion-prediction', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ team, flag }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setPrediction(data);
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errorData}`);
       }
+
+      const data = await response.json();
+      setPrediction(data);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error guardando predicción';
       setError(new Error(errorMsg));
@@ -101,10 +91,12 @@ export function useChampionPrediction() {
     }
 
     try {
-      if (import.meta.env.DEV) {
-        localStorage.removeItem(STORAGE_KEY);
-      } else {
-        await fetch('/api/champion-prediction', { method: 'DELETE' });
+      const response = await fetch('/api/champion-prediction', {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
       }
       setPrediction(null);
       setError(null);

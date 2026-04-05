@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<RaffleEntity> Raffles => Set<RaffleEntity>();
     public DbSet<RaffleParticipantEntity> RaffleParticipants => Set<RaffleParticipantEntity>();
     public DbSet<RaffleWinnerEntity> RaffleWinners => Set<RaffleWinnerEntity>();
+    public DbSet<PaymentEntity> Payments => Set<PaymentEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +88,27 @@ public class AppDbContext : DbContext
             e.HasKey(rw => new { rw.RaffleId, rw.UserId });
             e.HasOne(rw => rw.Raffle).WithMany(r => r.Winners).HasForeignKey(rw => rw.RaffleId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(rw => rw.User).WithMany(u => u.RaffleWins).HasForeignKey(rw => rw.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // PaymentEntity
+        modelBuilder.Entity<PaymentEntity>(e => {
+            e.HasKey(p => p.Id);
+            e.HasIndex(p => p.WompiTransactionId).IsUnique();
+            e.HasIndex(p => p.UserId);
+            e.HasIndex(p => new { p.Status, p.CreatedAtUtc });
+            e.HasIndex(p => p.WompiReference);
+            e.Property(p => p.WompiTransactionId).HasMaxLength(128);
+            e.Property(p => p.WompiReference).HasMaxLength(128);
+            e.Property(p => p.Status).HasMaxLength(20);
+            e.Property(p => p.Currency).HasMaxLength(3);
+            e.Property(p => p.PaymentMethodType).HasMaxLength(50);
+            e.Property(p => p.Environment).HasMaxLength(20);
+            e.Property(p => p.CardBrand).HasMaxLength(20);
+            e.Property(p => p.CardLastFour).HasMaxLength(4);
+            e.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

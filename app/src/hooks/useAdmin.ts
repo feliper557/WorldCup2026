@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getUsers, sendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
-import { MOCK_USERS, MOCK_INVITATIONS } from '../services/mockData';
 import type { AdminUser, InvitationRequest, Invitation } from '../types/admin';
 
 interface UseAdminResult {
@@ -27,12 +26,7 @@ export function useAdmin(): UseAdminResult {
       const data = await getUsers();
       setUsers(data);
     } catch (err) {
-      if (import.meta.env.DEV) {
-        setUsers(MOCK_USERS);
-        setInvitations(MOCK_INVITATIONS);
-      } else {
-        setError(err instanceof Error ? err : new Error('Error fetching users'));
-      }
+      setError(err instanceof Error ? err : new Error('Error fetching users'));
     } finally {
       setLoading(false);
     }
@@ -43,20 +37,7 @@ export function useAdmin(): UseAdminResult {
       const invitation = await sendInvitation(data);
       setInvitations([...invitations, invitation]);
     } catch (err) {
-      if (import.meta.env.DEV) {
-        // Mock: crear invitación local
-        const newInvitation: Invitation = {
-          id: `inv-${Date.now()}`,
-          email: data.email,
-          displayName: data.displayName,
-          status: 'pending',
-          sentAtUtc: new Date().toISOString(),
-          invitationCode: Math.random().toString(36).substring(2, 9).toUpperCase(),
-        };
-        setInvitations([...invitations, newInvitation]);
-      } else {
-        throw err;
-      }
+      throw err;
     }
   };
 
@@ -66,9 +47,7 @@ export function useAdmin(): UseAdminResult {
       // Refrescar usuarios después de resetear contraseña
       await fetchUsers();
     } catch (err) {
-      if (!import.meta.env.DEV) {
-        throw err;
-      }
+      throw err;
     }
   };
 
@@ -77,16 +56,7 @@ export function useAdmin(): UseAdminResult {
       const updatedUser = await toggleUserActive(userId, isActive);
       setUsers(users.map((u) => (u.userId === userId ? updatedUser : u)));
     } catch (err) {
-      if (import.meta.env.DEV) {
-        // Mock: actualizar localmente
-        setUsers(
-          users.map((u) =>
-            u.userId === userId ? { ...u, isActive } : u
-          )
-        );
-      } else {
-        throw err;
-      }
+      throw err;
     }
   };
 

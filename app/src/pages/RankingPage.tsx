@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { HeroLeaderboard, LeaderboardTable } from '../components/sections';
+import { HeroLeaderboard, LeaderboardTable, PointsSystemSection } from '../components/sections';
 
 export function RankingPage() {
   return (
@@ -7,8 +7,11 @@ export function RankingPage() {
       {/* Hero Section */}
       <HeroLeaderboard />
 
-      {/* Leaderboard Table with Mock Data */}
+      {/* Leaderboard Table */}
       <LeaderboardTable />
+
+      {/* Points System Section */}
+      <PointsSystemSection />
     </Box>
   );
 }
