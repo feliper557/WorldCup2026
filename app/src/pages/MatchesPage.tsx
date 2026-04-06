@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { Match, Prediction } from '../types';
-import { useMatches, usePredictions, useSyncResults } from '../hooks';
+import { useMatches, usePredictions } from '../hooks';
 import { HeroMatches } from '../components/sections';
 import { MatchCard } from '../components/matches/MatchCard';
 import { ResultCard } from '../components/matches/ResultCard';
@@ -21,7 +21,6 @@ import { ChampionPicker } from '../components/matches/ChampionPicker';
 export function MatchesPage() {
   const { matches, loading: matchesLoading, error: matchesError, refetch } = useMatches();
   const { predictions, upsertPrediction, loading: predictLoading } = usePredictions();
-  const { syncing: syncingResults } = useSyncResults({ onUpdated: refetch });
   const [tabValue, setTabValue] = useState(0);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
@@ -96,14 +95,6 @@ export function MatchesPage() {
       {/* Hero Section */}
       <HeroMatches />
 
-      {/* Sync indicator */}
-      {syncingResults && (
-        <Box sx={{ px: { xs: 1, sm: 2 }, py: 1 }}>
-          <Typography variant="caption" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            ⟳ Verificando resultados...
-          </Typography>
-        </Box>
-      )}
 
       <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, overflow: 'hidden' }}>
