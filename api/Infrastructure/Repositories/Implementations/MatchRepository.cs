@@ -14,7 +14,20 @@ public class MatchRepository : IMatchRepository
         => await _db.Matches.FindAsync(id);
 
     public async Task<IEnumerable<MatchEntity>> GetAllAsync()
-        => await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
+    {
+        var matches = await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
+        // Auto-update status based on time (Colombia time UTC-5)
+        var colombiaTime = DateTime.UtcNow.AddHours(-5);
+        foreach (var match in matches)
+        {
+            if (match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true
+                && match.MatchDate <= colombiaTime)
+            {
+                match.Status = "LIVE";
+            }
+        }
+        return matches;
+    }
 
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
     {
