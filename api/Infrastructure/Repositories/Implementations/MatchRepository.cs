@@ -17,10 +17,13 @@ public class MatchRepository : IMatchRepository
         => await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
 
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
-        => await _db.Matches
-            .Where(m => m.Status == "scheduled" && m.MatchDate > DateTime.UtcNow)
+    {
+        var today = DateTime.UtcNow.Date;
+        return await _db.Matches
+            .Where(m => m.Status == "scheduled" && m.MatchDate.Date >= today)
             .OrderBy(m => m.MatchDate)
             .ToListAsync();
+    }
 
     public async Task<IEnumerable<MatchEntity>> GetByStageAsync(string stage)
         => await _db.Matches
