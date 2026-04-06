@@ -20,7 +20,6 @@ public static class MatchMappingExtensions
             AwayScore = match.AwayScore,
             Venue = match.Venue,
             ExternalId = match.ExternalId,
-            TournamentId = match.TournamentId?.ToString(),
             CreatedAt = match.CreatedAt
         };
     }
@@ -40,7 +39,6 @@ public static class MatchMappingExtensions
             AwayScore = entity.AwayScore,
             Venue = entity.Venue,
             ExternalId = entity.ExternalId,
-            TournamentId = entity.TournamentId != null ? int.Parse(entity.TournamentId) : null,
             CreatedAt = entity.CreatedAt
         };
     }
