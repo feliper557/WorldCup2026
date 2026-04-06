@@ -19,10 +19,11 @@ public class MatchRepository : IMatchRepository
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
     {
         var today = DateTime.UtcNow.Date;
-        return await _db.Matches
-            .Where(m => m.Status == "scheduled" && m.MatchDate.Date >= today)
+        var allMatches = await _db.Matches.ToListAsync();
+        return allMatches
+            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate.Date >= today)
             .OrderBy(m => m.MatchDate)
-            .ToListAsync();
+            .ToList();
     }
 
     public async Task<IEnumerable<MatchEntity>> GetByStageAsync(string stage)
@@ -32,10 +33,13 @@ public class MatchRepository : IMatchRepository
             .ToListAsync();
 
     public async Task<IEnumerable<MatchEntity>> GetByStatusAsync(string status)
-        => await _db.Matches
-            .Where(m => m.Status == status)
+    {
+        var allMatches = await _db.Matches.ToListAsync();
+        return allMatches
+            .Where(m => string.Equals(m.Status, status, StringComparison.OrdinalIgnoreCase))
             .OrderBy(m => m.MatchDate)
-            .ToListAsync();
+            .ToList();
+    }
 
     public async Task<MatchEntity> CreateAsync(MatchEntity match)
     {
