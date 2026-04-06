@@ -2,7 +2,8 @@
   "routes": [
     {
       "route": "/api/*",
-      "allowedRoles": ["anonymous"]
+      "allowedRoles": ["anonymous"],
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "route": "/*",
@@ -26,7 +27,8 @@
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
-    "Referrer-Policy": "strict-origin-when-cross-origin"
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Access-Control-Allow-Origin": "*"
   },
   "mimeTypes": {
     ".json": "text/json"
