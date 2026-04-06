@@ -47,7 +47,7 @@ export function Navbar() {
   ];
 
   // Agregar Admin tab si el usuario es admin
-  const isAdmin = user && 'role' in user && user.role === 'admin';
+  const isAdmin = user && ('role' in user ? user.role === 'admin' : 'Role' in user && (user as any).Role === 'admin');
   const tabs = isAdmin
     ? [
         ...baseTabs,
