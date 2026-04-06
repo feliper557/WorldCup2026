@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Box, Typography, Avatar, Chip, Button, Badge, Alert, useTheme } from '@mui/material';
+import { Card, CardContent, Box, Typography, Avatar, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch } from '../../utils/dateUtils';
+import { getMatches } from '../../services/apiClient';
 
 interface MatchCardProps {
   match: Match;
@@ -12,6 +13,7 @@ interface MatchCardProps {
 export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const kickoffDate = new Date(match.kickoffAtUtc);
 
@@ -45,6 +47,40 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   const getAvatarColor = (initial: string) => {
     const colors = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.warning.main];
     return colors[initial.charCodeAt(0) % colors.length];
+  };
+
+  // Validar estado del partido antes de permitir predicción
+  const handlePredictClick = async () => {
+    try {
+      // Obtener estado actual del partido desde el servidor
+      const allMatches = await getMatches();
+      const currentMatch = allMatches.find(m => m.id === match.id);
+
+      if (!currentMatch) {
+        setErrorMessage('⚠️ Partido no encontrado');
+        return;
+      }
+
+      // Verificar que siga en estado SCHEDULED
+      if (currentMatch.status !== 'SCHEDULED') {
+        setErrorMessage(`⚠️ Partido en estado ${currentMatch.status} - predicción no disponible`);
+        return;
+      }
+
+      // Verificar que no haya pasado su hora de inicio
+      const now = new Date();
+      const kickoff = new Date(currentMatch.kickoffAtUtc);
+      if (kickoff <= now) {
+        setErrorMessage('⏳ Partido ya inició - predicción cerrada');
+        return;
+      }
+
+      // Todo bien, abrir modal
+      onPredictClick(currentMatch);
+    } catch (err) {
+      setErrorMessage('Error verificando disponibilidad del partido');
+      console.error('Error validating match:', err);
+    }
   };
 
   return (
@@ -133,7 +169,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
               variant={prediction ? 'outlined' : 'contained'}
               size="small"
               color={prediction ? 'primary' : 'secondary'}
-              onClick={() => onPredictClick(match)}
+              onClick={handlePredictClick}
               sx={{ fontWeight: 600 }}
             >
               {prediction ? '✏️ Editar' : '⚽ Predecir'}
@@ -149,6 +185,14 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
           </Alert>
         )}
       </CardContent>
+
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={() => setErrorMessage(null)}
+        message={errorMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Card>
   );
 }
