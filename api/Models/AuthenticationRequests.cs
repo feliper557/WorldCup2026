@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace WorldCup.Api.Models;
 
 /// <summary>
@@ -66,12 +68,12 @@ public record CreateInvitationResponse(
 /// Response for login
 /// </summary>
 public record LoginResponse(
-    bool Success,
-    string? UserId = null,
-    string? Email = null,
-    string? Token = null,
-    string? Message = null,
-    UserProfileResponse? User = null
+    [property: JsonPropertyName("success")] bool Success,
+    [property: JsonPropertyName("userId")] string? UserId = null,
+    [property: JsonPropertyName("email")] string? Email = null,
+    [property: JsonPropertyName("token")] string? Token = null,
+    [property: JsonPropertyName("message")] string? Message = null,
+    [property: JsonPropertyName("user")] UserProfileResponse? User = null
 );
 
 /// <summary>
