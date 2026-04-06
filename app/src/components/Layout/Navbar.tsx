@@ -227,28 +227,28 @@ export function Navbar() {
             </Box>
           )}
 
-          {/* Right: World Cup badge + Avatar */}
+          {/* Right: World Cup badge + Avatar or Login Button */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            {/* World Cup Badge - Desktop */}
-            <Chip
-              icon={<span>⚽</span>}
-              label="Mundial 2026"
-              size="small"
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                borderColor: `${theme.palette.warning.main}40`,
-                backgroundColor: `${theme.palette.warning.main}15`,
-                color: theme.palette.warning.main,
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                letterSpacing: '0.05em',
-              }}
-              variant="outlined"
-            />
-
-            {/* Avatar + Menu */}
-            {user && (
+            {user ? (
               <>
+                {/* World Cup Badge - Desktop (only for authenticated users) */}
+                <Chip
+                  icon={<span>⚽</span>}
+                  label="Mundial 2026"
+                  size="small"
+                  sx={{
+                    display: { xs: 'none', sm: 'flex' },
+                    borderColor: `${theme.palette.warning.main}40`,
+                    backgroundColor: `${theme.palette.warning.main}15`,
+                    color: theme.palette.warning.main,
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.05em',
+                  }}
+                  variant="outlined"
+                />
+
+                {/* Avatar + Menu */}
                 <Avatar
                   onClick={handleMenuOpen}
                   sx={{
@@ -276,6 +276,23 @@ export function Navbar() {
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
               </>
+            ) : (
+              /* Login Button - for non-authenticated users */
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => navigate('/login')}
+                sx={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  py: 0.75,
+                  px: 2,
+                }}
+              >
+                Iniciar Sesión
+              </Button>
             )}
 
             {/* Mobile Menu Button */}
