@@ -1,15 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuthUser } from '../../hooks/useAuthUser';
 
 /**
  * Guard de autenticación - redirige a /login si no hay sesión
- * 
- * MODO DESARROLLO: Comentado para permitir acceso sin autenticación
- * En producción, descomentar la validación de usuario
  */
 export function RequireAuth() {
-  const { loading } = useAuthUser();
+  const { user, loading } = useAuthUser();
 
   if (loading) {
     return (
@@ -26,10 +23,9 @@ export function RequireAuth() {
     );
   }
 
-  // MODO DESARROLLO: Permitir acceso sin autenticación
-  // if (!user) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <Outlet />;
 }
