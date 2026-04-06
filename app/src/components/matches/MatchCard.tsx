@@ -10,11 +10,12 @@ interface MatchCardProps {
 export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
   const kickoffDate = new Date(match.kickoffAtUtc);
-  const formattedDate = kickoffDate.toLocaleString('es-ES', {
+  const formattedDate = kickoffDate.toLocaleString('es-CO', {
     day: 'numeric',
     month: 'long',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'America/Bogota',
   });
 
   // Verificar si la predicción está disponible (solo en estado SCHEDULED)

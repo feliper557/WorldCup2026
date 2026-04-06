@@ -57,7 +57,15 @@ export function MatchesPage() {
   };
 
   const filterMatchesByStatus = (status: 'SCHEDULED' | 'LIVE' | 'FINISHED') => {
-    return matches.filter((m) => m.status === status);
+    const now = new Date();
+    return matches.filter((m) => {
+      if (m.status !== status) return false;
+      // Para partidos SCHEDULED, excluir los que ya iniciaron
+      if (status === 'SCHEDULED') {
+        return new Date(m.kickoffAtUtc) > now;
+      }
+      return true;
+    });
   };
 
   const filterByStage = (matchList: Match[]) => {

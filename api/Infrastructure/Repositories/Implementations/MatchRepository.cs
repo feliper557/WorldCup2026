@@ -18,10 +18,11 @@ public class MatchRepository : IMatchRepository
 
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
     {
-        var today = DateTime.UtcNow.Date;
+        // Usar hora colombiana (UTC-5) para determinar partidos disponibles
+        var colombiaTime = DateTime.UtcNow.AddHours(-5);
         var allMatches = await _db.Matches.ToListAsync();
         return allMatches
-            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate.Date >= today)
+            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate > colombiaTime)
             .OrderBy(m => m.MatchDate)
             .ToList();
     }
