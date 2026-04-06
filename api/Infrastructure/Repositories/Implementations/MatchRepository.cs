@@ -20,7 +20,7 @@ public class MatchRepository : IMatchRepository
     {
         var today = DateTime.UtcNow.Date;
         return await _db.Matches
-            .Where(m => m.Status == "scheduled" && m.MatchDate.Date >= today)
+            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate.Date >= today)
             .OrderBy(m => m.MatchDate)
             .ToListAsync();
     }
