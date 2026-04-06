@@ -1,11 +1,9 @@
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
 using WorldCup.Api.Models;
-using WorldCup.Api.Services;
 
 namespace WorldCup.Api.Functions;
 
@@ -16,16 +14,13 @@ namespace WorldCup.Api.Functions;
 public class AdminUsersFunction
 {
     private readonly IUserRepository _userRepository;
-    private readonly SecureTokenService _secureTokenService;
     private readonly ILogger<AdminUsersFunction> _logger;
 
     public AdminUsersFunction(
         IUserRepository userRepository,
-        SecureTokenService secureTokenService,
         ILogger<AdminUsersFunction> logger)
     {
         _userRepository = userRepository;
-        _secureTokenService = secureTokenService;
         _logger = logger;
     }
 
@@ -87,8 +82,6 @@ public class AdminUsersFunction
         {
             // TODO: Validate admin token when auth is properly implemented
             // For now, allow any authenticated request
-
-            // Read request body
             var body = await req.ReadFromJsonAsync<UpdateUserStatusRequest>();
             if (body == null || string.IsNullOrWhiteSpace(body.Status))
                 return ErrorResponse(req, "Status es requerido", HttpStatusCode.BadRequest);
@@ -97,18 +90,18 @@ public class AdminUsersFunction
             if (!validStatuses.Contains(body.Status))
                 return ErrorResponse(req, "Status inválido", HttpStatusCode.BadRequest);
 
-            // 3. Fetch user
+            // Fetch user
             var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null)
                 return ErrorResponse(req, "Usuario no encontrado", HttpStatusCode.NotFound);
 
-            // 4. Update user status
+            // Update user status
             user.Status = body.Status;
             await _userRepository.UpdateAsync(user);
 
-            _logger.LogInformation("Admin {AdminId} updated user {UserId} status to {Status}",
-                admin.UserId, userId, body.Status);
+            _logger.LogInformation("Updated user {UserId} status to {Status}",
+                userId, body.Status);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(new UpdateUserStatusResponse(
