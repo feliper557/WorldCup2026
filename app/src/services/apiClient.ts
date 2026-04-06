@@ -4,7 +4,7 @@ import type { AdminUser, InvitationRequest, Invitation, ResetPasswordRequest } f
 // Determinar la URL base del API
 // Por defecto usar /api (Azure Static Web Apps proxy)
 // Solo usar localhost en desarrollo local
-const getApiBase = () => {
+export const getApiBase = () => {
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
 
   // En localhost/127.0.0.1 → emulador Azure Functions

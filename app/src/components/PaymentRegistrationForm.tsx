@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getApiBase } from '../services/apiClient';
 import {
   Box,
   TextField,
@@ -43,7 +44,7 @@ export function PaymentRegistrationForm({ onSuccess }: PaymentRegistrationFormPr
       }
 
       // 2. Llamar a POST /api/auth/pre-register
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
+      const apiUrl = getApiBase();
       const response = await fetch(`${apiUrl}/auth/pre-register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

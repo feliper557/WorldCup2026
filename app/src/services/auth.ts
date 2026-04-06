@@ -52,7 +52,9 @@ export interface UserProfile {
   lastLoginAt?: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7071/api';
+import { getApiBase } from './apiClient';
+
+const API_BASE = getApiBase();
 
 /**
  * Login con usuario y contraseña
