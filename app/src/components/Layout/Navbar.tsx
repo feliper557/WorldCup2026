@@ -46,8 +46,9 @@ export function Navbar() {
     { label: 'Info', icon: <InfoOutlined sx={{ fontSize: 16 }} />, path: '/info' },
   ];
 
-  // Agregar Admin tab si está en desarrollo
-  const tabs = import.meta.env.DEV
+  // Agregar Admin tab si el usuario es admin
+  const isAdmin = user && 'role' in user && user.role === 'admin';
+  const tabs = isAdmin
     ? [
         ...baseTabs,
         { label: 'Admin', icon: <AdminPanelSettings sx={{ fontSize: 16 }} />, path: '/admin' },
