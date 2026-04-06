@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Box, Paper, Typography, Button, Divider, useTheme, TextField, Alert, CircularProgress } from '@mui/material';
-import { Email, Lock, WhatsApp } from '@mui/icons-material';
+import { Email, Lock, WhatsApp, InfoOutlined } from '@mui/icons-material';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { loginWithCredentials } from '../services/auth';
 import { FrancachelaWatermark, FrancachelaLogo } from '../components/FrancachelaLogo';
@@ -217,6 +217,27 @@ export function LoginPage() {
             }}
           >
             Registrarme por WhatsApp
+          </Button>
+
+          <Button
+            variant="outlined"
+            startIcon={<InfoOutlined />}
+            fullWidth
+            onClick={() => navigate('/info')}
+            sx={{
+              py: 1.5,
+              fontSize: '0.95rem',
+              mt: 1.5,
+              fontWeight: 600,
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.main,
+              '&:hover': {
+                borderColor: theme.palette.primary.dark,
+                backgroundColor: `${theme.palette.primary.main}08`,
+              },
+            }}
+          >
+            Más Información
           </Button>
 
           <Typography variant="caption" sx={{ display: 'block', mt: 3, color: theme.palette.text.secondary }}>
