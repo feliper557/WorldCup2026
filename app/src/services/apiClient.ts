@@ -1,10 +1,13 @@
 import type { Match, Prediction, PredictionRequest, Score, Raffle, RaffleCreateRequest, RaffleJoinRequest } from '../types';
 import type { AdminUser, InvitationRequest, Invitation, ResetPasswordRequest } from '../types/admin';
 
-// Determinar la URL base del API
-// En producción (Azure): usar /api (proxy de Static Web Apps)
-// En desarrollo local: usar localhost:7071/api (Azure Functions emulator)
-const BASE = import.meta.env.DEV ? 'http://localhost:7071/api' : '/api';
+// Determinar la URL base del API en runtime
+// Si estamos en localhost (desarrollo local): usar emulador de Azure Functions
+// Si estamos en Azure: usar /api (proxy de Static Web Apps)
+const isLocalhost = typeof window !== 'undefined' &&
+                    (window.location.hostname === 'localhost' ||
+                     window.location.hostname === '127.0.0.1');
+const BASE = isLocalhost ? 'http://localhost:7071/api' : '/api';
 
 // Helper para request
 async function request<T>(
