@@ -1,14 +1,13 @@
 /**
  * Calculate time remaining until a future date
  * Returns formatted string like "2H 45MIN" or null if time has passed
+ * Note: kickoffUtc is already in Colombia time (UTC-5) from backend
  */
 export function getTimeUntilMatch(kickoffUtc: string): string | null {
   const kickoff = new Date(kickoffUtc);
-  // Convert to Colombia time (UTC-5)
-  const colombiaKickoff = new Date(kickoff.getTime() - 5 * 60 * 60 * 1000);
-
+  // Backend already stores times in Colombia time, no conversion needed
   const now = new Date();
-  const diff = colombiaKickoff.getTime() - now.getTime();
+  const diff = kickoff.getTime() - now.getTime();
 
   if (diff <= 0) return null; // Match has started or passed
 

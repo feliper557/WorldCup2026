@@ -31,11 +31,12 @@ public class MatchRepository : IMatchRepository
 
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
     {
-        // Usar hora colombiana (UTC-5) para determinar partidos disponibles
-        var colombiaTime = DateTime.UtcNow.AddHours(-5);
+        // BD already stores times in Colombia time (UTC-5)
+        // Compare directly with current Colombia time
+        var now = DateTime.UtcNow.AddHours(-5);
         var allMatches = await _db.Matches.ToListAsync();
         return allMatches
-            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate > colombiaTime)
+            .Where(m => string.Equals(m.Status, "scheduled", StringComparison.OrdinalIgnoreCase) && m.MatchDate > now)
             .OrderBy(m => m.MatchDate)
             .ToList();
     }

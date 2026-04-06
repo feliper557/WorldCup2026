@@ -77,7 +77,11 @@ public class SyncMatchesFunction
             int syncedCount = 0;
             foreach (var match in matches)
             {
-                await _matchRepository.UpsertAsync(match.ToEntity());
+                // Convert match time from UTC to Colombia time (UTC-5)
+                var colombiaMatch = match;
+                colombiaMatch.MatchDate = match.MatchDate.AddHours(-5);
+
+                await _matchRepository.UpsertAsync(colombiaMatch.ToEntity());
                 syncedCount++;
             }
 

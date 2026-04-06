@@ -15,11 +15,10 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   const [countdown, setCountdown] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Backend already stores times in Colombia time (UTC-5)
+  // No conversion needed
   const kickoffDate = new Date(match.kickoffAtUtc);
-
-  // Convertir manualmente a hora colombiana (UTC-5)
-  const colombiaDate = new Date(kickoffDate.getTime() - 5 * 60 * 60 * 1000);
-  const formattedDate = colombiaDate.toLocaleString('es-CO', {
+  const formattedDate = kickoffDate.toLocaleString('es-CO', {
     day: 'numeric',
     month: 'long',
     hour: '2-digit',
