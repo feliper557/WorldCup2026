@@ -2,18 +2,9 @@ import type { Match, Prediction, PredictionRequest, Score, Raffle, RaffleCreateR
 import type { AdminUser, InvitationRequest, Invitation, ResetPasswordRequest } from '../types/admin';
 
 // Determinar la URL base del API
-const BASE = (() => {
-  // Si hay una variable de entorno explícita, usarla
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  // En desarrollo, usar localhost
-  if (import.meta.env.DEV) {
-    return 'http://localhost:7071/api';
-  }
-  // En producción, usar la URL relativa (proxy de Azure Static Web Apps)
-  return '/api';
-})();
+// En producción (Azure): usar /api (proxy de Static Web Apps)
+// En desarrollo local: usar localhost:7071/api (Azure Functions emulator)
+const BASE = import.meta.env.DEV ? 'http://localhost:7071/api' : '/api';
 
 // Helper para request
 async function request<T>(
