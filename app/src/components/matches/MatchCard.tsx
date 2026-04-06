@@ -10,12 +10,14 @@ interface MatchCardProps {
 export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
   const kickoffDate = new Date(match.kickoffAtUtc);
-  const formattedDate = kickoffDate.toLocaleString('es-CO', {
+
+  // Convertir manualmente a hora colombiana (UTC-5)
+  const colombiaDate = new Date(kickoffDate.getTime() - 5 * 60 * 60 * 1000);
+  const formattedDate = colombiaDate.toLocaleString('es-CO', {
     day: 'numeric',
     month: 'long',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'America/Bogota',
   });
 
   // Verificar si la predicción está disponible (solo en estado SCHEDULED)
