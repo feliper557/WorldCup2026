@@ -1,7 +1,19 @@
 import type { Match, Prediction, PredictionRequest, Score, Raffle, RaffleCreateRequest, RaffleJoinRequest } from '../types';
 import type { AdminUser, InvitationRequest, Invitation, ResetPasswordRequest } from '../types/admin';
 
-const BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://localhost:7071/api' : '/api');
+// Determinar la URL base del API
+const BASE = (() => {
+  // Si hay una variable de entorno explícita, usarla
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // En desarrollo, usar localhost
+  if (import.meta.env.DEV) {
+    return 'http://localhost:7071/api';
+  }
+  // En producción, usar la URL relativa (proxy de Azure Static Web Apps)
+  return '/api';
+})();
 
 // Helper para request
 async function request<T>(
