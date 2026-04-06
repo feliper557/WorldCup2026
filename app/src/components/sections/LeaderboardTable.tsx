@@ -56,7 +56,7 @@ export function LeaderboardTable() {
   const participants: Participant[] = ranking.map((score) => ({
     rank: score.rank,
     name: score.displayName,
-    avatar: score.displayName.substring(0, 2).toUpperCase(),
+    avatar: (score.displayName || 'AN').substring(0, 2).toUpperCase(),
     predictions: score.totalPredictions,
     exactos: score.exactScores,
     ganadores: score.correctWinners,

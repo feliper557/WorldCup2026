@@ -29,6 +29,54 @@ public class PredictionsFunction
 
     public record PredictionRequest(string MatchId, int Home, int Away);
 
+    [Function("GetMyPredictions")]
+    [OpenApiOperation(
+        operationId: "GetMyPredictions",
+        tags: new[] { "Predictions" },
+        Summary = "Obtener predicciones del usuario",
+        Description = "Retorna todas las predicciones del usuario autenticado",
+        Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiResponseWithBody(
+        statusCode: HttpStatusCode.OK,
+        contentType: "application/json",
+        bodyType: typeof(List<Prediction>),
+        Description = "Lista de predicciones del usuario")]
+    [OpenApiResponseWithoutBody(
+        statusCode: HttpStatusCode.Unauthorized,
+        Description = "Usuario no autenticado")]
+    public async Task<HttpResponseData> GetMyPredictions(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "predictions/me")] HttpRequestData req)
+    {
+        var userId = req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL-ID", out var vals)
+            ? vals.FirstOrDefault()
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            var unauthorized = req.CreateResponse(HttpStatusCode.Unauthorized);
+            await unauthorized.WriteStringAsync("Usuario no autenticado.");
+            return unauthorized;
+        }
+
+        var predictions = await _predictions.GetByUserIdAsync(userId);
+        var predictionModels = predictions.Select(p => new Prediction
+        {
+            Id = p.Id,
+            UserId = p.UserId,
+            MatchId = p.MatchId,
+            PredictedHomeScore = p.PredictedHomeScore,
+            PredictedAwayScore = p.PredictedAwayScore,
+            PredictedWinner = p.PredictedWinner,
+            PointsEarned = p.PointsEarned,
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt
+        }).ToList();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(predictionModels);
+        return response;
+    }
+
     [Function("UpsertPrediction")]
     [OpenApiOperation(
         operationId: "UpsertPrediction",

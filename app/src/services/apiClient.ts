@@ -72,6 +72,19 @@ export const drawRaffle = (raffleId: string): Promise<Raffle> =>
   post(`/raffles/${raffleId}/draw`, {});
 
 // Endpoints de Admin
+export interface SyncOptions {
+  competition: 'laliga' | 'worldcup';
+  dateFrom?: string;  // YYYY-MM-DD
+  dateTo?: string;    // YYYY-MM-DD
+}
+
+export const syncMatches = (options: SyncOptions): Promise<{ success: boolean; message: string; matchesCount: number }> => {
+  const params = new URLSearchParams({ competition: options.competition });
+  if (options.dateFrom) params.append('dateFrom', options.dateFrom);
+  if (options.dateTo) params.append('dateTo', options.dateTo);
+  return post(`/sync-matches?${params.toString()}`, {});
+};
+
 export const getUsers = (): Promise<AdminUser[]> => get('/admin/users');
 
 export const sendInvitation = (body: InvitationRequest): Promise<Invitation> =>

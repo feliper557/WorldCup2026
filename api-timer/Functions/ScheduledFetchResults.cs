@@ -7,6 +7,7 @@ public class ScheduledFetchResults
 {
     private readonly ILogger<ScheduledFetchResults> _logger;
     private readonly HttpClient _httpClient;
+    private const string BackendUrl = "https://mango-pebble-03e4a100f.2.azurestaticapps.net/api/sync-results";
 
     public ScheduledFetchResults(ILogger<ScheduledFetchResults> logger)
     {
@@ -21,9 +22,18 @@ public class ScheduledFetchResults
         {
             _logger.LogInformation("⏱️ ScheduledFetchResults triggered at {time} UTC", DateTime.UtcNow);
 
-            // Los resultados y puntos se calculan directamente en el api
-            // Esta función se ejecuta cada 5 minutos
-            _logger.LogInformation("✅ ScheduledFetchResults completed at {time}", DateTime.UtcNow);
+            // Llama el endpoint del backend
+            var response = await _httpClient.GetAsync(BackendUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("✅ ScheduledFetchResults completed: {content}", content);
+            }
+            else
+            {
+                _logger.LogError("❌ Backend returned {statusCode}", response.StatusCode);
+            }
         }
         catch (Exception ex)
         {

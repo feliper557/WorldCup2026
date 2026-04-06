@@ -12,6 +12,7 @@ import { useAdmin } from '../hooks/useAdmin';
 import { InvitationForm } from '../components/admin/InvitationForm';
 import { UserTable } from '../components/admin/UserTable';
 import { RaffleManager } from '../components/admin/RaffleManager';
+import { MatchSyncPanel } from '../components/admin/MatchSyncPanel';
 import { useRaffles } from '../hooks/useRaffles';
 
 export function AdminPage() {
@@ -84,6 +85,7 @@ export function AdminPage() {
           <Tab label="📧 Invitaciones" />
           <Tab label="👥 Usuarios" />
           <Tab label="🎁 Rifas" />
+          <Tab label="⚽ Partidos" />
         </Tabs>
       </Box>
 
@@ -115,6 +117,9 @@ export function AdminPage() {
           loading={rafflesLoading}
         />
       )}
+
+      {/* Tab 3: Partidos */}
+      {tabValue === 3 && <MatchSyncPanel />}
     </Container>
   );
 }

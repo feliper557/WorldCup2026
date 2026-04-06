@@ -14,9 +14,9 @@ namespace WorldCup.Api.Services;
 /// </summary>
 public interface IFootballDataService
 {
-    Task<List<Match>> GetWorldCupMatches();
+    Task<List<Match>> GetWorldCupMatches(DateTime? dateFrom = null, DateTime? dateTo = null);
     Task<List<Match>> GetColombiaMatches();
-    Task<List<Match>> GetSpanishLaLigaMatches();
+    Task<List<Match>> GetSpanishLaLigaMatches(DateTime? dateFrom = null, DateTime? dateTo = null);
     Task<Match?> GetMatchDetailsAsync(string matchId);
 }
 
@@ -52,11 +52,22 @@ public class FootballDataService : IFootballDataService
     /// <summary>
     /// Get all World Cup 2026 matches
     /// </summary>
-    public async Task<List<Match>> GetWorldCupMatches()
+    public async Task<List<Match>> GetWorldCupMatches(DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         try
         {
             var url = $"{BaseUrl}/competitions/{WorldCupCompetitionCode}/matches";
+
+            // Add date filters if provided
+            var queryParams = new List<string>();
+            if (dateFrom.HasValue)
+                queryParams.Add($"dateFrom={dateFrom.Value:yyyy-MM-dd}");
+            if (dateTo.HasValue)
+                queryParams.Add($"dateTo={dateTo.Value:yyyy-MM-dd}");
+
+            if (queryParams.Count > 0)
+                url += "?" + string.Join("&", queryParams);
+
             _logger.LogInformation("Fetching World Cup matches from Football-Data.org: {Url}", url);
 
             var response = await _httpClient.GetFromJsonAsync<FootballDataMatchesResponse>(
@@ -136,11 +147,22 @@ public class FootballDataService : IFootballDataService
     /// <summary>
     /// Get all La Liga - Primera División España matches
     /// </summary>
-    public async Task<List<Match>> GetSpanishLaLigaMatches()
+    public async Task<List<Match>> GetSpanishLaLigaMatches(DateTime? dateFrom = null, DateTime? dateTo = null)
     {
         try
         {
             var url = $"{BaseUrl}/competitions/{SpanishLaLigaCode}/matches";
+
+            // Add date filters if provided
+            var queryParams = new List<string>();
+            if (dateFrom.HasValue)
+                queryParams.Add($"dateFrom={dateFrom.Value:yyyy-MM-dd}");
+            if (dateTo.HasValue)
+                queryParams.Add($"dateTo={dateTo.Value:yyyy-MM-dd}");
+
+            if (queryParams.Count > 0)
+                url += "?" + string.Join("&", queryParams);
+
             _logger.LogInformation("Fetching La Liga matches from Football-Data.org: {Url}", url);
 
             var response = await _httpClient.GetFromJsonAsync<FootballDataMatchesResponse>(

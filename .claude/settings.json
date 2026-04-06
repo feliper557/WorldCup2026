@@ -9,7 +9,8 @@
       "Bash(find api/Functions -name \"*.cs\" -exec grep -l \"UpsertAsync\" {} \\\\;)",
       "Bash(sed -i 's/await _matchRepository\\\\.UpsertAsync\\(match\\);/await _matchRepository.UpsertAsync\\(match.ToEntity\\(\\)\\);/g' api/Functions/Scheduled*.cs)",
       "Bash(sed -i 's/await _matchRepository\\\\.UpsertAsync\\(upd\\);/await _matchRepository.UpsertAsync\\(upd.ToEntity\\(\\)\\);/g' api/Functions/Scheduled*.cs)",
-      "Bash(grep -n \"\\\\.UpsertAsync\\([a-zA-Z]*[Mm]atch\\)\" api/Functions/Scheduled*.cs)"
+      "Bash(grep -n \"\\\\.UpsertAsync\\([a-zA-Z]*[Mm]atch\\)\" api/Functions/Scheduled*.cs)",
+      "Bash(export SqlConnectionString=\"Server=tcp:francachela-sql.database.windows.net,1433;Initial Catalog=WorldCup2026;Persist Security Info=False;User ID=sqladmin;Password=Franc@chela2026!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;\")"
     ]
   }
 }
