@@ -6,6 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using WorldCup.Api.Extensions;
 using WorldCup.Api.Infrastructure.Repositories.Interfaces;
+using WorldCup.Api.Models;
 using WorldCup.Api.Services;
 
 namespace WorldCup.Api.Functions;
@@ -82,24 +83,22 @@ public class SyncMatchesFunction
 
             _logger.LogInformation("✅ Synced {Count} matches from {Competition}", syncedCount, competition);
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new SyncResponse
-            {
-                Success = true,
-                Message = $"✅ Se sincronizaron {syncedCount} partidos de {(competition == "worldcup" ? "Mundial 2026" : "La Liga")}",
-                MatchesCount = syncedCount
-            });
+            await response.WriteAsJsonAsync(new SyncResponse(
+                true,
+                $"✅ Se sincronizaron {syncedCount} partidos de {(competition == "worldcup" ? "Mundial 2026" : "La Liga")}",
+                syncedCount
+            ));
             return response;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Error: {Message}", ex.Message);
             var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
-            await response.WriteAsJsonAsync(new SyncResponse
-            {
-                Success = false,
-                Message = $"❌ Error: {ex.Message}",
-                MatchesCount = 0
-            });
+            await response.WriteAsJsonAsync(new SyncResponse(
+                false,
+                $"❌ Error: {ex.Message}",
+                0
+            ));
             return response;
         }
     }
