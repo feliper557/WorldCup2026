@@ -55,7 +55,20 @@ function post<T>(endpoint: string, body: unknown): Promise<T> {
 }
 
 // Endpoints de Matches
-export const getMatches = (): Promise<Match[]> => get('/matches');
+export const getMatches = async (): Promise<Match[]> => {
+  const data = await get<any[]>('/matches');
+  return data.map((item) => ({
+    id: item.Id || item.id,
+    tournamentId: item.TournamentId || item.tournamentId || '',
+    homeTeam: item.HomeTeam || item.homeTeam,
+    awayTeam: item.AwayTeam || item.awayTeam,
+    kickoffAtUtc: item.MatchDate || item.kickoffAtUtc,
+    stage: item.Stage || item.stage,
+    status: item.Status || item.status,
+    homeScoreFinal: item.HomeScore ?? item.homeScoreFinal ?? null,
+    awayScoreFinal: item.AwayScore ?? item.awayScoreFinal ?? null,
+  }));
+};
 
 // Endpoints de Predictions
 export const upsertPrediction = (body: PredictionRequest): Promise<Prediction> =>
