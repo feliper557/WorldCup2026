@@ -5,3 +5,5 @@ export * from './useRanking';
 export * from './useRaffles';
 export * from './useAdmin';
 export * from './useChampionPrediction';
+export * from './useSyncResults';
+export * from './useMatchSync';

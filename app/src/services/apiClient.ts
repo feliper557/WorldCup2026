@@ -85,6 +85,9 @@ export const syncMatches = (options: SyncOptions): Promise<{ success: boolean; m
   return post(`/sync-matches?${params.toString()}`, {});
 };
 
+export const syncResults = (): Promise<{ message: string; updatedCount: number }> =>
+  get('/sync-results');
+
 export const getUsers = (): Promise<AdminUser[]> => get('/admin/users');
 
 export const sendInvitation = (body: InvitationRequest): Promise<Invitation> =>

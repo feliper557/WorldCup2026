@@ -41,12 +41,13 @@ public class SyncResultsFunction
 
             var now = DateTime.UtcNow;
             var allMatches = await _matchRepository.GetAllAsync();
+            int updatedCount = 0;
 
             if (allMatches.Count() == 0)
             {
                 _logger.LogInformation("No matches in database");
                 var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-                await response.WriteAsJsonAsync(new { message = "No matches to sync" });
+                await response.WriteAsJsonAsync(new { message = "No matches to sync", updatedCount = 0 });
                 return response;
             }
 
@@ -62,24 +63,25 @@ public class SyncResultsFunction
                 foreach (var match in laLigaMatches)
                 {
                     var upd = updated.FirstOrDefault(m => m.Id == match.Id);
-                    if (upd?.Status == "FINISHED" && upd.HomeScore.HasValue && upd.AwayScore.HasValue)
+                    if (upd?.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
                     {
                         await _matchRepository.UpsertAsync(upd.ToEntity());
                         await ProcessPredictions(upd);
+                        updatedCount++;
                     }
                 }
             }
 
-            _logger.LogInformation("✅ SyncResults completed");
+            _logger.LogInformation("✅ SyncResults completed - Updated {Count} matches", updatedCount);
             var finalResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            await finalResponse.WriteAsJsonAsync(new { message = "✅ SyncResults completed" });
+            await finalResponse.WriteAsJsonAsync(new { message = $"✅ Se actualizaron {updatedCount} partidos", updatedCount });
             return finalResponse;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Error: {Message}", ex.Message);
             var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
-            await response.WriteAsJsonAsync(new { error = ex.Message });
+            await response.WriteAsJsonAsync(new { error = ex.Message, updatedCount = 0 });
             return response;
         }
     }
