@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, Box, Typography, Avatar, Chip, Button, Badge, Alert, useTheme } from '@mui/material';
 import type { Match, Prediction } from '../../types';
+import { getTimeUntilMatch } from '../../utils/dateUtils';
 
 interface MatchCardProps {
   match: Match;
@@ -9,6 +11,8 @@ interface MatchCardProps {
 
 export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
+  const [countdown, setCountdown] = useState<string | null>(null);
+
   const kickoffDate = new Date(match.kickoffAtUtc);
 
   // Convertir manualmente a hora colombiana (UTC-5)
@@ -19,6 +23,15 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  // Actualizar countdown cada segundo
+  useEffect(() => {
+    setCountdown(getTimeUntilMatch(match.kickoffAtUtc));
+    const interval = setInterval(() => {
+      setCountdown(getTimeUntilMatch(match.kickoffAtUtc));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [match.kickoffAtUtc]);
 
   // Verificar si la predicción está disponible (solo en estado SCHEDULED)
   const isPredictionAvailable = match.status === 'SCHEDULED';
@@ -39,7 +52,17 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
             <Chip label={match.stage} size="small" color="primary" />
             {isDemo && <Chip label="🎯 DEMO" size="small" color="warning" sx={{ fontWeight: 600 }} />}
           </Box>
-          <Chip label={formattedDate} size="small" color="primary" />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Chip label={formattedDate} size="small" color="primary" />
+            {countdown && match.status === 'SCHEDULED' && (
+              <Chip
+                label={countdown}
+                size="small"
+                color="success"
+                sx={{ fontWeight: 600, animation: 'pulse 1s infinite' }}
+              />
+            )}
+          </Box>
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
