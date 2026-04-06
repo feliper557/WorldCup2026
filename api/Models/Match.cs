@@ -17,7 +17,7 @@ public class Match
     public string? Venue { get; set; }
     public int? ExternalId { get; set; }
     public DateTime CreatedAt { get; set; }
-    public int? TournamentId { get; set; }
+    // TournamentId is not persisted in current schema - kept for future use
     public int? HomeScoreFinal { get => HomeScore; set => HomeScore = value; }
     public int? AwayScoreFinal { get => AwayScore; set => AwayScore = value; }
     public DateTime KickoffAtUtc { get => MatchDate; set => MatchDate = value; }

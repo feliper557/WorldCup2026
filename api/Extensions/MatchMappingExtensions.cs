@@ -20,6 +20,7 @@ public static class MatchMappingExtensions
             AwayScore = match.AwayScore,
             Venue = match.Venue,
             ExternalId = match.ExternalId,
+            TournamentId = null,
             CreatedAt = match.CreatedAt
         };
     }
