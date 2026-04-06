@@ -1,5 +1,6 @@
 import type { Match, Prediction, PredictionRequest, Score, Raffle, RaffleCreateRequest, RaffleJoinRequest } from '../types';
 import type { AdminUser, InvitationRequest, Invitation, ResetPasswordRequest } from '../types/admin';
+import { getStoredToken } from './auth';
 
 // Determinar la URL base del API
 // Por defecto usar /api (Azure Static Web Apps proxy)
@@ -31,6 +32,12 @@ async function request<T>(
       'Content-Type': 'application/json',
     },
   };
+
+  // Agregar token JWT si existe (para endpoints autenticados)
+  const token = getStoredToken();
+  if (token) {
+    (options.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+  }
 
   if (body) {
     options.body = JSON.stringify(body);
