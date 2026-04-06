@@ -53,15 +53,17 @@ export function LeaderboardTable() {
   const { ranking, loading, error } = useRanking();
 
   // Convertir datos de API a formato de participante
-  const participants: Participant[] = ranking.map((score) => ({
-    rank: score.rank,
-    name: score.displayName,
-    avatar: (score.displayName || 'AN').substring(0, 2).toUpperCase(),
-    predictions: score.totalPredictions,
-    exactos: score.exactScores,
-    ganadores: score.correctWinners,
-    points: score.totalPoints,
-  }));
+  const participants: Participant[] = ranking
+    .filter((score) => score && score.displayName) // Filtrar nulls
+    .map((score) => ({
+      rank: score.rank || 0,
+      name: score.displayName || 'Unknown',
+      avatar: ((score.displayName) || 'AN').substring(0, 2).toUpperCase(),
+      predictions: score.totalPredictions || 0,
+      exactos: score.exactScores || 0,
+      ganadores: score.correctWinners || 0,
+      points: score.totalPoints || 0,
+    }));
 
   useEffect(() => {
     if (participants.length === 0) return;

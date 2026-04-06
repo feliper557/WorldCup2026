@@ -38,19 +38,23 @@ export function ParticipantsPage() {
   const [sortBy, setSortBy] = useState<SortBy>('points');
 
   const filteredAndSorted = useMemo(() => {
-    let filtered = ranking.filter((p) =>
-      p.displayName.toLowerCase().includes(searchText.toLowerCase())
+    // Filtrar participantes válidos (con displayName)
+    let filtered = ranking.filter((p) => p && p.displayName);
+
+    // Filtrar por búsqueda
+    filtered = filtered.filter((p) =>
+      (p.displayName || '').toLowerCase().includes(searchText.toLowerCase())
     );
 
     switch (sortBy) {
       case 'points':
-        return filtered.sort((a, b) => b.totalPoints - a.totalPoints);
+        return filtered.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
       case 'predictions':
-        return filtered.sort((a, b) => b.totalPredictions - a.totalPredictions);
+        return filtered.sort((a, b) => (b.totalPredictions || 0) - (a.totalPredictions || 0));
       case 'exactos':
-        return filtered.sort((a, b) => b.exactScores - a.exactScores);
+        return filtered.sort((a, b) => (b.exactScores || 0) - (a.exactScores || 0));
       case 'alfabetico':
-        return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        return filtered.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
       default:
         return filtered;
     }
@@ -69,8 +73,9 @@ export function ParticipantsPage() {
     return false;
   };
 
-  const getAvatarLabel = (name: string) => {
-    return name.split(' ').map((n) => n.charAt(0)).join('').toUpperCase();
+  const getAvatarLabel = (name: string | undefined) => {
+    if (!name) return 'AN';
+    return name.split(' ').map((n) => n.charAt(0)).join('').toUpperCase().substring(0, 2);
   };
 
   if (loading) {
@@ -163,7 +168,9 @@ export function ParticipantsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredAndSorted.map((participant) => (
+              {filteredAndSorted.map((participant) => {
+                if (!participant) return null;
+                return (
                 <TableRow
                   key={participant.userId}
                   sx={{
@@ -195,24 +202,25 @@ export function ParticipantsPage() {
                       </Avatar>
                       <Box>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {participant.displayName}
+                          {participant.displayName || 'Unknown'}
                         </Typography>
                         {isCurrentUser(participant.userId) && <Chip label="Eres tú" size="small" color="secondary" />}
                       </Box>
                     </Box>
                   </TableCell>
-                  <TableCell align="right">{participant.totalPredictions}</TableCell>
+                  <TableCell align="right">{participant.totalPredictions || 0}</TableCell>
                   <TableCell align="right">
-                    <Chip label={participant.exactScores} size="small" color="success" />
+                    <Chip label={participant.exactScores || 0} size="small" color="success" />
                   </TableCell>
                   <TableCell align="right">
-                    <Chip label={participant.correctWinners} size="small" color="warning" />
+                    <Chip label={participant.correctWinners || 0} size="small" color="warning" />
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: '1.1rem', color: theme.palette.secondary.main }}>
-                    {participant.totalPoints}
+                    {participant.totalPoints || 0}
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
