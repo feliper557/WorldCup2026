@@ -33,8 +33,11 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
     return () => clearInterval(interval);
   }, [match.kickoffAtUtc]);
 
-  // Verificar si la predicción está disponible (solo en estado SCHEDULED)
-  const isPredictionAvailable = match.status === 'SCHEDULED';
+  // Verificar si la predicción está disponible (solo en estado SCHEDULED y si faltan más de 1 minuto)
+  const now = new Date();
+  const cutoffTime = new Date(match.kickoffAtUtc);
+  cutoffTime.setMinutes(cutoffTime.getMinutes() - 1);
+  const isPredictionAvailable = match.status === 'SCHEDULED' && now < cutoffTime;
 
   // Detectar si es La Liga (DEMO)
   const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
