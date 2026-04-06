@@ -43,14 +43,14 @@ public class LoginFunction
             if (body == null)
             {
                 _logger.LogWarning("Invalid request body");
-                return ErrorResponse(req, "Invalid request", HttpStatusCode.BadRequest);
+                return await ErrorResponse(req, "Invalid request", HttpStatusCode.BadRequest);
             }
 
             // Validate input
             if (string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password))
             {
                 _logger.LogWarning("Missing email or password");
-                return ErrorResponse(req, "Email y contraseña son requeridos", HttpStatusCode.BadRequest);
+                return await ErrorResponse(req, "Email y contraseña son requeridos", HttpStatusCode.BadRequest);
             }
 
             // Find user by email
@@ -59,14 +59,14 @@ public class LoginFunction
             {
                 _logger.LogWarning("Login attempt for non-existent user: {Email}", body.Email);
                 // Don't reveal if user exists or not (security)
-                return ErrorResponse(req, "Email o contraseña inválidos", HttpStatusCode.Unauthorized);
+                return await ErrorResponse(req, "Email o contraseña inválidos", HttpStatusCode.Unauthorized);
             }
 
             // Check if user is active
             if (user.Status != "active")
             {
                 _logger.LogWarning("Login attempt for inactive user: {Email}", body.Email);
-                return ErrorResponse(req, "La cuenta no está activa", HttpStatusCode.Forbidden);
+                return await ErrorResponse(req, "La cuenta no está activa", HttpStatusCode.Forbidden);
             }
 
             // Verify password using BCrypt
@@ -75,7 +75,7 @@ public class LoginFunction
             {
                 _logger.LogWarning("Invalid password for user: {Email}", body.Email);
                 // Don't reveal if password is wrong (security)
-                return ErrorResponse(req, "Email o contraseña inválidos", HttpStatusCode.Unauthorized);
+                return await ErrorResponse(req, "Email o contraseña inválidos", HttpStatusCode.Unauthorized);
             }
 
             // Update last login
@@ -110,18 +110,18 @@ public class LoginFunction
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during login");
-            return ErrorResponse(req, "Error durante el login", HttpStatusCode.InternalServerError);
+            _logger.LogError(ex, "Error durante el login");
+            return await ErrorResponse(req, "Error durante el login", HttpStatusCode.InternalServerError);
         }
     }
 
-    private static HttpResponseData ErrorResponse(
+    private static async Task<HttpResponseData> ErrorResponse(
         HttpRequestData req,
         string message,
         HttpStatusCode statusCode)
     {
         var response = req.CreateResponse(statusCode);
-        response.WriteAsJsonAsync(new LoginResponse(
+        await response.WriteAsJsonAsync(new LoginResponse(
             Success: false,
             Message: message
         ));
