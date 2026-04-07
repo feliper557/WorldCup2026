@@ -28,15 +28,19 @@ export function MatchesPage() {
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
   const [syncing, setSyncing] = useState(true);
 
-  // Sync results with Football-Data API when page loads
+  // Sync results with Football-Data API when page loads (once on mount)
   // Only syncs matches that haven't finished and passed 105 minutes
   useEffect(() => {
+    let isMounted = true;
+
     const syncAndRefetch = async () => {
       try {
         setSyncing(true);
 
         // Call sync - it will only process eligible matches (not FINISHED, 105+ minutes passed)
         const result = await syncResults();
+
+        if (!isMounted) return;
 
         // If any matches were updated, refetch to get new statuses
         if (result.updatedCount > 0) {
@@ -46,12 +50,16 @@ export function MatchesPage() {
         setSyncing(false);
       } catch (err) {
         console.error('Error syncing results:', err);
-        setSyncing(false);
+        if (isMounted) setSyncing(false);
       }
     };
 
     syncAndRefetch();
-  }, [refetch]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - runs only once on mount
 
   const handleTabChange = (_: unknown, newValue: number) => {
     setTabValue(newValue);
