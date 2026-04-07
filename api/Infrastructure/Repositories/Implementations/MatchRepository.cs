@@ -18,32 +18,40 @@ public class MatchRepository : IMatchRepository
         // Colombia time (UTC-5)
         var colombiaTime = DateTime.UtcNow.AddHours(-5);
 
-        // Only fetch:
-        // 1. SCHEDULED matches (upcoming and current)
-        // 2. LIVE matches
-        // 3. FINISHED matches from last 7 days (to show recent results)
-        var sevenDaysAgo = colombiaTime.AddDays(-7);
-
-        var matches = await _db.Matches
-            .Where(m =>
-                (m.Status!.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase)) ||
-                (m.Status!.Equals("LIVE", StringComparison.OrdinalIgnoreCase)) ||
-                (m.Status!.Equals("FINISHED", StringComparison.OrdinalIgnoreCase) && m.MatchDate >= sevenDaysAgo)
-            )
+        // Fetch ALL matches from database
+        var allMatches = await _db.Matches
             .OrderBy(m => m.MatchDate)
             .ToListAsync();
 
+        // Filter in memory (more reliable than SQL WHERE)
+        var filtered = allMatches
+            .Where(m =>
+            {
+                var status = m.Status?.ToUpper() ?? "";
+
+                // Include SCHEDULED and LIVE always
+                if (status == "SCHEDULED" || status == "LIVE")
+                    return true;
+
+                // Include all FINISHED (no date restriction)
+                if (status == "FINISHED")
+                    return true;
+
+                return false;
+            })
+            .ToList();
+
         // Auto-update SCHEDULED to LIVE based on time (Colombia time UTC-5)
-        foreach (var match in matches)
+        foreach (var match in filtered)
         {
-            // If SCHEDULED and kickoff has passed → mark as LIVE
             if (match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true
                 && match.MatchDate <= colombiaTime)
             {
                 match.Status = "LIVE";
             }
         }
-        return matches;
+
+        return filtered;
     }
 
     public async Task<IEnumerable<MatchEntity>> GetUpcomingAsync()
