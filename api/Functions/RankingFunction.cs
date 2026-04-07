@@ -8,16 +8,22 @@ namespace WorldCup.Api.Functions;
 
 /// <summary>
 /// Function para obtener el ranking de participantes
-/// Retorna lista de usuarios ordenada por puntos
+/// Calcula puntos dinámicamente sumando todas las predicciones
+/// Retorna lista de usuarios ordenada por puntos totales
 /// </summary>
 public class RankingFunction
 {
     private readonly IUserRepository _userRepository;
+    private readonly IPredictionRepository _predictionRepository;
     private readonly ILogger<RankingFunction> _logger;
 
-    public RankingFunction(IUserRepository userRepository, ILogger<RankingFunction> logger)
+    public RankingFunction(
+        IUserRepository userRepository,
+        IPredictionRepository predictionRepository,
+        ILogger<RankingFunction> logger)
     {
         _userRepository = userRepository;
+        _predictionRepository = predictionRepository;
         _logger = logger;
     }
 
@@ -30,23 +36,53 @@ public class RankingFunction
 
         try
         {
-            // Obtener todos los usuarios activos y ordenar por puntos
+            // Obtener todos los usuarios activos
             var users = await _userRepository.GetLeaderboardAsync(limit: 1000);
 
-            // Mapear a respuesta
-            var ranking = users.Select((u, index) => new
+            // Calcular puntos dinámicamente para cada usuario
+            var usersWithCalculatedPoints = new List<dynamic>();
+
+            foreach (var user in users)
             {
-                u.Id,
-                u.Email,
-                u.DisplayName,
-                u.TotalPoints,
-                u.TotalPredictions,
-                u.CorrectPredictions,
-                u.AccuracyPercentage,
-                u.LeaderboardRank,
-                Position = index + 1,
-                exactScores = u.CorrectPredictions // Para compatibilidad con frontend
-            }).ToList();
+                // Obtener todas las predicciones del usuario
+                var predictions = await _predictionRepository.GetByUserIdAsync(user.Id);
+
+                // Sumar todos los PointsEarned
+                int totalPoints = predictions.Sum(p => p.PointsEarned);
+
+                usersWithCalculatedPoints.Add(new
+                {
+                    user.Id,
+                    user.Email,
+                    user.DisplayName,
+                    TotalPoints = totalPoints, // Calculado dinámicamente
+                    user.TotalPredictions,
+                    user.CorrectPredictions,
+                    user.AccuracyPercentage,
+                    user.LeaderboardRank,
+                    exactScores = user.CorrectPredictions // Para compatibilidad con frontend
+                });
+            }
+
+            // Ordenar por puntos totales (descendente)
+            var ranking = usersWithCalculatedPoints
+                .OrderByDescending(u => u.TotalPoints)
+                .Select((u, index) => new
+                {
+                    u.Id,
+                    u.Email,
+                    u.DisplayName,
+                    u.TotalPoints,
+                    u.TotalPredictions,
+                    u.CorrectPredictions,
+                    u.AccuracyPercentage,
+                    u.LeaderboardRank,
+                    Rank = index + 1, // Posición en ranking
+                    u.exactScores
+                })
+                .ToList();
+
+            _logger.LogInformation("Ranking calculated for {Count} users", ranking.Count);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(ranking);
