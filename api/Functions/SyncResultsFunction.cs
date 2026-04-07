@@ -39,7 +39,8 @@ public class SyncResultsFunction
         {
             _logger.LogInformation("⏱️ SyncResults triggered");
 
-            var now = DateTime.UtcNow;
+            // Colombia time (UTC-5)
+            var colombiaTime = DateTime.UtcNow.AddHours(-5);
             var allMatches = await _matchRepository.GetAllAsync();
             int updatedCount = 0;
 
@@ -51,10 +52,25 @@ public class SyncResultsFunction
                 return response;
             }
 
+            // Only sync matches that:
+            // 1. Are NOT finished
+            // 2. Have passed 105 minutes since kickoff (in Colombia time)
+            var matchesToSync = allMatches
+                .Where(m => !m.Status?.Equals("FINISHED", StringComparison.OrdinalIgnoreCase) ?? false)
+                .Where(m => m.MatchDate.AddMinutes(BufferMinutes) <= colombiaTime)
+                .ToList();
+
+            if (matchesToSync.Count == 0)
+            {
+                _logger.LogInformation("No matches eligible for sync (all finished or not yet 105min)");
+                var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(new { message = "No matches to sync", updatedCount = 0 });
+                return response;
+            }
+
             // Check La Liga
-            var laLigaMatches = allMatches
+            var laLigaMatches = matchesToSync
                 .Where(m => m.Stage?.Contains("REGULAR", StringComparison.OrdinalIgnoreCase) == true)
-                .Where(m => m.Status != "FINISHED" && m.MatchDate <= now.AddMinutes(-BufferMinutes))
                 .ToList();
 
             if (laLigaMatches.Count > 0)

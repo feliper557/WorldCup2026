@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Tabs,
@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import type { Match, Prediction } from '../types';
 import { useMatches, usePredictions } from '../hooks';
+import { syncResults } from '../services/apiClient';
 import { HeroMatches } from '../components/sections';
 import { MatchCard } from '../components/matches/MatchCard';
 import { ResultCard } from '../components/matches/ResultCard';
@@ -25,6 +26,32 @@ export function MatchesPage() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
+  const [syncing, setSyncing] = useState(true);
+
+  // Sync results with Football-Data API when page loads
+  // Only syncs matches that haven't finished and passed 105 minutes
+  useEffect(() => {
+    const syncAndRefetch = async () => {
+      try {
+        setSyncing(true);
+
+        // Call sync - it will only process eligible matches (not FINISHED, 105+ minutes passed)
+        const result = await syncResults();
+
+        // If any matches were updated, refetch to get new statuses
+        if (result.updatedCount > 0) {
+          await refetch();
+        }
+
+        setSyncing(false);
+      } catch (err) {
+        console.error('Error syncing results:', err);
+        setSyncing(false);
+      }
+    };
+
+    syncAndRefetch();
+  }, [refetch]);
 
   const handleTabChange = (_: unknown, newValue: number) => {
     setTabValue(newValue);

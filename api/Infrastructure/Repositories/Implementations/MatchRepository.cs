@@ -18,12 +18,23 @@ public class MatchRepository : IMatchRepository
         var matches = await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
         // Auto-update status based on time (Colombia time UTC-5)
         var colombiaTime = DateTime.UtcNow.AddHours(-5);
+        const int minutesUntilFinished = 105; // Match considered finished after 105 minutes
+
         foreach (var match in matches)
         {
+            // If SCHEDULED and kickoff has passed → mark as LIVE
             if (match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true
                 && match.MatchDate <= colombiaTime)
             {
                 match.Status = "LIVE";
+            }
+
+            // If SCHEDULED or LIVE and 105+ minutes have passed → mark as FINISHED
+            if ((match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true ||
+                 match.Status?.Equals("LIVE", StringComparison.OrdinalIgnoreCase) == true)
+                && match.MatchDate.AddMinutes(minutesUntilFinished) <= colombiaTime)
+            {
+                match.Status = "FINISHED";
             }
         }
         return matches;
