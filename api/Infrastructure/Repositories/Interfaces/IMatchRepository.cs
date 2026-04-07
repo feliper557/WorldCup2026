@@ -6,6 +6,7 @@ public interface IMatchRepository
 {
     Task<MatchEntity?> GetByIdAsync(string id);
     Task<IEnumerable<MatchEntity>> GetAllAsync();
+    Task<IEnumerable<MatchEntity>> GetAllWithStatusAsync();
     Task<IEnumerable<MatchEntity>> GetUpcomingAsync();
     Task<IEnumerable<MatchEntity>> GetByStageAsync(string stage);
     Task<IEnumerable<MatchEntity>> GetByStatusAsync(string status);

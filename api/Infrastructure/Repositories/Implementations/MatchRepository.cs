@@ -43,6 +43,25 @@ public class MatchRepository : IMatchRepository
             .ToList();
     }
 
+    public async Task<IEnumerable<MatchEntity>> GetAllWithStatusAsync()
+    {
+        // Get ALL matches including SCHEDULED, LIVE, and FINISHED
+        // Auto-update SCHEDULED to LIVE based on Colombia time
+        var matches = await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
+        var colombiaTime = DateTime.UtcNow.AddHours(-5);
+
+        foreach (var match in matches)
+        {
+            // If SCHEDULED and kickoff has passed → mark as LIVE
+            if (match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true
+                && match.MatchDate <= colombiaTime)
+            {
+                match.Status = "LIVE";
+            }
+        }
+        return matches;
+    }
+
     public async Task<IEnumerable<MatchEntity>> GetByStageAsync(string stage)
         => await _db.Matches
             .Where(m => m.Stage == stage)

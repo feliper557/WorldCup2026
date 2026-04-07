@@ -39,7 +39,8 @@ public class MatchesFunction
     {
         try
         {
-            var entities = await _matches.GetUpcomingAsync();
+            // Get all matches (SCHEDULED, LIVE, FINISHED) with auto-status updates
+            var entities = await _matches.GetAllWithStatusAsync();
             var list = entities?.Select(m => m.ToModel()).ToList() ?? new List<Match>();
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(list);
