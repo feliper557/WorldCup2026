@@ -15,10 +15,25 @@ public class MatchRepository : IMatchRepository
 
     public async Task<IEnumerable<MatchEntity>> GetAllAsync()
     {
-        var matches = await _db.Matches.OrderBy(m => m.MatchDate).ToListAsync();
-        // Auto-update SCHEDULED to LIVE based on time (Colombia time UTC-5)
+        // Colombia time (UTC-5)
         var colombiaTime = DateTime.UtcNow.AddHours(-5);
 
+        // Only fetch:
+        // 1. SCHEDULED matches (upcoming and current)
+        // 2. LIVE matches
+        // 3. FINISHED matches from last 7 days (to show recent results)
+        var sevenDaysAgo = colombiaTime.AddDays(-7);
+
+        var matches = await _db.Matches
+            .Where(m =>
+                (m.Status!.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase)) ||
+                (m.Status!.Equals("LIVE", StringComparison.OrdinalIgnoreCase)) ||
+                (m.Status!.Equals("FINISHED", StringComparison.OrdinalIgnoreCase) && m.MatchDate >= sevenDaysAgo)
+            )
+            .OrderBy(m => m.MatchDate)
+            .ToListAsync();
+
+        // Auto-update SCHEDULED to LIVE based on time (Colombia time UTC-5)
         foreach (var match in matches)
         {
             // If SCHEDULED and kickoff has passed → mark as LIVE
