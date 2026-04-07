@@ -87,10 +87,21 @@ export const getPredictionsByMatch = (matchId: string): Promise<Prediction[]> =>
   get(`/predictions/match/${matchId}`);
 
 // Endpoints de Ranking
-export const getRanking = (): Promise<Score[]> => get('/ranking');
+export const getRanking = async (): Promise<Score[]> => {
+  const data = await get<any[]>('/ranking');
+  return data.map((item) => ({
+    userId: item.Id || item.id || item.UserId || item.userId,
+    displayName: item.DisplayName || item.displayName,
+    totalPoints: item.TotalPoints ?? item.totalPoints ?? 0,
+    totalPredictions: item.TotalPredictions ?? item.totalPredictions ?? 0,
+    exactScores: item.ExactScores ?? item.exactScores ?? item.CorrectPredictions ?? item.correctPredictions ?? 0,
+    correctWinners: item.CorrectWinners ?? item.correctWinners ?? 0,
+    rank: item.Rank ?? item.rank ?? 0,
+  }));
+};
 
 // Endpoints de Participantes (usar getRanking si son los mismos datos)
-export const getParticipants = (): Promise<Score[]> => get('/ranking');
+export const getParticipants = (): Promise<Score[]> => getRanking();
 
 // Endpoints de Rifas
 export const getRaffles = (): Promise<Raffle[]> => get('/raffles');
