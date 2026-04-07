@@ -9,10 +9,11 @@ interface ResultCardProps {
 export function ResultCard({ match, prediction }: ResultCardProps) {
   const theme = useTheme();
   const finishDate = new Date(match.kickoffAtUtc);
-  const formattedDate = finishDate.toLocaleString('es-ES', {
+  const formattedDate = finishDate.toLocaleString('es-CO', {
     day: 'numeric',
     month: 'short',
     year: '2-digit',
+    timeZone: 'America/Bogota',
   });
 
   // Detectar si es La Liga (DEMO)

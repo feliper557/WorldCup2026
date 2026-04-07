@@ -68,7 +68,7 @@ public class SyncResultsFunction
                 return response;
             }
 
-            // Check La Liga
+            // Check La Liga (REGULAR stage)
             var laLigaMatches = matchesToSync
                 .Where(m => m.Stage?.Contains("REGULAR", StringComparison.OrdinalIgnoreCase) == true)
                 .ToList();
@@ -77,6 +77,26 @@ public class SyncResultsFunction
             {
                 var updated = await _footballDataService.GetSpanishLaLigaMatches();
                 foreach (var match in laLigaMatches)
+                {
+                    var upd = updated.FirstOrDefault(m => m.Id == match.Id);
+                    if (upd?.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                    {
+                        await _matchRepository.UpsertAsync(upd.ToEntity());
+                        await ProcessPredictions(upd);
+                        updatedCount++;
+                    }
+                }
+            }
+
+            // Check World Cup 2026 matches (GROUP_STAGE, ROUND_OF_16, QUARTER_FINALS, SEMI_FINALS, FINAL)
+            var worldCupMatches = matchesToSync
+                .Where(m => !m.Stage?.Contains("REGULAR", StringComparison.OrdinalIgnoreCase) ?? true) // Exclude La Liga
+                .ToList();
+
+            if (worldCupMatches.Count > 0)
+            {
+                var updated = await _footballDataService.GetWorldCupMatches();
+                foreach (var match in worldCupMatches)
                 {
                     var upd = updated.FirstOrDefault(m => m.Id == match.Id);
                     if (upd?.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)

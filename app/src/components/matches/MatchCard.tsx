@@ -23,6 +23,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
     month: 'long',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'America/Bogota',
   });
 
   // Actualizar countdown cada segundo
