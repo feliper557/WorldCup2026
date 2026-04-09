@@ -105,7 +105,9 @@ public class JwtService
     /// </summary>
     public string? ExtractRole(ClaimsPrincipal? principal)
     {
-        return principal?.FindFirst(ClaimTypes.Role)?.Value;
+        // Try both the full URI claim type and the short "role" claim
+        return principal?.FindFirst(ClaimTypes.Role)?.Value
+            ?? principal?.FindFirst("role")?.Value;
     }
 
     /// <summary>

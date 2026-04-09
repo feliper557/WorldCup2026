@@ -65,14 +65,15 @@ public class SecureTokenService
             var email = _jwtService.ExtractEmail(principal);
             var roleInToken = _jwtService.ExtractRole(principal);
 
+            _logger.LogInformation("Token claims - UserId={UserId}, Role={Role}, Email={Email}", userId, roleInToken, email);
+
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(roleInToken))
             {
-                _logger.LogWarning("JWT token missing required claims (userId or role)");
+                _logger.LogWarning("JWT token missing required claims. UserId={UserId}, Role={Role}", userId, roleInToken);
                 return null;
             }
 
             // Step 3: Query database to verify user and get actual role
-            // THIS IS CRITICAL - We must not trust the JWT role claim alone
             var userFromDb = await GetUserFromDatabase(userId);
             if (userFromDb == null)
             {
@@ -80,17 +81,13 @@ public class SecureTokenService
                 return null;
             }
 
-            // Step 4: SECURITY CHECK: Cross-validate role
-            // If JWT role != Database role, the token has been tampered with
-            // Possible scenarios:
-            // - User modified JWT payload to "admin"
-            // - User's role was revoked but they're using an old token
-            // - Security breach attempt
-            if (userFromDb.Role != roleInToken)
+            _logger.LogInformation("DB user - Role={DbRole}, Status={Status}", userFromDb.Role, userFromDb.Status);
+
+            // Step 4: SECURITY CHECK: Cross-validate role (case-insensitive)
+            if (!string.Equals(userFromDb.Role, roleInToken, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogError(
-                    "SECURITY ALERT: Role mismatch detected for user {UserId}. JWT role={JwtRole}, Database role={DbRole}. Possible token tampering or privilege escalation attempt.",
-                    userId,
+                    "SECURITY ALERT: Role mismatch. JWT role={JwtRole}, Database role={DbRole}.",
                     roleInToken,
                     userFromDb.Role
                 );
