@@ -39,7 +39,12 @@ public class DebugTokenFunction
         if (principal == null)
         {
             var r = req.CreateResponse(HttpStatusCode.Unauthorized);
-            await r.WriteAsJsonAsync(new { step = "1_signature", error = "Token signature invalid or expired" });
+            await r.WriteAsJsonAsync(new {
+                step = "1_signature",
+                error = "Token signature invalid or expired",
+                detail = _jwtService.LastValidationError,
+                secretLength = _jwtService.SecretKeyLength
+            });
             return r;
         }
 

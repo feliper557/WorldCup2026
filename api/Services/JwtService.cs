@@ -84,11 +84,16 @@ public class JwtService
 
             return principal;
         }
-        catch
+        catch (Exception ex)
         {
+            // Store last error for debugging
+            LastValidationError = ex.Message;
             return null;
         }
     }
+
+    public string? LastValidationError { get; private set; }
+    public int SecretKeyLength => _secretKey.Length;
 
     /// <summary>
     /// Extract userId from JWT token claims
