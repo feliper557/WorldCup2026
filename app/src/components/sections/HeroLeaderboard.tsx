@@ -2,10 +2,42 @@ import React, { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { EmojiEvents, SportsFootball, LocalFireDepartment } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
+import { useRanking } from '../../hooks/useRanking';
+import { useMatches } from '../../hooks/useMatches';
 
 export function HeroLeaderboard() {
   const theme = useTheme();
   const heroRef = useRef<HTMLDivElement>(null);
+  const { ranking, loading: rankingLoading } = useRanking();
+  const { matches, loading: matchesLoading } = useMatches();
+
+  const leader = ranking.length > 0 ? ranking[0] : null;
+  const leaderName = leader?.displayName ?? '...';
+  const jugadores = rankingLoading ? '...' : String(ranking.length);
+
+  const stageLabel = (stage: string): string => {
+    const map: Record<string, string> = {
+      GROUP_STAGE: 'Grupos',
+      GROUPS: 'Grupos',
+      REGULAR_SEASON: 'Grupos',
+      ROUND_OF_16: 'Octavos',
+      LAST_16: 'Octavos',
+      QUARTER_FINALS: 'Cuartos',
+      SEMI_FINALS: 'Semis',
+      THIRD_PLACE: '3er Lugar',
+      FINAL: 'Final',
+    };
+    return map[stage?.toUpperCase()] ?? stage ?? 'Grupos';
+  };
+
+  const currentRound = (() => {
+    if (matchesLoading) return '...';
+    const live = matches.find((m) => m.status?.toLowerCase() === 'live');
+    if (live) return stageLabel(live.stage);
+    const scheduled = matches.find((m) => m.status?.toLowerCase() === 'scheduled');
+    if (scheduled) return stageLabel(scheduled.stage);
+    return 'Grupos';
+  })();
 
   useEffect(() => {
     const el = heroRef.current;
@@ -228,19 +260,19 @@ export function HeroLeaderboard() {
             <StatPill
               icon={<span>🥇</span>}
               label="Líder"
-              value="Daniela R."
+              value={leaderName}
               color={theme.palette.warning.main}
             />
             <StatPill
               icon={<span>⚽</span>}
               label="Ronda"
-              value="Grupos"
+              value={currentRound}
               color={theme.palette.primary.main}
             />
             <StatPill
               icon={<span>🔥</span>}
               label="Jugadores"
-              value="18"
+              value={jugadores}
               color={theme.palette.secondary.main}
             />
           </Stack>

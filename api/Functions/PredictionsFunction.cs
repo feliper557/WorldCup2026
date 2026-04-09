@@ -16,15 +16,18 @@ public class PredictionsFunction
     private readonly IPredictionRepository _predictions;
     private readonly IMatchRepository _matches;
     private readonly ITimeProviderService _time;
+    private readonly JwtService _jwtService;
 
     public PredictionsFunction(
         IPredictionRepository predictions,
         IMatchRepository matches,
-        ITimeProviderService time)
+        ITimeProviderService time,
+        JwtService jwtService)
     {
         _predictions = predictions;
         _matches = matches;
         _time = time;
+        _jwtService = jwtService;
     }
 
     public record PredictionRequest(string MatchId, int Home, int Away);
@@ -47,10 +50,7 @@ public class PredictionsFunction
     public async Task<HttpResponseData> GetMyPredictions(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "predictions/me")] HttpRequestData req)
     {
-        var userId = req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL-ID", out var vals)
-            ? vals.FirstOrDefault()
-            : null;
-
+        var userId = ExtractUserIdFromJwt(req);
         if (string.IsNullOrEmpty(userId))
         {
             var unauthorized = req.CreateResponse(HttpStatusCode.Unauthorized);
@@ -109,11 +109,7 @@ public class PredictionsFunction
     public async Task<HttpResponseData> UpsertPrediction(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "predictions")] HttpRequestData req)
     {
-        // 1. Obtener usuario desde cabeceras de Static Web Apps (ejemplo simplificado)
-        var userId = req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL-ID", out var vals)
-            ? vals.FirstOrDefault()
-            : null;
-
+        var userId = ExtractUserIdFromJwt(req);
         if (string.IsNullOrEmpty(userId))
         {
             var unauthorized = req.CreateResponse(HttpStatusCode.Unauthorized);
@@ -184,5 +180,16 @@ public class PredictionsFunction
         var ok = req.CreateResponse(HttpStatusCode.OK);
         await ok.WriteAsJsonAsync(prediction);
         return ok;
+    }
+
+    private string? ExtractUserIdFromJwt(HttpRequestData req)
+    {
+        var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            return null;
+
+        var token = authHeader.Substring("Bearer ".Length);
+        var principal = _jwtService.ValidateToken(token);
+        return _jwtService.ExtractUserId(principal);
     }
 }
