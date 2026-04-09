@@ -94,6 +94,7 @@ public class JwtService
 
     public string? LastValidationError { get; private set; }
     public int SecretKeyLength => _secretKey.Length;
+    public string SecretKeyPrefix => _secretKey.Length >= 4 ? _secretKey.Substring(0, 4) : "???";
 
     /// <summary>
     /// Extract userId from JWT token claims

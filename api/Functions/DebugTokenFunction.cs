@@ -43,7 +43,8 @@ public class DebugTokenFunction
                 step = "1_signature",
                 error = "Token signature invalid or expired",
                 detail = _jwtService.LastValidationError,
-                secretLength = _jwtService.SecretKeyLength
+                secretLength = _jwtService.SecretKeyLength,
+                secretPrefix = _jwtService.SecretKeyPrefix  // primeros 4 chars
             });
             return r;
         }
