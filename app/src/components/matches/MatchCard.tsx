@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, Box, Typography, Avatar, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
+import { Card, CardContent, Box, Typography, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
 import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch } from '../../utils/dateUtils';
 import { getMatches } from '../../services/apiClient';
+import { TeamCrest } from './TeamCrest';
 
 interface MatchCardProps {
   match: Match;
@@ -44,11 +45,6 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
 
   // Detectar si es La Liga (DEMO)
   const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
-
-  const getAvatarColor = (initial: string) => {
-    const colors = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.warning.main];
-    return colors[initial.charCodeAt(0) % colors.length];
-  };
 
   // Validar estado del partido antes de permitir predicción
   const handlePredictClick = async () => {
@@ -112,18 +108,9 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: getAvatarColor(match.homeTeam),
-                fontWeight: 600,
-              }}
-            >
-              {match.homeTeam.charAt(0)}
-            </Avatar>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+            <TeamCrest name={match.homeTeam} size={42} />
+            <Typography variant="h6" sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {match.homeTeam}
             </Typography>
           </Box>
@@ -134,20 +121,11 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, justifyContent: 'flex-end', minWidth: 0, flex: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {match.awayTeam}
             </Typography>
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: getAvatarColor(match.awayTeam),
-                fontWeight: 600,
-              }}
-            >
-              {match.awayTeam.charAt(0)}
-            </Avatar>
+            <TeamCrest name={match.awayTeam} size={42} />
           </Box>
         </Box>
 

@@ -1,6 +1,7 @@
-import { Card, CardContent, Box, Typography, Avatar, Chip, Stack, useTheme } from '@mui/material';
+import { Card, CardContent, Box, Typography, Chip, Stack, useTheme } from '@mui/material';
 import { Assessment, EmojiEvents, WarningAmber } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
+import { TeamCrest } from './TeamCrest';
 
 interface ResultCardProps {
   match: Match;
@@ -26,11 +27,6 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
     return 'default';
   };
 
-  const getAvatarColor = (initial: string) => {
-    const colors = [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.warning.main];
-    return colors[initial.charCodeAt(0) % colors.length];
-  };
-
   const determineWinner = () => {
     if (match.homeScoreFinal === null || match.awayScoreFinal === null) return null;
     if (match.homeScoreFinal > match.awayScoreFinal) return 'home';
@@ -52,18 +48,9 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: getAvatarColor(match.homeTeam),
-                fontWeight: 600,
-              }}
-            >
-              {match.homeTeam.charAt(0)}
-            </Avatar>
-            <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
+            <TeamCrest name={match.homeTeam} size={40} />
+            <Box sx={{ minWidth: 0 }}>
               <Typography
                 variant="body2"
                 sx={{
@@ -88,28 +75,22 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
-            <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, justifyContent: 'flex-end', minWidth: 0, flex: 1 }}>
+            <Box sx={{ minWidth: 0, textAlign: 'right' }}>
               <Typography
                 variant="body2"
                 sx={{
                   fontWeight: winner === 'away' ? 700 : 500,
                   color: winner === 'away' ? theme.palette.secondary.main : theme.palette.text.primary,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {match.awayTeam}
               </Typography>
             </Box>
-            <Avatar
-              sx={{
-                width: 40,
-                height: 40,
-                backgroundColor: getAvatarColor(match.awayTeam),
-                fontWeight: 600,
-              }}
-            >
-              {match.awayTeam.charAt(0)}
-            </Avatar>
+            <TeamCrest name={match.awayTeam} size={40} />
           </Box>
         </Box>
 
