@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, Box, Typography, Avatar, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
+import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch } from '../../utils/dateUtils';
 import { getMatches } from '../../services/apiClient';
@@ -57,13 +58,13 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
       const currentMatch = allMatches.find(m => m.id === match.id);
 
       if (!currentMatch) {
-        setErrorMessage('⚠️ Partido no encontrado');
+        setErrorMessage('Partido no encontrado');
         return;
       }
 
       // Verificar que siga en estado SCHEDULED
       if (currentMatch.status !== 'SCHEDULED') {
-        setErrorMessage(`⚠️ Partido en estado ${currentMatch.status} - predicción no disponible`);
+        setErrorMessage(`Partido en estado ${currentMatch.status} — predicción no disponible`);
         return;
       }
 
@@ -71,7 +72,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
       const now = new Date();
       const kickoff = new Date(currentMatch.kickoffAtUtc);
       if (kickoff <= now) {
-        setErrorMessage('⏳ Partido ya inició - predicción cerrada');
+        setErrorMessage('Partido ya inició — predicción cerrada');
         return;
       }
 
@@ -84,21 +85,27 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   };
 
   return (
-    <Card sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
+    <Card sx={{ mb: 2 }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Chip label={match.stage} size="small" color="primary" />
-            {isDemo && <Chip label="🎯 DEMO" size="small" color="warning" sx={{ fontWeight: 600 }} />}
+            {isDemo && <Chip label="DEMO" size="small" color="warning" sx={{ fontWeight: 700, letterSpacing: '0.08em' }} />}
           </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Chip label={formattedDate} size="small" color="primary" />
+            <Chip
+              icon={<AccessTime sx={{ fontSize: 14 }} />}
+              label={formattedDate}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
             {countdown && match.status === 'SCHEDULED' && (
               <Chip
                 label={countdown}
                 size="small"
                 color="success"
-                sx={{ fontWeight: 600, animation: 'pulse 1s infinite' }}
+                sx={{ fontWeight: 700, animation: 'pulse 1.6s infinite' }}
               />
             )}
           </Box>
@@ -170,18 +177,27 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
               size="small"
               color={prediction ? 'primary' : 'secondary'}
               onClick={handlePredictClick}
-              sx={{ fontWeight: 600 }}
+              startIcon={prediction ? <EditIcon sx={{ fontSize: 16 }} /> : <SportsSoccer sx={{ fontSize: 16 }} />}
+              sx={{ fontWeight: 600, cursor: 'pointer' }}
             >
-              {prediction ? '✏️ Editar' : '⚽ Predecir'}
+              {prediction ? 'Editar' : 'Predecir'}
             </Button>
           )}
 
-          {match.status === 'LIVE' && <Chip label="● EN VIVO" size="small" color="error" sx={{ animation: 'pulse 1s infinite' }} />}
+          {match.status === 'LIVE' && (
+            <Chip
+              icon={<FiberManualRecord sx={{ fontSize: 10, animation: 'pulse 1s infinite' }} />}
+              label="EN VIVO"
+              size="small"
+              color="error"
+              sx={{ fontWeight: 700, letterSpacing: '0.08em' }}
+            />
+          )}
         </Box>
 
         {!isPredictionAvailable && match.status === 'SCHEDULED' && (
-          <Alert severity="warning" sx={{ mt: 1, backgroundColor: `${theme.palette.warning.main}20`, borderLeft: `4px solid ${theme.palette.warning.main}` }}>
-            ⏳ Predicción cerrada - Solo disponible hasta 1 minuto antes del inicio
+          <Alert severity="warning" sx={{ mt: 1, borderLeft: `4px solid ${theme.palette.warning.main}` }}>
+            Predicción cerrada — solo disponible hasta 1 minuto antes del inicio
           </Alert>
         )}
       </CardContent>

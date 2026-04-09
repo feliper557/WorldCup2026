@@ -1,4 +1,5 @@
 import { Card, CardContent, Box, Typography, Avatar, Chip, Stack, useTheme } from '@mui/material';
+import { Assessment, EmojiEvents, WarningAmber } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 
 interface ResultCardProps {
@@ -40,12 +41,12 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
   const winner = determineWinner();
 
   return (
-    <Card sx={{ mb: 2, backgroundColor: theme.palette.background.paper }}>
+    <Card sx={{ mb: 2 }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Chip label={match.stage} size="small" color="primary" />
-            {isDemo && <Chip label="🎯 DEMO" size="small" color="warning" sx={{ fontWeight: 600 }} />}
+            {isDemo && <Chip label="DEMO" size="small" color="warning" sx={{ fontWeight: 700, letterSpacing: '0.08em' }} />}
           </Box>
           <Chip label={formattedDate} size="small" color="primary" />
         </Box>
@@ -113,29 +114,45 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
         </Box>
 
         {prediction ? (
-          <Stack direction="row" spacing={2} sx={{ backgroundColor: `${theme.palette.primary.main}20`, p: 1.5, borderRadius: 1, borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
-                📊 Predicción:
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {prediction.homeScorePred} - {prediction.awayScorePred}
-              </Typography>
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{
+              backgroundColor: `${theme.palette.primary.main}14`,
+              p: 1.5,
+              borderRadius: 1.5,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Assessment sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
+              <Box>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 600, display: 'block', lineHeight: 1 }}>
+                  Predicción
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  {prediction.homeScorePred} - {prediction.awayScorePred}
+                </Typography>
+              </Box>
             </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
-                🎯 Puntos:
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <EmojiEvents sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
               <Chip
                 label={`+${prediction.pointsAwarded ?? 0} pts`}
                 size="small"
                 color={determinePointsColor(prediction.pointsAwarded) as any}
-                sx={{ fontWeight: 600 }}
+                sx={{ fontWeight: 700 }}
               />
             </Box>
           </Stack>
         ) : (
-          <Chip label="⚠️ Sin predicción" size="small" variant="outlined" />
+          <Chip
+            icon={<WarningAmber sx={{ fontSize: 14 }} />}
+            label="Sin predicción"
+            size="small"
+            variant="outlined"
+          />
         )}
       </CardContent>
     </Card>

@@ -148,21 +148,23 @@ export function Navbar() {
             }}
           >
             <Box
+              component="img"
+              src="/Francachelaicon.jpeg"
+              alt="Francachela"
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 32,
-                height: 32,
-                borderRadius: 1,
-                backgroundColor: theme.palette.primary.main,
-                color: theme.palette.background.paper,
-                fontWeight: 600,
-                fontSize: '1rem',
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: `2px solid ${theme.palette.primary.main}`,
+                boxShadow: `0 0 0 3px ${theme.palette.primary.main}22`,
+                transition: 'transform 200ms ease, box-shadow 200ms ease',
+                '&:hover': {
+                  transform: 'scale(1.04)',
+                  boxShadow: `0 0 0 4px ${theme.palette.primary.main}33`,
+                },
               }}
-            >
-              ⚽
-            </Box>
+            />
             <Box sx={{ display: { xs: 'none', sm: 'block' }, marginTop: '0px' }}>
               <div
                 style={{
@@ -190,41 +192,59 @@ export function Navbar() {
           {/* Center: Tabs (Desktop) */}
           {!isMobile && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              {tabs.map((tab) => (
-                <Box
-                  key={tab.path}
-                  onClick={() => handleTabClick(tab.path)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 1,
-                    cursor: 'pointer',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    transition: 'all 0.2s ease',
-                    color:
-                      tab.path === location.pathname
+              {tabs.map((tab) => {
+                const active = tab.path === location.pathname;
+                return (
+                  <Box
+                    key={tab.path}
+                    onClick={() => handleTabClick(tab.path)}
+                    sx={{
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.75,
+                      py: 1,
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      transition: 'color 200ms ease, background-color 200ms ease',
+                      color: active
                         ? theme.palette.secondary.main
                         : theme.palette.text.secondary,
-                    backgroundColor:
-                      tab.path === location.pathname
-                        ? `${theme.palette.secondary.main}15`
+                      backgroundColor: active
+                        ? `${theme.palette.secondary.main}14`
                         : 'transparent',
-                    '&:hover': {
-                      color: theme.palette.primary.main,
-                      backgroundColor: `${theme.palette.primary.main}08`,
-                    },
-                  }}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </Box>
-              ))}
+                      '&:hover': {
+                        color: active
+                          ? theme.palette.secondary.main
+                          : theme.palette.primary.main,
+                        backgroundColor: active
+                          ? `${theme.palette.secondary.main}1A`
+                          : `${theme.palette.primary.main}0A`,
+                      },
+                      '&::after': active
+                        ? {
+                            content: '""',
+                            position: 'absolute',
+                            left: '18%',
+                            right: '18%',
+                            bottom: -10,
+                            height: 3,
+                            borderRadius: '2px 2px 0 0',
+                            backgroundColor: theme.palette.secondary.main,
+                          }
+                        : {},
+                    }}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </Box>
+                );
+              })}
             </Box>
           )}
 
@@ -234,7 +254,7 @@ export function Navbar() {
               <>
                 {/* World Cup Badge - Desktop (only for authenticated users) */}
                 <Chip
-                  icon={<span>⚽</span>}
+                  icon={<SportsSoccer sx={{ fontSize: 14 }} />}
                   label="Mundial 2026"
                   size="small"
                   sx={{
@@ -331,7 +351,7 @@ export function Navbar() {
           <Stack spacing={1}>
             {/* World Cup Badge Mobile */}
             <Chip
-              icon={<span>⚽</span>}
+              icon={<SportsSoccer sx={{ fontSize: 14 }} />}
               label="Mundial 2026"
               size="small"
               sx={{

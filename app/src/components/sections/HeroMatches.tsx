@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
+import { CalendarMonth, SportsSoccer } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
 export function HeroMatches() {
@@ -10,7 +11,12 @@ export function HeroMatches() {
     const el = heroRef.current;
     if (!el) return;
 
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     el.querySelectorAll<HTMLElement>('.fade-up').forEach((node, idx) => {
+      if (reduceMotion) {
+        node.style.opacity = '1';
+        return;
+      }
       node.style.opacity = '0';
       node.style.animation = `fadeUp 0.6s ease-out ${idx * 0.1}s forwards`;
     });
@@ -144,7 +150,7 @@ export function HeroMatches() {
               }}
             >
               Realiza tus predicciones antes del inicio de cada partido.
-              Cada acierto suma puntos para tu ranking ⚽📊
+              Cada acierto suma puntos para tu ranking.
             </Typography>
           </Box>
 
@@ -168,7 +174,7 @@ export function HeroMatches() {
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <Box sx={{ fontSize: '1.3rem' }}>📅</Box>
+              <CalendarMonth sx={{ fontSize: '1.4rem', color: theme.palette.primary.main }} />
               <Box>
                 <Typography
                   variant="caption"
@@ -209,7 +215,7 @@ export function HeroMatches() {
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <Box sx={{ fontSize: '1.3rem' }}>⚽</Box>
+              <SportsSoccer sx={{ fontSize: '1.4rem', color: theme.palette.primary.main }} />
               <Box>
                 <Typography
                   variant="caption"

@@ -7,7 +7,17 @@ export function Layout() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
-      <Box sx={{ flex: 1, p: 2 }}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 2, sm: 3 },
+          maxWidth: '1280px',
+          width: '100%',
+          mx: 'auto',
+        }}
+      >
         <Outlet />
       </Box>
       <Footer />
