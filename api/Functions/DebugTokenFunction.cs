@@ -34,6 +34,11 @@ public class DebugTokenFunction
             return r;
         }
 
+        // Decode token header to see what key was used
+        var parts = token.Split('.');
+        var headerJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(parts[0].PadRight(parts[0].Length + (4 - parts[0].Length % 4) % 4, '=')));
+        var payloadJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(parts[1].PadRight(parts[1].Length + (4 - parts[1].Length % 4) % 4, '=')));
+
         // Step 1: Validate signature
         var principal = _jwtService.ValidateToken(token);
         if (principal == null)
@@ -44,7 +49,9 @@ public class DebugTokenFunction
                 error = "Token signature invalid or expired",
                 detail = _jwtService.LastValidationError,
                 secretLength = _jwtService.SecretKeyLength,
-                secretPrefix = _jwtService.SecretKeyPrefix  // primeros 4 chars
+                secretPrefix = _jwtService.SecretKeyPrefix,
+                tokenHeader = headerJson,
+                tokenIssuedAt = payloadJson
             });
             return r;
         }
