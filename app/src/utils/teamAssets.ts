@@ -91,7 +91,6 @@ const COUNTRY_ISO2: Record<string, string> = {
   'chequia': 'cz',
   'república checa': 'cz',
   serbia: 'rs',
-  'ucrania': 'ua',
   ucrania: 'ua',
   noruega: 'no',
   suecia: 'se',
