@@ -134,13 +134,13 @@ export const syncMatches = (options: SyncOptions): Promise<{ success: boolean; m
 export const syncResults = (): Promise<{ message: string; updatedCount: number }> =>
   get('/sync-results');
 
-export const getUsers = (): Promise<AdminUser[]> => get('/admin/users');
+export const getUsers = (): Promise<AdminUser[]> => get('/mgmt/users');
 
 export const sendInvitation = (body: InvitationRequest): Promise<Invitation> =>
-  post('/admin/invitations', body);
+  post('/mgmt/invitations', body);
 
 export const resetUserPassword = (userId: string, body: ResetPasswordRequest): Promise<{ success: boolean }> =>
-  post(`/admin/users/${userId}/reset-password`, body);
+  post(`/mgmt/users/${userId}/reset-password`, body);
 
 export const toggleUserActive = (userId: string, isActive: boolean): Promise<AdminUser> =>
-  post(`/admin/users/${userId}`, { isActive });
+  post(`/mgmt/users/${userId}`, { isActive });

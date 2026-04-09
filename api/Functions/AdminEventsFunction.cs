@@ -31,7 +31,7 @@ public class AdminEventsFunction
 
     [Function("AdminCreateEvent")]
     public async Task<HttpResponseData> CreateEvent(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/events")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/events")]
         HttpRequestData req)
     {
         _logger.LogInformation("CreateEvent called");
@@ -83,7 +83,7 @@ public class AdminEventsFunction
 
     [Function("AdminListEvents")]
     public async Task<HttpResponseData> ListEvents(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin/events")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "mgmt/events")]
         HttpRequestData req)
     {
         _logger.LogInformation("ListEvents called");
@@ -121,7 +121,7 @@ public class AdminEventsFunction
 
     [Function("AdminUpdateEvent")]
     public async Task<HttpResponseData> UpdateEvent(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "admin/events/{eventId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "mgmt/events/{eventId}")]
         HttpRequestData req,
         string eventId)
     {
@@ -181,7 +181,7 @@ public class AdminEventsFunction
 
     [Function("AdminDeleteEvent")]
     public async Task<HttpResponseData> DeleteEvent(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "admin/events/{eventId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "mgmt/events/{eventId}")]
         HttpRequestData req,
         string eventId)
     {

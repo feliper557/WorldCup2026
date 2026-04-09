@@ -37,7 +37,7 @@ public class AdminRafflesFunction
 
     [Function("AdminCreateRaffle")]
     public async Task<HttpResponseData> CreateRaffle(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/raffles")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/raffles")]
         HttpRequestData req)
     {
         _logger.LogInformation("CreateRaffle called");
@@ -109,7 +109,7 @@ public class AdminRafflesFunction
 
     [Function("AdminListRaffles")]
     public async Task<HttpResponseData> ListRaffles(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin/raffles")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "mgmt/raffles")]
         HttpRequestData req)
     {
         _logger.LogInformation("ListRaffles called");
@@ -143,7 +143,7 @@ public class AdminRafflesFunction
 
     [Function("AdminGetRaffle")]
     public async Task<HttpResponseData> GetRaffle(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin/raffles/{raffleId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "mgmt/raffles/{raffleId}")]
         HttpRequestData req,
         string raffleId)
     {
@@ -172,7 +172,7 @@ public class AdminRafflesFunction
 
     [Function("AdminAddRaffleParticipant")]
     public async Task<HttpResponseData> AddParticipant(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/raffles/{raffleId}/participants")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/raffles/{raffleId}/participants")]
         HttpRequestData req,
         string raffleId)
     {
@@ -214,7 +214,7 @@ public class AdminRafflesFunction
 
     [Function("AdminRemoveRaffleParticipant")]
     public async Task<HttpResponseData> RemoveParticipant(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "admin/raffles/{raffleId}/participants/{userId}")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "mgmt/raffles/{raffleId}/participants/{userId}")]
         HttpRequestData req,
         string raffleId,
         string userId)
@@ -253,7 +253,7 @@ public class AdminRafflesFunction
 
     [Function("AdminDrawRaffle")]
     public async Task<HttpResponseData> DrawRaffle(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/raffles/{raffleId}/draw")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/raffles/{raffleId}/draw")]
         HttpRequestData req,
         string raffleId)
     {

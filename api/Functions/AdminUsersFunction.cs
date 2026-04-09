@@ -26,7 +26,7 @@ public class AdminUsersFunction
 
     [Function("AdminListUsers")]
     public async Task<HttpResponseData> ListUsers(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin/users")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "mgmt/users")]
         HttpRequestData req)
     {
         _logger.LogInformation("ListUsers called");
@@ -72,7 +72,7 @@ public class AdminUsersFunction
 
     [Function("AdminUpdateUserStatus")]
     public async Task<HttpResponseData> UpdateUserStatus(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "admin/users/{userId}/status")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "mgmt/users/{userId}/status")]
         HttpRequestData req,
         string userId)
     {

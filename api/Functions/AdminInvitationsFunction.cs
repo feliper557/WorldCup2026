@@ -40,7 +40,7 @@ public class AdminInvitationsFunction
 
     [Function("AdminCreateInvitation")]
     public async Task<HttpResponseData> CreateInvitation(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/invitations")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/invitations")]
         HttpRequestData req)
     {
         _logger.LogInformation("CreateInvitation called");
@@ -105,7 +105,7 @@ public class AdminInvitationsFunction
 
     [Function("AdminResendInvitation")]
     public async Task<HttpResponseData> ResendInvitation(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "admin/invitations/{invitationId}/resend")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/invitations/{invitationId}/resend")]
         HttpRequestData req,
         string invitationId)
     {
@@ -160,7 +160,7 @@ public class AdminInvitationsFunction
 
     [Function("AdminListInvitations")]
     public async Task<HttpResponseData> ListInvitations(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "admin/invitations")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "mgmt/invitations")]
         HttpRequestData req)
     {
         _logger.LogInformation("ListInvitations called");
