@@ -3,6 +3,7 @@ import { Layout } from './components/Layout/Layout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import {
   LoginPage,
+  RegisterPage,
   MatchesPage,
   RankingPage,
   ParticipantsPage,
@@ -16,6 +17,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
   },
   {
     path: '/pago-resultado',

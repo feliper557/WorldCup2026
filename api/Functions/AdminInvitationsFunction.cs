@@ -91,7 +91,7 @@ public class AdminInvitationsFunction
             _logger.LogInformation("Invitation created by admin {AdminId} for {Email}", admin.UserId, body.Email);
 
             // 6. Send invitation email
-            await _emailService.SendInvitationEmailAsync(body.Email, registrationLink, admin.Email ?? "Admin");
+            await _emailService.SendInvitationEmailAsync(body.Email, registrationLink, "Francachela");
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(new CreateInvitationResponse(
