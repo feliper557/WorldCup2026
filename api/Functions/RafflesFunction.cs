@@ -84,8 +84,7 @@ public class RafflesFunction
         try
         {
             // 1. Obtener usuario del JWT
-            var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            var token = SecureTokenService.ExtractBearerToken(authHeader);
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
             var user = await _secureTokenService.ValidateTokenAndVerifyRole(token);
 
             if (user == null)
@@ -133,8 +132,7 @@ public class RafflesFunction
         try
         {
             // 1. Validar admin
-            var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            var token = SecureTokenService.ExtractBearerToken(authHeader);
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
             var admin = await _secureTokenService.ValidateAdminToken(token);
 
             if (admin == null)

@@ -330,8 +330,7 @@ public class AdminRafflesFunction
 
     private async Task<UserContext?> ValidateAdminRequest(HttpRequestData req)
     {
-        var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-        var token = SecureTokenService.ExtractBearerToken(authHeader);
+        var token = SecureTokenService.ExtractTokenFromRequest(req);
         return await _secureTokenService.ValidateAdminToken(token);
     }
 

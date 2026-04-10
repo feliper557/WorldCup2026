@@ -34,9 +34,11 @@ async function request<T>(
   };
 
   // Agregar token JWT si existe (para endpoints autenticados)
+  // NOTA: Static Web Apps reserva el header 'Authorization' para su propio sistema
+  // de auth built-in, así que mandamos el JWT en un header custom que SWA no toca.
   const token = getStoredToken();
   if (token) {
-    (options.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    (options.headers as Record<string, string>)['X-Auth-Token'] = token;
   }
 
   if (body) {

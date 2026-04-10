@@ -184,11 +184,10 @@ public class PredictionsFunction
 
     private string? ExtractUserIdFromJwt(HttpRequestData req)
     {
-        var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        var token = SecureTokenService.ExtractTokenFromRequest(req);
+        if (string.IsNullOrEmpty(token))
             return null;
 
-        var token = authHeader.Substring("Bearer ".Length);
         var principal = _jwtService.ValidateToken(token);
         return _jwtService.ExtractUserId(principal);
     }

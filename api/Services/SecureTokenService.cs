@@ -156,6 +156,28 @@ public class SecureTokenService
     }
 
     /// <summary>
+    /// Extract the JWT from a request, preferring the X-Auth-Token header
+    /// (used because Azure Static Web Apps strips/replaces the Authorization
+    /// header when proxying to managed Functions), then falling back to the
+    /// standard Authorization: Bearer header for local development.
+    /// </summary>
+    public static string? ExtractTokenFromRequest(Microsoft.Azure.Functions.Worker.Http.HttpRequestData req)
+    {
+        // Preferred: custom header not touched by SWA proxy
+        var xAuth = req.Headers
+            .FirstOrDefault(h => h.Key.Equals("X-Auth-Token", StringComparison.OrdinalIgnoreCase))
+            .Value?.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(xAuth))
+            return xAuth.Trim();
+
+        // Fallback: standard Authorization header (local dev, direct calls)
+        var authHeader = req.Headers
+            .FirstOrDefault(h => h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
+            .Value?.FirstOrDefault();
+        return ExtractBearerToken(authHeader);
+    }
+
+    /// <summary>
     /// Query database to get user by ID
     /// This is used to verify the role hasn't been tampered with in the JWT
     /// </summary>

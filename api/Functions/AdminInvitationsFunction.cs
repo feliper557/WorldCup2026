@@ -48,8 +48,7 @@ public class AdminInvitationsFunction
         try
         {
             // 1. Validate admin token
-            var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            var token = SecureTokenService.ExtractBearerToken(authHeader);
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
             var admin = await _secureTokenService.ValidateAdminToken(token);
             if (admin == null)
                 return ErrorResponse(req, "Unauthorized", HttpStatusCode.Unauthorized);
@@ -114,8 +113,7 @@ public class AdminInvitationsFunction
         try
         {
             // 1. Validate admin token
-            var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            var token = SecureTokenService.ExtractBearerToken(authHeader);
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
             var admin = await _secureTokenService.ValidateAdminToken(token);
             if (admin == null)
                 return ErrorResponse(req, "Unauthorized", HttpStatusCode.Unauthorized);
@@ -168,8 +166,7 @@ public class AdminInvitationsFunction
         try
         {
             // 1. Validate admin token
-            var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            var token = SecureTokenService.ExtractBearerToken(authHeader);
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
             var admin = await _secureTokenService.ValidateAdminToken(token);
             if (admin == null)
                 return ErrorResponse(req, "Unauthorized", HttpStatusCode.Unauthorized);

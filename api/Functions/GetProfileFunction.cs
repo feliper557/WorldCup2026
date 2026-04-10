@@ -38,15 +38,14 @@ public class GetProfileFunction
 
         try
         {
-            // Extract JWT token from Authorization header
-            var authHeaderValue = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeaderValue) || !authHeaderValue.StartsWith("Bearer "))
+            // Extract JWT token (prefer X-Auth-Token because SWA strips Authorization)
+            var token = SecureTokenService.ExtractTokenFromRequest(req);
+            if (string.IsNullOrEmpty(token))
             {
-                _logger.LogWarning("Missing or invalid Authorization header");
+                _logger.LogWarning("Missing or invalid auth token");
                 return ErrorResponse(req, "Token es requerido", HttpStatusCode.Unauthorized);
             }
 
-            var token = authHeaderValue.Substring("Bearer ".Length);
             var principal = _jwtService.ValidateToken(token);
             if (principal == null)
             {
