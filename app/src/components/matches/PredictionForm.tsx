@@ -58,10 +58,11 @@ export function PredictionForm({
         )}
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ pt: '20px !important', overflow: 'visible' }}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
             label={match?.homeTeam}
+            InputLabelProps={{ shrink: true }}
             type="number"
             value={homeScore}
             onChange={(e) => setHomeScore(Math.max(0, parseInt(e.target.value) || 0))}
@@ -76,6 +77,7 @@ export function PredictionForm({
 
           <TextField
             label={match?.awayTeam}
+            InputLabelProps={{ shrink: true }}
             type="number"
             value={awayScore}
             onChange={(e) => setAwayScore(Math.max(0, parseInt(e.target.value) || 0))}
