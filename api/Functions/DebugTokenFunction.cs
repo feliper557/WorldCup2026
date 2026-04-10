@@ -24,8 +24,30 @@ public class DebugTokenFunction
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "debug-token")] HttpRequestData req)
     {
-        var authHeader = req.Headers.FirstOrDefault(h => h.Key == "Authorization").Value?.FirstOrDefault();
+        // DIAGNOSTIC: capture ALL Authorization header values and raw state
+        var authHeaderEntry = req.Headers.FirstOrDefault(h => h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase));
+        var authValuesList = authHeaderEntry.Value?.ToList() ?? new List<string>();
+        var authHeader = authValuesList.FirstOrDefault();
+        // Try reconstructing the full header if split into multiple values
+        var authConcatenatedComma = string.Join(",", authValuesList);
+        var authConcatenatedSpace = string.Join(" ", authValuesList);
+        // Also dump all header keys for sanity
+        var allHeaderKeys = string.Join(",", req.Headers.Select(h => h.Key));
+
+        // Try extracting from the concatenated versions too
+        var tokenFromComma = SecureTokenService.ExtractBearerToken(authConcatenatedComma);
+        var tokenFromSpace = SecureTokenService.ExtractBearerToken(authConcatenatedSpace);
         var token = SecureTokenService.ExtractBearerToken(authHeader);
+
+        // If the first value didn't validate but a concatenation does, use it
+        if (!string.IsNullOrEmpty(tokenFromComma) && _jwtService.ValidateToken(tokenFromComma) != null)
+        {
+            token = tokenFromComma;
+        }
+        else if (!string.IsNullOrEmpty(tokenFromSpace) && _jwtService.ValidateToken(tokenFromSpace) != null)
+        {
+            token = tokenFromSpace;
+        }
 
         if (string.IsNullOrEmpty(token))
         {
@@ -63,6 +85,11 @@ public class DebugTokenFunction
                 receivedTokenFirst20 = token.Length >= 20 ? token.Substring(0, 20) : token,
                 receivedTokenLast20 = token.Length >= 20 ? token.Substring(token.Length - 20) : token,
                 rawAuthHeaderLength = authHeader?.Length ?? 0,
+                authValueCount = authValuesList.Count,
+                authValueLengths = authValuesList.Select(v => v.Length).ToArray(),
+                authConcatCommaLength = authConcatenatedComma.Length,
+                authConcatSpaceLength = authConcatenatedSpace.Length,
+                allHeaderKeys,
                 selfTest = selfTestOk ? "PASS - generate+validate works" : "FAIL - generate+validate broken"
             });
             return r;
