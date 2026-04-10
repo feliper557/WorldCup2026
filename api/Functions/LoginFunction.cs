@@ -134,39 +134,6 @@ public class LoginFunction
         return response;
     }
 }
-                    Id: user.Id,
-                    Email: user.Email,
-                    DisplayName: user.DisplayName,
-                    Role: user.Role,
-                    TotalPoints: user.TotalPoints,
-                    TotalPredictions: user.TotalPredictions,
-                    CorrectPredictions: user.CorrectPredictions,
-                    AccuracyPercentage: user.AccuracyPercentage,
-                    LeaderboardRank: user.LeaderboardRank
-                )
-            ));
-            return response;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error durante el login");
-            return await ErrorResponse(req, "Error durante el login", HttpStatusCode.InternalServerError);
-        }
-    }
-
-    private static async Task<HttpResponseData> ErrorResponse(
-        HttpRequestData req,
-        string message,
-        HttpStatusCode statusCode)
-    {
-        var response = req.CreateResponse(statusCode);
-        await response.WriteAsJsonAsync(new LoginResponse(
-            Success: false,
-            Message: message
-        ));
-        return response;
-    }
-}
 
 /// <summary>
 /// Login request model
