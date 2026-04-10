@@ -19,6 +19,7 @@ public class AdminInvitationsFunction
     private readonly IUserRepository _userRepository;
     private readonly TokenService _tokenService;
     private readonly SecureTokenService _secureTokenService;
+    private readonly EmailService _emailService;
     private readonly IConfiguration _config;
     private readonly ILogger<AdminInvitationsFunction> _logger;
 
@@ -27,6 +28,7 @@ public class AdminInvitationsFunction
         IUserRepository userRepository,
         TokenService tokenService,
         SecureTokenService secureTokenService,
+        EmailService emailService,
         IConfiguration config,
         ILogger<AdminInvitationsFunction> logger)
     {
@@ -34,6 +36,7 @@ public class AdminInvitationsFunction
         _userRepository = userRepository;
         _tokenService = tokenService;
         _secureTokenService = secureTokenService;
+        _emailService = emailService;
         _config = config;
         _logger = logger;
     }
@@ -86,6 +89,9 @@ public class AdminInvitationsFunction
             var registrationLink = $"{baseUrl}/register?token={Uri.EscapeDataString(encryptedToken)}&code={invitationCode}";
 
             _logger.LogInformation("Invitation created by admin {AdminId} for {Email}", admin.UserId, body.Email);
+
+            // 6. Send invitation email
+            await _emailService.SendInvitationEmailAsync(body.Email, registrationLink, admin.Email ?? "Admin");
 
             var response = req.CreateResponse(HttpStatusCode.Created);
             await response.WriteAsJsonAsync(new CreateInvitationResponse(

@@ -93,7 +93,7 @@ public class EmailService
             // Llamar a API de Resend
             var request = new
             {
-                from = "Francachela <noreply@francachela.com>",
+                from = "Francachela <noreply@francachelamxsubachoque.site>",
                 to = email,
                 subject = "¡Tu cuenta en Francachela está activa!",
                 html = emailBody
@@ -183,7 +183,7 @@ public class EmailService
 
             var request = new
             {
-                from = "Francachela <noreply@francachela.com>",
+                from = "Francachela <noreply@francachelamxsubachoque.site>",
                 to = email,
                 subject = "¡Estás invitado a Francachela!",
                 html = emailBody
