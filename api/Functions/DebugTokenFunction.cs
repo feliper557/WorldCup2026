@@ -37,17 +37,13 @@ public class DebugTokenFunction
         // Try extracting from the concatenated versions too
         var tokenFromComma = SecureTokenService.ExtractBearerToken(authConcatenatedComma);
         var tokenFromSpace = SecureTokenService.ExtractBearerToken(authConcatenatedSpace);
-        var token = SecureTokenService.ExtractBearerToken(authHeader);
-
-        // If the first value didn't validate but a concatenation does, use it
-        if (!string.IsNullOrEmpty(tokenFromComma) && _jwtService.ValidateToken(tokenFromComma) != null)
-        {
-            token = tokenFromComma;
-        }
-        else if (!string.IsNullOrEmpty(tokenFromSpace) && _jwtService.ValidateToken(tokenFromSpace) != null)
-        {
-            token = tokenFromSpace;
-        }
+        // PREFER X-Auth-Token (SWA doesn't touch it); fallback to Authorization
+        var xAuth = req.Headers
+            .FirstOrDefault(h => h.Key.Equals("X-Auth-Token", StringComparison.OrdinalIgnoreCase))
+            .Value?.FirstOrDefault();
+        var token = !string.IsNullOrWhiteSpace(xAuth)
+            ? xAuth.Trim()
+            : SecureTokenService.ExtractBearerToken(authHeader);
 
         if (string.IsNullOrEmpty(token))
         {
