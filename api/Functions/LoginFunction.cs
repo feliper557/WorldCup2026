@@ -102,7 +102,10 @@ public class LoginFunction
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("X-Sign-Secret-Prefix", _jwtService.SecretKeyPrefix);
             response.Headers.Add("X-Sign-Secret-Length", _jwtService.SecretKeyLength.ToString());
+            response.Headers.Add("X-Sign-Secret-ByteLength", _jwtService.SecretKeyByteLength.ToString());
+            response.Headers.Add("X-Sign-Secret-Hash", _jwtService.SecretKeyHash);
             response.Headers.Add("X-Token-Self-Valid", (selfValidation != null).ToString());
+            response.Headers.Add("X-Token-Length", jwtToken.Length.ToString());
             await response.WriteAsJsonAsync(new LoginResponse(
                 Success: true,
                 UserId: user.Id,

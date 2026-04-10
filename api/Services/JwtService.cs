@@ -95,6 +95,16 @@ public class JwtService
     public string? LastValidationError { get; private set; }
     public int SecretKeyLength => _secretKey.Length;
     public string SecretKeyPrefix => _secretKey.Length >= 12 ? _secretKey.Substring(0, 12) : _secretKey;
+    public int SecretKeyByteLength => Encoding.UTF8.GetBytes(_secretKey).Length;
+    public string SecretKeyHash
+    {
+        get
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(_secretKey));
+            return Convert.ToHexString(hash).Substring(0, 16);
+        }
+    }
 
     /// <summary>
     /// Extract userId from JWT token claims

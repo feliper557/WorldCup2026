@@ -57,6 +57,12 @@ public class DebugTokenFunction
                 detail = _jwtService.LastValidationError,
                 secretLength = _jwtService.SecretKeyLength,
                 secretPrefix = _jwtService.SecretKeyPrefix,
+                secretByteLength = _jwtService.SecretKeyByteLength,
+                secretHash = _jwtService.SecretKeyHash,
+                receivedTokenLength = token.Length,
+                receivedTokenFirst20 = token.Length >= 20 ? token.Substring(0, 20) : token,
+                receivedTokenLast20 = token.Length >= 20 ? token.Substring(token.Length - 20) : token,
+                rawAuthHeaderLength = authHeader?.Length ?? 0,
                 selfTest = selfTestOk ? "PASS - generate+validate works" : "FAIL - generate+validate broken"
             });
             return r;
