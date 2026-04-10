@@ -87,14 +87,53 @@ public class LoginFunction
             // Generate JWT token
             var jwtToken = _jwtService.GenerateToken(user);
 
+            // DEBUG TEMPORAL: verificar prefijo de clave
+            _logger.LogInformation("LOGIN key prefix={Prefix} len={Len}", _jwtService.SecretKeyPrefix, _jwtService.SecretKeyLength);
+
             // Create response with user info
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new LoginResponse(
-                Success: true,
-                UserId: user.Id,
-                Email: user.Email,
-                Token: jwtToken,
-                User: new UserProfileResponse(
+            await response.WriteAsJsonAsync(new
+            {
+                success = true,
+                userId = user.Id,
+                email = user.Email,
+                token = jwtToken,
+                _debugKeyPrefix = _jwtService.SecretKeyPrefix,
+                _debugKeyLen = _jwtService.SecretKeyLength,
+                user = new {
+                    id = user.Id,
+                    email = user.Email,
+                    displayName = user.DisplayName,
+                    role = user.Role,
+                    totalPoints = user.TotalPoints,
+                    totalPredictions = user.TotalPredictions,
+                    correctPredictions = user.CorrectPredictions,
+                    accuracyPercentage = user.AccuracyPercentage,
+                    leaderboardRank = user.LeaderboardRank
+                }
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error durante el login");
+            return await ErrorResponse(req, "Error durante el login", HttpStatusCode.InternalServerError);
+        }
+    }
+
+    private static async Task<HttpResponseData> ErrorResponse(
+        HttpRequestData req,
+        string message,
+        HttpStatusCode statusCode)
+    {
+        var response = req.CreateResponse(statusCode);
+        await response.WriteAsJsonAsync(new LoginResponse(
+            Success: false,
+            Message: message
+        ));
+        return response;
+    }
+}
                     Id: user.Id,
                     Email: user.Email,
                     DisplayName: user.DisplayName,
