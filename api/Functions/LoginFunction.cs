@@ -87,8 +87,22 @@ public class LoginFunction
             // Generate JWT token
             var jwtToken = _jwtService.GenerateToken(user);
 
+            // DIAGNOSTIC: validate the freshly-issued token in the SAME process that signed it
+            var selfValidation = _jwtService.ValidateToken(jwtToken);
+            var diagnostic = new
+            {
+                signSecretPrefix = _jwtService.SecretKeyPrefix,
+                signSecretLength = _jwtService.SecretKeyLength,
+                tokenSelfValid = selfValidation != null,
+                selfValidError = _jwtService.LastValidationError
+            };
+            _logger.LogWarning("LOGIN_DIAG {@Diag}", diagnostic);
+
             // Create response with user info
             var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("X-Sign-Secret-Prefix", _jwtService.SecretKeyPrefix);
+            response.Headers.Add("X-Sign-Secret-Length", _jwtService.SecretKeyLength.ToString());
+            response.Headers.Add("X-Token-Self-Valid", (selfValidation != null).ToString());
             await response.WriteAsJsonAsync(new LoginResponse(
                 Success: true,
                 UserId: user.Id,
