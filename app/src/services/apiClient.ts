@@ -46,6 +46,14 @@ async function request<T>(
   const response = await fetch(url, options);
 
   if (!response.ok) {
+    // Si el servidor rechaza el token, limpiar la sesión y redirigir al login
+    if (response.status === 401) {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
+    }
     const error = await response.text();
     throw new Error(`API Error: ${response.status} - ${error}`);
   }
