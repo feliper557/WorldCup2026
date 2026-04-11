@@ -239,7 +239,7 @@ Si no esperabas esta invitación, ignora este mensaje.";
 
             var request = new
             {
-                from = "Francachela <hola@francachelamxsubachoque.site>",
+                from = "FrancachelaMx <hola@francachelamxsubachoque.site>",
                 to,
                 subject,
                 html,
