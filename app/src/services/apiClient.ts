@@ -89,10 +89,27 @@ export const getMatches = async (): Promise<Match[]> => {
 };
 
 // Endpoints de Predictions
-export const upsertPrediction = (body: PredictionRequest): Promise<Prediction> =>
-  post('/predictions', body);
+const mapPrediction = (item: any): Prediction => ({
+  id: item.Id || item.id,
+  userId: item.UserId || item.userId,
+  matchId: item.MatchId || item.matchId,
+  homeScorePred: item.HomeScorePred ?? item.homeScorePred ?? item.PredictedHomeScore ?? item.predictedHomeScore ?? 0,
+  awayScorePred: item.AwayScorePred ?? item.awayScorePred ?? item.PredictedAwayScore ?? item.predictedAwayScore ?? 0,
+  createdAtUtc: item.CreatedAtUtc || item.createdAtUtc || item.CreatedAt || item.createdAt || '',
+  updatedAtUtc: item.UpdatedAt || item.updatedAt || '',
+  lockedAt: item.LockedAt || item.lockedAt || null,
+  pointsAwarded: item.PointsEarned ?? item.pointsEarned ?? item.PointsAwarded ?? item.pointsAwarded ?? null,
+});
 
-export const getMyPredictions = (): Promise<Prediction[]> => get('/predictions/me');
+export const upsertPrediction = async (body: PredictionRequest): Promise<Prediction> => {
+  const data = await post<any>('/predictions', body);
+  return mapPrediction(data);
+};
+
+export const getMyPredictions = async (): Promise<Prediction[]> => {
+  const data = await get<any[]>('/predictions/me');
+  return data.map(mapPrediction);
+};
 
 export const getPredictionsByMatch = (matchId: string): Promise<Prediction[]> =>
   get(`/predictions/match/${matchId}`);
