@@ -36,7 +36,7 @@ export function useChampionPrediction() {
         const response = await fetch('/api/champion-prediction/me', {
           headers: getAuthHeaders(),
         });
-        if (response.ok) {
+        if (response.ok && response.status !== 204) {
           const data = await response.json();
           setPrediction(data);
         }
