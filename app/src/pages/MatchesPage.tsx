@@ -158,6 +158,12 @@ export function MatchesPage() {
       {/* Pestaña 0 - Disponibles */}
       {tabValue === 0 && (
         <Box>
+          <Alert
+            severity="info"
+            sx={{ mb: 2, fontSize: '0.8rem' }}
+          >
+            <strong>Partidos DEMO</strong> — Los partidos marcados con la etiqueta <strong>DEMO</strong> son de práctica (La Liga española) y <strong>no suman puntos</strong> al ranking. Su único propósito es que te familiarices con la app antes del Mundial. Los datos DEMO se eliminarán el <strong>1 de junio de 2026</strong>.
+          </Alert>
           {scheduledMatches.length === 0 ? (
             <Alert severity="info">No hay partidos disponibles para predecir</Alert>
           ) : (

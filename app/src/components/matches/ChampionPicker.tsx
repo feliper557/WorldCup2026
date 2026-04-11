@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { EmojiEvents, Edit } from '@mui/icons-material';
 import { useChampionPrediction } from '../../hooks/useChampionPrediction';
-import { WORLD_CUP_2026_GROUPS } from '../../data/worldcupGroups';
+import { WORLD_CUP_2026_GROUPS, ALL_TEAMS } from '../../data/worldcupGroups';
 import type { Team } from '../../data/worldcupGroups';
 
 export function ChampionPicker() {
@@ -87,9 +87,17 @@ export function ChampionPicker() {
                   <Typography variant="caption" sx={{ color: theme.palette.text.secondary, display: 'block' }}>
                     Tu predicción de campeón
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                    {prediction.flag} {prediction.team}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      component="img"
+                      src={`https://flagcdn.com/w40/${ALL_TEAMS.find(t => t.name === prediction.team)?.code ?? 'un'}.png`}
+                      alt={prediction.team}
+                      sx={{ width: 32, height: 'auto', borderRadius: '2px' }}
+                    />
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {prediction.team}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
 
@@ -208,10 +216,7 @@ export function ChampionPicker() {
                                 ? theme.palette.background.paper
                                 : theme.palette.text.primary,
                             '&:hover': {
-                              borderColor:
-                                selectedTeam?.name === team.name
-                                  ? theme.palette.primary.main
-                                  : theme.palette.primary.main,
+                              borderColor: theme.palette.primary.main,
                               backgroundColor:
                                 selectedTeam?.name === team.name
                                   ? theme.palette.primary.main
@@ -219,7 +224,12 @@ export function ChampionPicker() {
                             },
                           }}
                         >
-                          <Box sx={{ fontSize: '1.5rem', mr: 1 }}>{team.flag}</Box>
+                          <Box
+                            component="img"
+                            src={`https://flagcdn.com/w40/${team.code}.png`}
+                            alt={team.name}
+                            sx={{ width: 28, height: 'auto', mr: 1, borderRadius: '2px', flexShrink: 0 }}
+                          />
                           <Box sx={{ flex: 1, textAlign: 'left' }}>{team.name}</Box>
                           {selectedTeam?.name === team.name && (
                             <Box sx={{ fontSize: '1.2rem', ml: 1 }}>✓</Box>
@@ -277,6 +287,7 @@ export function ChampionPicker() {
                         size="small"
                         sx={{
                           fontSize: '0.85rem',
+                          gap: 0.75,
                           borderColor:
                             selectedTeam?.name === team.name
                               ? theme.palette.primary.main
@@ -291,7 +302,13 @@ export function ChampionPicker() {
                               : theme.palette.text.primary,
                         }}
                       >
-                        {team.flag} {team.name}
+                        <Box
+                          component="img"
+                          src={`https://flagcdn.com/w40/${team.code}.png`}
+                          alt={team.name}
+                          sx={{ width: 20, height: 'auto', borderRadius: '2px' }}
+                        />
+                        {team.name}
                       </Button>
                     ))}
                   </Stack>
