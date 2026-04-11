@@ -25,7 +25,9 @@ import type { Team } from '../../data/worldcupGroups';
 export function ChampionPicker() {
   const theme = useTheme();
   const { prediction, saving, loading, error, isLocked, save, clear } = useChampionPrediction();
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(prediction ? { name: prediction.team, flag: prediction.flag } : null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(
+    prediction ? (ALL_TEAMS.find(t => t.name === prediction.team) ?? { name: prediction.team, flag: prediction.flag, code: 'un' }) : null
+  );
   const [changeDialogOpen, setChangeDialogOpen] = useState(false);
 
   if (loading) {
@@ -54,7 +56,7 @@ export function ChampionPicker() {
   };
 
   const handleChangeCancel = () => {
-    setSelectedTeam(prediction ? { name: prediction.team, flag: prediction.flag } : null);
+    setSelectedTeam(prediction ? (ALL_TEAMS.find(t => t.name === prediction.team) ?? { name: prediction.team, flag: prediction.flag, code: 'un' }) : null);
     setChangeDialogOpen(false);
   };
 
