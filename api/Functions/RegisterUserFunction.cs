@@ -124,16 +124,28 @@ public class RegisterUserFunction
                 IsEmailVerified = true  // Email verified via invitation link
             };
 
+            // 3b. Check if user already exists before trying to insert
+            if (await _userRepository.EmailExistsAsync(email))
+            {
+                _logger.LogWarning("User already exists: {Email}", email);
+                return ErrorResponse(req, "Este correo ya está registrado. Inicia sesión.", HttpStatusCode.BadRequest);
+            }
+
             // 4. Save user to database
             try
             {
                 await _userRepository.CreateAsync(userEntity);
                 _logger.LogInformation("User created: {Email}", email);
             }
-            catch (Exception ex) when (ex.Message.Contains("Conflict"))
+            catch (Exception ex) when (
+                ex.Message.Contains("Conflict") ||
+                ex.Message.Contains("duplicate") ||
+                ex.Message.Contains("UNIQUE") ||
+                ex.InnerException?.Message.Contains("duplicate") == true ||
+                ex.InnerException?.Message.Contains("UNIQUE") == true)
             {
-                _logger.LogWarning("User already exists: {Email}", email);
-                return ErrorResponse(req, "Este usuario ya está registrado.", HttpStatusCode.BadRequest);
+                _logger.LogWarning("User already exists (constraint): {Email}", email);
+                return ErrorResponse(req, "Este correo ya está registrado. Inicia sesión.", HttpStatusCode.BadRequest);
             }
 
             // 5. Mark invitation as used
