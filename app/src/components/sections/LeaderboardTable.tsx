@@ -60,8 +60,8 @@ export function LeaderboardTable() {
       name: score.displayName || 'Unknown',
       avatar: ((score.displayName) || 'AN').substring(0, 2).toUpperCase(),
       predictions: score.totalPredictions || 0,
-      exactos: score.exactScores || 0,
-      ganadores: score.correctWinners || 0,
+      exactos: (score as any).ExactScores ?? (score as any).exactScores ?? score.exactScores ?? 0,
+      ganadores: (score as any).CorrectPredictions ?? (score as any).correctPredictions ?? score.correctWinners ?? 0,
       points: score.totalPoints || 0,
     }));
 
@@ -131,29 +131,36 @@ export function LeaderboardTable() {
             </Box>
           </Stack>
 
-          {/* Legend */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 3 }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <Stack direction="row" alignItems="center" spacing={0.75}>
-              <Chip label="12" size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
-              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                Exactos
-              </Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={0.75}>
-              <Chip label="20" size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
-              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                Ganadores
-              </Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={0.75}>
-              <Typography variant="caption" sx={{ color: theme.palette.secondary.main, fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
-                150
-              </Typography>
-              <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                Pts
-              </Typography>
-            </Stack>
-          </Stack>
+          {/* Legend — totals across all participants */}
+          {participants.length > 0 && (() => {
+            const totalExactos = participants.reduce((s, p) => s + p.exactos, 0);
+            const totalGanadores = participants.reduce((s, p) => s + p.ganadores, 0);
+            const maxPts = participants[0].points;
+            return (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 3 }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Chip label={String(totalExactos)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                    Exactos
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Chip label={String(totalGanadores)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                    Ganadores
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <Typography variant="caption" sx={{ color: theme.palette.secondary.main, fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                    {maxPts}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+                    Pts
+                  </Typography>
+                </Stack>
+              </Stack>
+            );
+          })()}
         </Stack>
 
         {/* Table Container */}
