@@ -82,13 +82,18 @@ public class RegisterUserFunction
 
             var email = decrypted.Value.email;
 
-            // 2. Find invitation document
-            var invite = await _invitationRepository.GetByTokenAsync(body.Token);
+            // 2. Find invitation document — lookup by email (already verified via decrypt)
+            // Avoids collation/encoding mismatches when comparing the token string in SQL
+            var invites = await _invitationRepository.GetByEmailAsync(email);
+            var invite = invites
+                .Where(i => i.Status == "pending" && i.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(i => i.CreatedAt)
+                .FirstOrDefault();
 
             if (invite is null)
             {
-                _logger.LogWarning("Invitation document not found");
-                return ErrorResponse(req, "Invitación no encontrada.", HttpStatusCode.NotFound);
+                _logger.LogWarning("No pending invitation found for {Email}", email);
+                return ErrorResponse(req, "Invitación no encontrada o ya utilizada.", HttpStatusCode.NotFound);
             }
 
             if (invite.Status == "used")
