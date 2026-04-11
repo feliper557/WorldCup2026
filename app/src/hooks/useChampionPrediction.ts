@@ -15,7 +15,7 @@ const getAuthHeaders = () => {
     'Content-Type': 'application/json',
   };
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers['X-Auth-Token'] = token;
   }
   return headers;
 };

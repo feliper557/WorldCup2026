@@ -116,6 +116,7 @@ public class LoginFunction
                     Email: user.Email,
                     DisplayName: user.DisplayName,
                     Role: user.Role,
+                    PhoneNumber: user.PhoneNumber,
                     TotalPoints: user.TotalPoints,
                     TotalPredictions: user.TotalPredictions,
                     CorrectPredictions: user.CorrectPredictions,

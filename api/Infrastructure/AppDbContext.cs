@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<RaffleParticipantEntity> RaffleParticipants => Set<RaffleParticipantEntity>();
     public DbSet<RaffleWinnerEntity> RaffleWinners => Set<RaffleWinnerEntity>();
     public DbSet<PaymentEntity> Payments => Set<PaymentEntity>();
+    public DbSet<ChampionPredictionEntity> ChampionPredictions => Set<ChampionPredictionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,15 @@ public class AppDbContext : DbContext
             e.HasKey(rw => new { rw.RaffleId, rw.UserId });
             e.HasOne(rw => rw.Raffle).WithMany(r => r.Winners).HasForeignKey(rw => rw.RaffleId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(rw => rw.User).WithMany(u => u.RaffleWins).HasForeignKey(rw => rw.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ChampionPredictionEntity
+        modelBuilder.Entity<ChampionPredictionEntity>(e => {
+            e.HasKey(cp => cp.Id);
+            e.HasIndex(cp => cp.UserId).IsUnique();
+            e.Property(cp => cp.Team).HasMaxLength(100).IsRequired();
+            e.Property(cp => cp.Flag).HasMaxLength(20).IsRequired();
+            e.HasOne(cp => cp.User).WithMany().HasForeignKey(cp => cp.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // PaymentEntity

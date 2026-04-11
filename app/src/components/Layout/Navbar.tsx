@@ -13,6 +13,12 @@ import {
   Drawer,
   Stack,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Typography,
+  Divider,
 } from '@mui/material';
 import {
   SportsSoccer,
@@ -38,6 +44,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const baseTabs = [
     { label: 'Partidos', icon: <SportsSoccer sx={{ fontSize: 16 }} />, path: '/matches' },
@@ -79,12 +86,11 @@ export function Navbar() {
   };
 
   const handleLogout = () => {
-    // Si es JWT login (localStorage), usar logout local
+    handleMenuClose();
     if (getStoredToken()) {
       logout();
       navigate('/');
     } else {
-      // Si es GitHub login, usar Azure logout
       window.location.href = getLogoutUrl();
     }
   };
@@ -293,9 +299,53 @@ export function Navbar() {
                   open={Boolean(anchorEl)}
                   onClose={handleMenuClose}
                 >
-                  <MenuItem disabled>{getUserLabel()}</MenuItem>
+                  <MenuItem onClick={() => { handleMenuClose(); setProfileOpen(true); }}>
+                    Mi Perfil
+                  </MenuItem>
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
+
+                {/* Profile Dialog */}
+                <Dialog open={profileOpen} onClose={() => setProfileOpen(false)} maxWidth="xs" fullWidth>
+                  <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 40, height: 40, fontWeight: 700 }}>
+                      {getUserInitial()}
+                    </Avatar>
+                    {getUserLabel()}
+                  </DialogTitle>
+                  <Divider />
+                  <DialogContent>
+                    {user && 'email' in user && (
+                      <Stack spacing={2} sx={{ mt: 1 }}>
+                        {('displayName' in user) && (
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Nombre</Typography>
+                            <Typography variant="body1">{(user as any).displayName}</Typography>
+                          </Box>
+                        )}
+                        <Box>
+                          <Typography variant="caption" color="text.secondary">Email</Typography>
+                          <Typography variant="body1">{(user as any).email}</Typography>
+                        </Box>
+                        {('phoneNumber' in user) && (user as any).phoneNumber && (
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Celular</Typography>
+                            <Typography variant="body1">{(user as any).phoneNumber}</Typography>
+                          </Box>
+                        )}
+                        {('role' in user) && (
+                          <Box>
+                            <Typography variant="caption" color="text.secondary">Rol</Typography>
+                            <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>{(user as any).role}</Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    )}
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setProfileOpen(false)}>Cerrar</Button>
+                  </DialogActions>
+                </Dialog>
               </>
             ) : (
               /* Login Button - for non-authenticated users */

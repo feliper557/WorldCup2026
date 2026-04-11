@@ -161,4 +161,5 @@ export function logout(): void {
   localStorage.removeItem('jwtToken');
   localStorage.removeItem('userId');
   localStorage.removeItem('user');
+  window.dispatchEvent(new Event('auth-logout'));
 }

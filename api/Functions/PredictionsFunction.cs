@@ -134,9 +134,10 @@ public class PredictionsFunction
             return notFound;
         }
 
-        // 3. Validar cutoff (1 minuto antes)
-        var cutoffUtc = match.KickoffAtUtc.AddMinutes(-1);
-        if (_time.UtcNow >= cutoffUtc)
+        // 3. Validar cutoff (a la hora programada del partido)
+        // MatchDate se almacena en hora Colombia (UTC-5), comparar con hora Colombia
+        var colombiaNow = _time.UtcNow.AddHours(-5);
+        if (colombiaNow >= match.MatchDate)
         {
             var closed = req.CreateResponse(HttpStatusCode.Conflict);
             await closed.WriteStringAsync("El pronóstico está cerrado (menos de 1 minuto para iniciar o ya inició).");

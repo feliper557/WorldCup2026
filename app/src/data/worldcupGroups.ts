@@ -1,4 +1,4 @@
-// Grupos del Mundial 2026 - Sorteo oficial FIFA (4 de diciembre de 2023)
+// Grupos del Mundial 2026 - Sorteo oficial FIFA (5 de diciembre de 2025)
 // 48 equipos en 12 grupos de 4
 
 export interface Team {
@@ -15,109 +15,109 @@ export const WORLD_CUP_2026_GROUPS: Group[] = [
   {
     letter: 'A',
     teams: [
-      { name: 'Argentina', flag: '🇦🇷' },
-      { name: 'Paraguay', flag: '🇵🇾' },
-      { name: 'Uruguay', flag: '🇺🇾' },
-      { name: 'Canadá', flag: '🇨🇦' },
+      { name: 'México', flag: '🇲🇽' },
+      { name: 'Sudáfrica', flag: '🇿🇦' },
+      { name: 'Corea del Sur', flag: '🇰🇷' },
+      { name: 'Chequia', flag: '🇨🇿' },
     ],
   },
   {
     letter: 'B',
     teams: [
-      { name: 'Francia', flag: '🇫🇷' },
-      { name: 'Países Bajos', flag: '🇳🇱' },
-      { name: 'Senegal', flag: '🇸🇳' },
-      { name: 'Ecuador', flag: '🇪🇨' },
+      { name: 'Canadá', flag: '🇨🇦' },
+      { name: 'Suiza', flag: '🇨🇭' },
+      { name: 'Qatar', flag: '🇶🇦' },
+      { name: 'Bosnia y Herzegovina', flag: '🇧🇦' },
     ],
   },
   {
     letter: 'C',
     teams: [
-      { name: 'Alemania', flag: '🇩🇪' },
-      { name: 'España', flag: '🇪🇸' },
-      { name: 'Polonia', flag: '🇵🇱' },
-      { name: 'Chile', flag: '🇨🇱' },
+      { name: 'Brasil', flag: '🇧🇷' },
+      { name: 'Marruecos', flag: '🇲🇦' },
+      { name: 'Haití', flag: '🇭🇹' },
+      { name: 'Escocia', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
     ],
   },
   {
     letter: 'D',
     teams: [
-      { name: 'Brasil', flag: '🇧🇷' },
-      { name: 'México', flag: '🇲🇽' },
-      { name: 'Croacia', flag: '🇭🇷' },
-      { name: 'Tailandia', flag: '🇹🇭' },
+      { name: 'Estados Unidos', flag: '🇺🇸' },
+      { name: 'Paraguay', flag: '🇵🇾' },
+      { name: 'Australia', flag: '🇦🇺' },
+      { name: 'Turquía', flag: '🇹🇷' },
     ],
   },
   {
     letter: 'E',
     teams: [
-      { name: 'Bélgica', flag: '🇧🇪' },
-      { name: 'Portugal', flag: '🇵🇹' },
-      { name: 'Marruecos', flag: '🇲🇦' },
-      { name: 'Túnez', flag: '🇹🇳' },
+      { name: 'Alemania', flag: '🇩🇪' },
+      { name: 'Curazao', flag: '🇨🇼' },
+      { name: 'Costa de Marfil', flag: '🇨🇮' },
+      { name: 'Ecuador', flag: '🇪🇨' },
     ],
   },
   {
     letter: 'F',
     teams: [
-      { name: 'Inglaterra', flag: '🇬🇧' },
-      { name: 'Irán', flag: '🇮🇷' },
-      { name: 'Estados Unidos', flag: '🇺🇸' },
-      { name: 'Gales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+      { name: 'Países Bajos', flag: '🇳🇱' },
+      { name: 'Japón', flag: '🇯🇵' },
+      { name: 'Túnez', flag: '🇹🇳' },
+      { name: 'Suecia', flag: '🇸🇪' },
     ],
   },
   {
     letter: 'G',
     teams: [
-      { name: 'Italia', flag: '🇮🇹' },
-      { name: 'Suiza', flag: '🇨🇭' },
-      { name: 'Costa Rica', flag: '🇨🇷' },
-      { name: 'Camerún', flag: '🇨🇲' },
+      { name: 'Bélgica', flag: '🇧🇪' },
+      { name: 'Egipto', flag: '🇪🇬' },
+      { name: 'Irán', flag: '🇮🇷' },
+      { name: 'Nueva Zelanda', flag: '🇳🇿' },
     ],
   },
   {
     letter: 'H',
     teams: [
-      { name: 'Colombia', flag: '🇨🇴' },
-      { name: 'Perú', flag: '🇵🇪' },
-      { name: 'Jamaica', flag: '🇯🇲' },
-      { name: 'Venezuela', flag: '🇻🇪' },
+      { name: 'España', flag: '🇪🇸' },
+      { name: 'Cabo Verde', flag: '🇨🇻' },
+      { name: 'Arabia Saudita', flag: '🇸🇦' },
+      { name: 'Uruguay', flag: '🇺🇾' },
     ],
   },
   {
     letter: 'I',
     teams: [
-      { name: 'Japón', flag: '🇯🇵' },
-      { name: 'Corea del Sur', flag: '🇰🇷' },
-      { name: 'Uzbekistán', flag: '🇺🇿' },
-      { name: 'Vietnam', flag: '🇻🇳' },
+      { name: 'Francia', flag: '🇫🇷' },
+      { name: 'Senegal', flag: '🇸🇳' },
+      { name: 'Noruega', flag: '🇳🇴' },
+      { name: 'Irak', flag: '🇮🇶' },
     ],
   },
   {
     letter: 'J',
     teams: [
-      { name: 'Australia', flag: '🇦🇺' },
-      { name: 'Noruega', flag: '🇳🇴' },
-      { name: 'Nueva Zelanda', flag: '🇳🇿' },
-      { name: 'Islas Salomón', flag: '🇸🇧' },
+      { name: 'Argentina', flag: '🇦🇷' },
+      { name: 'Argelia', flag: '🇩🇿' },
+      { name: 'Austria', flag: '🇦🇹' },
+      { name: 'Jordania', flag: '🇯🇴' },
     ],
   },
   {
     letter: 'K',
     teams: [
-      { name: 'Argelia', flag: '🇩🇿' },
-      { name: 'Mali', flag: '🇲🇱' },
-      { name: 'Burkina Faso', flag: '🇧🇫' },
-      { name: 'Chad', flag: '🇹🇩' },
+      { name: 'Portugal', flag: '🇵🇹' },
+      { name: 'Uzbekistán', flag: '🇺🇿' },
+      { name: 'Colombia', flag: '🇨🇴' },
+      { name: 'R.D. del Congo', flag: '🇨🇩' },
     ],
   },
   {
     letter: 'L',
     teams: [
-      { name: 'Arabia Saudita', flag: '🇸🇦' },
-      { name: 'Emiratos Árabes', flag: '🇦🇪' },
-      { name: 'Omán', flag: '🇴🇲' },
-      { name: 'Kuwait', flag: '🇰🇼' },
+      { name: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+      { name: 'Croacia', flag: '🇭🇷' },
+      { name: 'Ghana', flag: '🇬🇭' },
+      { name: 'Panamá', flag: '🇵🇦' },
     ],
   },
 ];

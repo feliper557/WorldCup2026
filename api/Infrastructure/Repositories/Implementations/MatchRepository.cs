@@ -41,15 +41,29 @@ public class MatchRepository : IMatchRepository
             })
             .ToList();
 
-        // Auto-update SCHEDULED to LIVE based on time (Colombia time UTC-5)
+        // Auto-update status based on Colombia time
+        var hasChanges = false;
         foreach (var match in filtered)
         {
-            if (match.Status?.Equals("SCHEDULED", StringComparison.OrdinalIgnoreCase) == true
-                && match.MatchDate <= colombiaTime)
+            var currentStatus = match.Status?.ToUpper() ?? "";
+
+            // SCHEDULED → LIVE: partido ya comenzó
+            if (currentStatus == "SCHEDULED" && match.MatchDate <= colombiaTime)
             {
                 match.Status = "LIVE";
+                hasChanges = true;
+            }
+
+            // LIVE → FINISHED: pasaron 105 minutos desde el inicio (90 min + 15 min extra)
+            if (currentStatus == "LIVE" && match.MatchDate.AddMinutes(105) <= colombiaTime)
+            {
+                match.Status = "FINISHED";
+                hasChanges = true;
             }
         }
+
+        if (hasChanges)
+            await _db.SaveChangesAsync();
 
         return filtered;
     }

@@ -86,6 +86,7 @@ public record UserProfileResponse(
     string Email,
     string DisplayName,
     string Role,
+    string? PhoneNumber,
     int TotalPoints,
     int TotalPredictions,
     int CorrectPredictions,

@@ -10,7 +10,7 @@ namespace WorldCup.Api.Services;
 /// <summary>
 /// Service to generate and validate JWT tokens
 /// Tokens include userId (sub), email, and role claims
-/// Expiration set to configured duration (default 60 minutes)
+/// Expiration set to configured duration (default 240 minutes / 4 hours)
 /// </summary>
 public class JwtService
 {
@@ -26,7 +26,7 @@ public class JwtService
         _secretKey = config["Jwt:SecretKey"] ?? throw new InvalidOperationException("Jwt:SecretKey is not configured");
         _issuer = config["Jwt:Issuer"] ?? "worldcup2026-api";
         _audience = config["Jwt:Audience"] ?? "worldcup2026-app";
-        _expirationMinutes = int.TryParse(config["Jwt:ExpirationMinutes"], out var minutes) ? minutes : 60;
+        _expirationMinutes = int.TryParse(config["Jwt:ExpirationMinutes"], out var minutes) ? minutes : 240;
 
         if (_secretKey.Length < 32)
             throw new InvalidOperationException("Jwt:SecretKey must be at least 32 characters");

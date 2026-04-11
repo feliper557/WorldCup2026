@@ -43,6 +43,7 @@ builder.Services.AddScoped<IScoreRepository, ScoreRepository>();
 builder.Services.AddScoped<IRaffleRepository, RaffleRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IChampionPredictionRepository, ChampionPredictionRepository>();
 
 // Register services
 builder.Services.AddSingleton<ITimeProviderService, TimeProviderService>();
