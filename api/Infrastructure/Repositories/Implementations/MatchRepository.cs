@@ -111,10 +111,22 @@ public class MatchRepository : IMatchRepository
 
     public async Task<MatchEntity> UpsertAsync(MatchEntity match)
     {
-        var existing = await GetByIdAsync(match.Id);
+        var existing = await _db.Matches.FindAsync(match.Id);
         if (existing != null)
         {
-            return await UpdateAsync(match);
+            // Copy values onto the tracked entity to avoid EF Core tracking conflict
+            existing.HomeTeam = match.HomeTeam;
+            existing.AwayTeam = match.AwayTeam;
+            existing.Stage = match.Stage;
+            existing.Group = match.Group;
+            existing.MatchDate = match.MatchDate;
+            existing.Status = match.Status;
+            existing.HomeScore = match.HomeScore;
+            existing.AwayScore = match.AwayScore;
+            existing.Venue = match.Venue;
+            existing.ExternalId = match.ExternalId;
+            await _db.SaveChangesAsync();
+            return existing;
         }
         return await CreateAsync(match);
     }

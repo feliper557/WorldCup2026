@@ -60,12 +60,21 @@ public class SyncResultsFunction
                 .Where(m => m.MatchDate.AddMinutes(BufferMinutes) <= colombiaTime) // 105+ minutes passed
                 .ToList();
 
+            _logger.LogInformation("Matches needing scores: {Count} (out of {Total} total)",
+                matchesToSync.Count, allMatches.Count());
+
             if (matchesToSync.Count == 0)
             {
-                _logger.LogInformation("No matches eligible for sync (all finished or not yet 105min)");
+                _logger.LogInformation("No matches eligible for sync (all have scores or not yet 105min)");
                 var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(new { message = "No matches to sync", updatedCount = 0 });
                 return response;
+            }
+
+            foreach (var m in matchesToSync)
+            {
+                _logger.LogInformation("  → To sync: {Id} | {Home} vs {Away} | Status={Status} | Score={H}-{A}",
+                    m.Id, m.HomeTeam, m.AwayTeam, m.Status, m.HomeScore, m.AwayScore);
             }
 
             // Check La Liga (REGULAR stage)
@@ -75,16 +84,32 @@ public class SyncResultsFunction
 
             if (laLigaMatches.Count > 0)
             {
+                _logger.LogInformation("Fetching La Liga results from API for {Count} matches...", laLigaMatches.Count);
                 var updated = await _footballDataService.GetSpanishLaLigaMatches();
+                _logger.LogInformation("API returned {Count} La Liga matches", updated.Count);
+
                 foreach (var match in laLigaMatches)
                 {
                     var upd = updated.FirstOrDefault(m => m.Id == match.Id);
-                    if (upd?.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                    if (upd == null)
                     {
-                        await _matchRepository.UpsertAsync(upd.ToEntity());
-                        await ProcessPredictions(upd);
-                        updatedCount++;
+                        _logger.LogWarning("  ✗ No API match for DB Id={Id} ({Home} vs {Away})", match.Id, match.HomeTeam, match.AwayTeam);
+                        continue;
                     }
+                    if (upd.Status != "FINISHED" || !upd.HomeScoreFinal.HasValue || !upd.AwayScoreFinal.HasValue)
+                    {
+                        _logger.LogInformation("  ~ API match {Id} status={Status} score={H}-{A} (not ready)",
+                            upd.Id, upd.Status, upd.HomeScoreFinal, upd.AwayScoreFinal);
+                        continue;
+                    }
+
+                    _logger.LogInformation("  ✓ Updating {Id}: {Home} {H}-{A} {Away}",
+                        upd.Id, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
+                    // Convert UTC to Colombia time (UTC-5) to match stored format
+                    upd.MatchDate = upd.MatchDate.AddHours(-5);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
+                    await ProcessPredictions(upd);
+                    updatedCount++;
                 }
             }
 
@@ -95,16 +120,32 @@ public class SyncResultsFunction
 
             if (worldCupMatches.Count > 0)
             {
+                _logger.LogInformation("Fetching World Cup results from API for {Count} matches...", worldCupMatches.Count);
                 var updated = await _footballDataService.GetWorldCupMatches();
+                _logger.LogInformation("API returned {Count} World Cup matches", updated.Count);
+
                 foreach (var match in worldCupMatches)
                 {
                     var upd = updated.FirstOrDefault(m => m.Id == match.Id);
-                    if (upd?.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                    if (upd == null)
                     {
-                        await _matchRepository.UpsertAsync(upd.ToEntity());
-                        await ProcessPredictions(upd);
-                        updatedCount++;
+                        _logger.LogWarning("  ✗ No API match for DB Id={Id} ({Home} vs {Away})", match.Id, match.HomeTeam, match.AwayTeam);
+                        continue;
                     }
+                    if (upd.Status != "FINISHED" || !upd.HomeScoreFinal.HasValue || !upd.AwayScoreFinal.HasValue)
+                    {
+                        _logger.LogInformation("  ~ API match {Id} status={Status} score={H}-{A} (not ready)",
+                            upd.Id, upd.Status, upd.HomeScoreFinal, upd.AwayScoreFinal);
+                        continue;
+                    }
+
+                    _logger.LogInformation("  ✓ Updating {Id}: {Home} {H}-{A} {Away}",
+                        upd.Id, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
+                    // Convert UTC to Colombia time (UTC-5) to match stored format
+                    upd.MatchDate = upd.MatchDate.AddHours(-5);
+                    await _matchRepository.UpsertAsync(upd.ToEntity());
+                    await ProcessPredictions(upd);
+                    updatedCount++;
                 }
             }
 
