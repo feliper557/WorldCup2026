@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
 import {
+  Alert,
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -26,8 +28,9 @@ import {
   MenuItem,
   InputAdornment,
 } from '@mui/material';
-import { Search, Lock, ToggleOff, ToggleOn } from '@mui/icons-material';
+import { Search, Lock, ToggleOff, ToggleOn, Refresh } from '@mui/icons-material';
 import type { AdminUser, IdentityProvider } from '../../types/admin';
+import { recalculatePoints } from '../../services/apiClient';
 
 interface UserTableProps {
   users: AdminUser[];
@@ -45,6 +48,8 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
   const [newPassword, setNewPassword] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
+  const [recalcLoading, setRecalcLoading] = useState(false);
+  const [recalcResult, setRecalcResult] = useState<string | null>(null);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -76,6 +81,20 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
     }
   };
 
+  const handleRecalculate = async () => {
+    try {
+      setRecalcLoading(true);
+      setRecalcResult(null);
+      const result = await recalculatePoints();
+      setRecalcResult(`✅ ${result.predictionsUpdated} predicciones actualizadas en ${result.matchesProcessed} partidos`);
+      setTimeout(() => setRecalcResult(null), 6000);
+    } catch (err) {
+      setRecalcResult(`❌ Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    } finally {
+      setRecalcLoading(false);
+    }
+  };
+
   const handleToggleActive = async (userId: string, currentStatus: boolean) => {
     try {
       setToggleLoading(userId);
@@ -94,7 +113,12 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
       {/* Filtros */}
       <Card sx={{ backgroundColor: theme.palette.background.paper, boxShadow: 1 }}>
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          {recalcResult && (
+            <Alert severity={recalcResult.startsWith('✅') ? 'success' : 'error'} sx={{ mb: 2 }}>
+              {recalcResult}
+            </Alert>
+          )}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
             <TextField
               label="Buscar participante"
               value={searchText}
@@ -122,6 +146,16 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
                 <MenuItem value="email">Email</MenuItem>
               </Select>
             </FormControl>
+            <Button
+              variant="outlined"
+              startIcon={recalcLoading ? <CircularProgress size={18} /> : <Refresh />}
+              onClick={handleRecalculate}
+              disabled={recalcLoading}
+              size="small"
+              sx={{ whiteSpace: 'nowrap', minWidth: 180 }}
+            >
+              {recalcLoading ? 'Recalculando...' : 'Recalcular puntos'}
+            </Button>
           </Stack>
         </CardContent>
       </Card>
