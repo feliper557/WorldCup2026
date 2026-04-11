@@ -37,11 +37,10 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
     return () => clearInterval(interval);
   }, [match.kickoffAtUtc]);
 
-  // Verificar si la predicción está disponible (solo en estado SCHEDULED y si faltan más de 1 minuto)
+  // Verificar si la predicción está disponible (solo en estado SCHEDULED antes de la hora del partido)
   const now = new Date();
-  const cutoffTime = new Date(match.kickoffAtUtc);
-  cutoffTime.setMinutes(cutoffTime.getMinutes() - 1);
-  const isPredictionAvailable = match.status === 'SCHEDULED' && now < cutoffTime;
+  const kickoffTime = new Date(match.kickoffAtUtc);
+  const isPredictionAvailable = match.status === 'SCHEDULED' && now < kickoffTime;
 
   // Detectar si es La Liga (DEMO)
   const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
@@ -129,36 +128,28 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            {prediction && (
-              <Badge
-                overlap="circular"
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                badgeContent={
-                  <Chip
-                    label={`${prediction.homeScorePred}-${prediction.awayScorePred}`}
-                    size="small"
-                    color="success"
-                    sx={{ fontWeight: 600 }}
-                  />
-                }
-              >
-                <Box />
-              </Badge>
-            )}
-          </Box>
-
-          {isPredictionAvailable && (
-            <Button
-              variant={prediction ? 'outlined' : 'contained'}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+          {prediction && (
+            <Chip
+              label={`Mi predicción: ${prediction.homeScorePred} - ${prediction.awayScorePred}`}
               size="small"
-              color={prediction ? 'primary' : 'secondary'}
+              color="success"
+              sx={{ fontWeight: 700, fontSize: '0.8rem', cursor: isPredictionAvailable ? 'pointer' : 'default' }}
+              onClick={isPredictionAvailable ? handlePredictClick : undefined}
+              icon={isPredictionAvailable ? <EditIcon sx={{ fontSize: 14 }} /> : undefined}
+            />
+          )}
+
+          {isPredictionAvailable && !prediction && (
+            <Button
+              variant="contained"
+              size="small"
+              color="secondary"
               onClick={handlePredictClick}
-              startIcon={prediction ? <EditIcon sx={{ fontSize: 16 }} /> : <SportsSoccer sx={{ fontSize: 16 }} />}
-              sx={{ fontWeight: 600, cursor: 'pointer' }}
+              startIcon={<SportsSoccer sx={{ fontSize: 16 }} />}
+              sx={{ fontWeight: 600 }}
             >
-              {prediction ? 'Editar' : 'Predecir'}
+              Predecir
             </Button>
           )}
 
@@ -172,12 +163,6 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
             />
           )}
         </Box>
-
-        {!isPredictionAvailable && match.status === 'SCHEDULED' && (
-          <Alert severity="warning" sx={{ mt: 1, borderLeft: `4px solid ${theme.palette.warning.main}` }}>
-            Predicción cerrada — solo disponible hasta 1 minuto antes del inicio
-          </Alert>
-        )}
       </CardContent>
 
       <Snackbar

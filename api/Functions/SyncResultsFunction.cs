@@ -53,10 +53,10 @@ public class SyncResultsFunction
             }
 
             // Only sync matches that:
-            // 1. Are NOT finished yet
+            // 1. Don't have a final score yet (need results from API)
             // 2. Have passed 105 minutes since kickoff (in Colombia time)
             var matchesToSync = allMatches
-                .Where(m => m.Status?.Equals("FINISHED", StringComparison.OrdinalIgnoreCase) != true) // Not finished
+                .Where(m => m.HomeScore == null || m.AwayScore == null) // No result yet
                 .Where(m => m.MatchDate.AddMinutes(BufferMinutes) <= colombiaTime) // 105+ minutes passed
                 .ToList();
 
