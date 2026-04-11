@@ -7,7 +7,7 @@ export interface ChampionPrediction {
   savedAt: string;
 }
 
-const CHAMPIONSHIP_DEADLINE = new Date('2026-06-11T00:00:00Z'); // Primer partido
+const CHAMPIONSHIP_DEADLINE = new Date('2026-06-18T23:59:59Z'); // Fin primera ronda de grupos
 
 const getAuthHeaders = () => {
   const token = getStoredToken();

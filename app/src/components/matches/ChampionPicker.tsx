@@ -70,6 +70,13 @@ export function ChampionPicker() {
 
   return (
     <Stack spacing={3}>
+      {/* Aviso fecha límite */}
+      {!isLocked && (
+        <Alert severity="info" sx={{ fontSize: '0.8rem' }}>
+          🏆 <strong>¿Quién será el campeón?</strong> Elige tu equipo favorito antes del <strong>18 de junio de 2026</strong>, cuando termina la primera ronda de grupos. Después de esa fecha ya no podrás cambiar tu predicción.
+        </Alert>
+      )}
+
       {/* Card de predicción actual */}
       {prediction && !isEditing && (
         <Card
@@ -129,7 +136,7 @@ export function ChampionPicker() {
 
             <Box sx={{ mt: 2 }}>
               <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
-                📅 Fecha límite: <strong>11 de junio de 2026</strong>
+                📅 Fecha límite: <strong>18 de junio de 2026</strong> (fin primera ronda de grupos)
               </Typography>
             </Box>
           </CardContent>

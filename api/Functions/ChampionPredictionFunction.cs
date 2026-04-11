@@ -15,7 +15,7 @@ public class ChampionPredictionFunction
     private readonly ILogger<ChampionPredictionFunction> _logger;
 
     // Fecha límite: primer partido del Mundial 2026
-    private static readonly DateTime Deadline = new(2026, 6, 11, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime Deadline = new(2026, 6, 18, 23, 59, 59, DateTimeKind.Utc);
 
     public ChampionPredictionFunction(
         IChampionPredictionRepository repo,
