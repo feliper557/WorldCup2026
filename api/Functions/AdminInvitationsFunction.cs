@@ -86,7 +86,7 @@ public class AdminInvitationsFunction
 
             // 5. Build registration link
             var baseUrl = _config["App:BaseUrl"] ?? "http://localhost:3000";
-            var registrationLink = $"{baseUrl}/register?token={Uri.EscapeDataString(encryptedToken)}&code={invitationCode}";
+            var registrationLink = $"{baseUrl}/register?token={Uri.EscapeDataString(encryptedToken)}&code={invitationCode}&email={Uri.EscapeDataString(body.Email)}";
 
             _logger.LogInformation("Invitation created by admin {AdminId} for {Email}", admin.UserId, body.Email);
 

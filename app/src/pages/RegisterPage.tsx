@@ -11,7 +11,7 @@ import {
   Divider,
   useTheme,
 } from '@mui/material';
-import { Person, Lock, Phone } from '@mui/icons-material';
+import { Person, Lock, Phone, Email } from '@mui/icons-material';
 import { getApiBase } from '../services/apiClient';
 import { FrancachelaLogo } from '../components/FrancachelaLogo';
 
@@ -19,6 +19,7 @@ export function RegisterPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const code = searchParams.get('code');
+  const emailFromUrl = searchParams.get('email') ?? '';
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -158,6 +159,22 @@ export function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit}>
+          {emailFromUrl && (
+            <TextField
+              fullWidth
+              label="Correo Electrónico"
+              value={emailFromUrl}
+              margin="normal"
+              disabled
+              slotProps={{
+                input: {
+                  startAdornment: <Email sx={{ mr: 1, color: theme.palette.text.disabled }} />,
+                  readOnly: true,
+                },
+              }}
+              helperText="Este correo fue asignado en tu invitación"
+            />
+          )}
           <TextField
             fullWidth
             label="Nombres"
