@@ -17,14 +17,9 @@ import {
   Stack,
   useTheme,
   CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   IconButton,
   Tooltip,
   OutlinedInput,
-  FormHelperText,
 } from '@mui/material';
 import { Send, ContentCopy, Check } from '@mui/icons-material';
 import type { InvitationRequest, Invitation } from '../../types/admin';
@@ -44,25 +39,16 @@ interface SuccessData {
 export function InvitationForm({ onSubmit, invitations, loading = false }: InvitationFormProps) {
   const theme = useTheme();
   const [email, setEmail] = useState('');
-  const [notificationChannel, setNotificationChannel] = useState('email');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
-  const [phoneError, setPhoneError] = useState<string>('');
 
   // Validar email
   const isValidEmail = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(value);
-  };
-
-  // Validar teléfono
-  const isValidPhoneNumber = (value: string): boolean => {
-    const phoneRegex = /^\+\d{7,15}$/;
-    return phoneRegex.test(value.replace(/\s/g, ''));
   };
 
   // Sanitizar email
@@ -74,7 +60,6 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
   const validateForm = (): boolean => {
     setSubmitError('');
     setEmailError('');
-    setPhoneError('');
 
     // 1. Email requerido
     if (!email || email.trim() === '') {
@@ -92,19 +77,6 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
     if (email.length > 254) {
       setEmailError('El email es demasiado largo');
       return false;
-    }
-
-    // 4. Si es WhatsApp, validar teléfono
-    if (notificationChannel === 'whatsapp') {
-      if (!phoneNumber || phoneNumber.trim() === '') {
-        setPhoneError('El teléfono es requerido para enviar por WhatsApp');
-        return false;
-      }
-
-      if (!isValidPhoneNumber(phoneNumber)) {
-        setPhoneError('Formato de teléfono inválido. Use: +573001234567');
-        return false;
-      }
     }
 
     return true;
@@ -148,22 +120,7 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
       setSubmitting(true);
       const sanitizedEmail = sanitizeEmail(email);
 
-      const requestData: any = {
-        email: sanitizedEmail,
-        notificationChannel,
-      };
-
-      if (notificationChannel === 'whatsapp') {
-        requestData.phoneNumber = phoneNumber;
-      }
-
-      // Para mantener compatibilidad con la API actual
-      const legacyData: InvitationRequest = {
-        displayName: sanitizedEmail.split('@')[0],
-        email: sanitizedEmail,
-      };
-
-      await onSubmit(legacyData);
+      await onSubmit({ displayName: sanitizedEmail.split('@')[0], email: sanitizedEmail });
 
       // Si la API actual devuelve datos de invitación, mostrarlos
       // Por ahora mostramos un mensaje de éxito simple
@@ -174,8 +131,6 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
       });
 
       setEmail('');
-      setPhoneNumber('');
-      setNotificationChannel('email');
 
       // Limpiar mensaje de éxito después de 5 segundos
       setTimeout(() => setSuccessData(null), 5000);
@@ -295,43 +250,6 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
               size="small"
               disabled={submitting}
             />
-
-            <FormControl fullWidth size="small">
-              <InputLabel>Canal de Notificación</InputLabel>
-              <Select
-                value={notificationChannel}
-                onChange={(e) => {
-                  setNotificationChannel(e.target.value);
-                  setPhoneError('');
-                }}
-                label="Canal de Notificación"
-                disabled={submitting}
-              >
-                <MenuItem value="email">📧 Email</MenuItem>
-                <MenuItem value="whatsapp">💬 WhatsApp</MenuItem>
-              </Select>
-              <FormHelperText>Cómo se notificará al usuario</FormHelperText>
-            </FormControl>
-
-            {notificationChannel === 'whatsapp' && (
-              <TextField
-                label="Teléfono *"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                onBlur={() => {
-                  if (phoneNumber && !isValidPhoneNumber(phoneNumber)) {
-                    setPhoneError('Formato inválido');
-                  }
-                }}
-                error={Boolean(phoneError)}
-                helperText={phoneError || 'Formato: +573001234567'}
-                fullWidth
-                placeholder="+573001234567"
-                size="small"
-                disabled={submitting}
-              />
-            )}
 
             <Button
               variant="contained"
