@@ -173,6 +173,10 @@ public class SyncResultsFunction
     {
         _logger.LogInformation("RecalculatePoints triggered");
 
+        // Optional userId filter from query string
+        var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+        var filterUserId = query["userId"];
+
         try
         {
             var allMatches = await _matchRepository.GetAllAsync();
@@ -199,7 +203,9 @@ public class SyncResultsFunction
                     MatchDate = match.MatchDate
                 };
 
-                var predictions = await _predictionRepository.GetByMatchIdAsync(match.Id);
+                var predictions = (await _predictionRepository.GetByMatchIdAsync(match.Id))
+                    .Where(p => string.IsNullOrEmpty(filterUserId) || p.UserId == filterUserId)
+                    .ToList();
                 if (!predictions.Any()) continue;
 
                 processedMatches++;

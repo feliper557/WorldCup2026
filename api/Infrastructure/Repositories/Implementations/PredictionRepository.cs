@@ -37,9 +37,21 @@ public class PredictionRepository : IPredictionRepository
 
     public async Task<PredictionEntity> UpdateAsync(PredictionEntity prediction)
     {
-        _db.Predictions.Update(prediction);
+        var existing = await _db.Predictions.FindAsync(prediction.Id);
+        if (existing != null)
+        {
+            existing.PredictedHomeScore = prediction.PredictedHomeScore;
+            existing.PredictedAwayScore = prediction.PredictedAwayScore;
+            existing.PredictedWinner = prediction.PredictedWinner;
+            existing.PointsEarned = prediction.PointsEarned;
+            existing.UpdatedAt = prediction.UpdatedAt ?? DateTime.UtcNow;
+        }
+        else
+        {
+            _db.Predictions.Update(prediction);
+        }
         await _db.SaveChangesAsync();
-        return prediction;
+        return existing ?? prediction;
     }
 
     public async Task<PredictionEntity> UpsertAsync(PredictionEntity prediction)

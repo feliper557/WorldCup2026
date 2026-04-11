@@ -176,5 +176,5 @@ export const resetUserPassword = (userId: string, body: ResetPasswordRequest): P
 export const toggleUserActive = (userId: string, isActive: boolean): Promise<AdminUser> =>
   post(`/mgmt/users/${userId}`, { isActive });
 
-export const recalculatePoints = (): Promise<{ message: string; matchesProcessed: number; predictionsUpdated: number }> =>
-  post('/mgmt/recalculate-points', {});
+export const recalculatePoints = (userId?: string): Promise<{ message: string; matchesProcessed: number; predictionsUpdated: number }> =>
+  post(`/mgmt/recalculate-points${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`, {});

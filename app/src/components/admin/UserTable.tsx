@@ -81,13 +81,13 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
     }
   };
 
-  const handleRecalculate = async () => {
+  const handleRecalculate = async (userId: string) => {
     try {
       setRecalcLoading(true);
       setRecalcResult(null);
-      const result = await recalculatePoints();
-      setRecalcResult(`✅ ${result.predictionsUpdated} predicciones actualizadas en ${result.matchesProcessed} partidos`);
-      setTimeout(() => setRecalcResult(null), 6000);
+      const result = await recalculatePoints(userId);
+      setRecalcResult(`✅ ${result.predictionsUpdated} predicciones actualizadas`);
+      setTimeout(() => setRecalcResult(null), 5000);
     } catch (err) {
       setRecalcResult(`❌ Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     } finally {
@@ -146,16 +146,6 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
                 <MenuItem value="email">Email</MenuItem>
               </Select>
             </FormControl>
-            <Button
-              variant="outlined"
-              startIcon={recalcLoading ? <CircularProgress size={18} /> : <Refresh />}
-              onClick={handleRecalculate}
-              disabled={recalcLoading}
-              size="small"
-              sx={{ whiteSpace: 'nowrap', minWidth: 180 }}
-            >
-              {recalcLoading ? 'Recalculando...' : 'Recalcular puntos'}
-            </Button>
           </Stack>
         </CardContent>
       </Card>
@@ -251,7 +241,23 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
                       />
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={1} flexWrap="wrap">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={recalcLoading ? <CircularProgress size={14} /> : <Refresh />}
+                          onClick={() => handleRecalculate(user.userId)}
+                          disabled={recalcLoading}
+                          sx={{
+                            fontSize: '0.75rem',
+                            padding: '4px 8px',
+                            borderColor: theme.palette.info.main,
+                            color: theme.palette.info.main,
+                            '&:hover': { backgroundColor: `${theme.palette.info.main}10` },
+                          }}
+                        >
+                          Puntos
+                        </Button>
                         {user.identityProvider === 'email' && (
                           <Button
                             size="small"
