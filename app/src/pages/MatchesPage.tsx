@@ -8,7 +8,6 @@ import {
   Container,
   ToggleButton,
   ToggleButtonGroup,
-  Typography,
 } from '@mui/material';
 import type { Match, Prediction } from '../types';
 import { useMatches, usePredictions } from '../hooks';
@@ -26,31 +25,18 @@ export function MatchesPage() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
-  const [syncing, setSyncing] = useState(true);
-
   // Sync results with Football-Data API when page loads (once on mount)
-  // Only syncs matches that haven't finished and passed 105 minutes
   useEffect(() => {
     let isMounted = true;
 
     const syncAndRefetch = async () => {
       try {
-        setSyncing(true);
-
-        // Call sync - it will only process eligible matches (not FINISHED, 105+ minutes passed)
-        const result = await syncResults();
-
+        await syncResults();
         if (!isMounted) return;
-
-        // If any matches were updated, refetch to get new statuses
-        if (result.updatedCount > 0) {
-          await refetch();
-        }
-
-        setSyncing(false);
+        // Always refetch so LIVE→FINISHED transitions are reflected immediately
+        refetch();
       } catch (err) {
         console.error('Error syncing results:', err);
-        if (isMounted) setSyncing(false);
       }
     };
 
@@ -59,7 +45,7 @@ export function MatchesPage() {
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array - runs only once on mount
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTabChange = (_: unknown, newValue: number) => {
     setTabValue(newValue);

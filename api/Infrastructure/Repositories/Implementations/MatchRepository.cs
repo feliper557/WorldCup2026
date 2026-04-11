@@ -42,21 +42,16 @@ public class MatchRepository : IMatchRepository
             .ToList();
 
         // Auto-update status based on Colombia time
+        // Only SCHEDULED → LIVE here. LIVE → FINISHED happens only via SyncResults
+        // when the external API confirms the final score.
         var hasChanges = false;
         foreach (var match in filtered)
         {
             var status = match.Status?.ToUpper() ?? "";
             var minutesSinceKickoff = (colombiaTime - match.MatchDate).TotalMinutes;
 
-            if (status != "FINISHED" && minutesSinceKickoff >= 105)
+            if (status == "SCHEDULED" && minutesSinceKickoff >= 0)
             {
-                // Más de 105 min desde inicio → FINISHED
-                match.Status = "FINISHED";
-                hasChanges = true;
-            }
-            else if (status == "SCHEDULED" && minutesSinceKickoff >= 0)
-            {
-                // Partido ya comenzó pero menos de 105 min → LIVE
                 match.Status = "LIVE";
                 hasChanges = true;
             }
