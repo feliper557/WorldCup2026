@@ -192,10 +192,10 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
     switch (status) {
       case 'pending':
         return theme.palette.warning.main;
-      case 'accepted':
-        return theme.palette.primary.main;
-      case 'rejected':
-        return theme.palette.secondary.main;
+      case 'used':
+        return theme.palette.success.main;
+      case 'expired':
+        return theme.palette.error.main;
       default:
         return theme.palette.text.secondary;
     }
@@ -205,10 +205,10 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
     switch (status) {
       case 'pending':
         return 'Pendiente';
-      case 'accepted':
-        return 'Aceptada';
-      case 'rejected':
-        return 'Rechazada';
+      case 'used':
+        return 'Usada';
+      case 'expired':
+        return 'Expirada';
       default:
         return 'Desconocido';
     }
@@ -366,18 +366,15 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                 <TableHead>
                   <TableRow sx={{ backgroundColor: `${theme.palette.primary.main}15` }}>
                     <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Código</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>Fecha Envío</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Expira</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {invitations.map((invitation) => (
                     <TableRow key={invitation.id} sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}08` } }}>
                       <TableCell sx={{ color: theme.palette.text.primary }}>{invitation.email}</TableCell>
-                      <TableCell sx={{ fontWeight: 500, color: theme.palette.primary.main }}>
-                        {invitation.invitationCode}
-                      </TableCell>
                       <TableCell>
                         <Chip
                           label={getStatusLabel(invitation.status)}
@@ -390,7 +387,10 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                         />
                       </TableCell>
                       <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
-                        {new Date(invitation.sentAtUtc).toLocaleDateString('es-ES')}
+                        {new Date(invitation.createdAtUtc).toLocaleDateString('es-CO')}
+                      </TableCell>
+                      <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
+                        {getExpirationInfo(invitation.expiresAtUtc)}
                       </TableCell>
                     </TableRow>
                   ))}

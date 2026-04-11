@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUsers, sendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
+import { getUsers, getInvitations, sendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
 import type { AdminUser, InvitationRequest, Invitation } from '../types/admin';
 
 interface UseAdminResult {
@@ -32,10 +32,19 @@ export function useAdmin(): UseAdminResult {
     }
   };
 
+  const fetchInvitations = async () => {
+    try {
+      const data = await getInvitations();
+      setInvitations(data.invitations);
+    } catch (err) {
+      console.error('Error fetching invitations:', err);
+    }
+  };
+
   const sendInvitationHandler = async (data: InvitationRequest) => {
     try {
-      const invitation = await sendInvitation(data);
-      setInvitations([...invitations, invitation]);
+      await sendInvitation(data);
+      await fetchInvitations();
     } catch (err) {
       throw err;
     }
@@ -62,6 +71,7 @@ export function useAdmin(): UseAdminResult {
 
   useEffect(() => {
     fetchUsers();
+    fetchInvitations();
   }, []);
 
   return {

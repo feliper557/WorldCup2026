@@ -21,11 +21,10 @@ export interface InvitationRequest {
 export interface Invitation {
   id: string;
   email: string;
-  displayName: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  sentAtUtc: string;
-  acceptedAtUtc?: string;
-  invitationCode: string;
+  status: 'pending' | 'used' | 'expired';
+  createdAtUtc: string;
+  expiresAtUtc: string;
+  notificationChannel: string;
 }
 
 export interface ResetPasswordRequest {

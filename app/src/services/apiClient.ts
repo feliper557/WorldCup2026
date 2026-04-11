@@ -138,6 +138,9 @@ export const syncResults = (): Promise<{ message: string; updatedCount: number }
 
 export const getUsers = (): Promise<AdminUser[]> => get('/mgmt/users');
 
+export const getInvitations = (): Promise<{ invitations: Invitation[]; total: number }> =>
+  get('/mgmt/invitations');
+
 export const sendInvitation = (body: InvitationRequest): Promise<Invitation> =>
   post('/mgmt/invitations', body);
 
