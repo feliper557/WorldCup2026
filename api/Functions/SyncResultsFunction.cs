@@ -163,6 +163,103 @@ public class SyncResultsFunction
         }
     }
 
+    /// <summary>
+    /// Admin endpoint to force-recalculate points for all finished matches with scores.
+    /// Useful when predictions were made before scores were synced.
+    /// </summary>
+    [Function("RecalculatePoints")]
+    public async Task<HttpResponseData> RecalculatePoints(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/recalculate-points")] HttpRequestData req)
+    {
+        _logger.LogInformation("RecalculatePoints triggered");
+
+        try
+        {
+            var allMatches = await _matchRepository.GetAllAsync();
+            var finishedMatches = allMatches
+                .Where(m => m.Status == "FINISHED" && m.HomeScore.HasValue && m.AwayScore.HasValue)
+                .ToList();
+
+            _logger.LogInformation("Found {Count} finished matches with scores", finishedMatches.Count);
+
+            int processedMatches = 0;
+            int processedPredictions = 0;
+
+            foreach (var match in finishedMatches)
+            {
+                var matchModel = new Models.Match
+                {
+                    Id = match.Id,
+                    HomeTeam = match.HomeTeam,
+                    AwayTeam = match.AwayTeam,
+                    Stage = match.Stage,
+                    HomeScoreFinal = match.HomeScore,
+                    AwayScoreFinal = match.AwayScore,
+                    Status = match.Status,
+                    MatchDate = match.MatchDate
+                };
+
+                var predictions = await _predictionRepository.GetByMatchIdAsync(match.Id);
+                if (!predictions.Any()) continue;
+
+                processedMatches++;
+
+                foreach (var prediction in predictions)
+                {
+                    int basePoints = _scoringService.CalculatePoints(matchModel, new Models.Prediction
+                    {
+                        HomeScorePred = prediction.PredictedHomeScore,
+                        AwayScorePred = prediction.PredictedAwayScore
+                    });
+
+                    var isDemo = match.Stage?.ToUpper().Contains("REGULAR") ?? false;
+                    var bonusTeams = isDemo ? new[] { "BARCELONA", "REAL MADRID" } : new[] { "COLOMBIA" };
+                    var hasBonus = bonusTeams.Contains(match.HomeTeam?.ToUpper()) || bonusTeams.Contains(match.AwayTeam?.ToUpper());
+                    int totalPoints = (basePoints == 3 && hasBonus) ? 5 : basePoints;
+
+                    var predictionEntity = new Infrastructure.Entities.PredictionEntity
+                    {
+                        Id = prediction.Id,
+                        UserId = prediction.UserId,
+                        MatchId = prediction.MatchId,
+                        PredictedHomeScore = prediction.PredictedHomeScore,
+                        PredictedAwayScore = prediction.PredictedAwayScore,
+                        PredictedWinner = prediction.PredictedWinner,
+                        PointsEarned = totalPoints,
+                        CreatedAt = prediction.CreatedAt,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _predictionRepository.UpdateAsync(predictionEntity);
+                    processedPredictions++;
+
+                    _logger.LogInformation("  {MatchId} | User={UserId} | Pred={PH}-{PA} | Real={RH}-{RA} | Pts={Pts}",
+                        match.Id, prediction.UserId, prediction.PredictedHomeScore, prediction.PredictedAwayScore,
+                        match.HomeScore, match.AwayScore, totalPoints);
+                }
+            }
+
+            _logger.LogInformation("✅ RecalculatePoints done - {Matches} matches, {Predictions} predictions updated",
+                processedMatches, processedPredictions);
+
+            var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new
+            {
+                message = $"✅ Recálculo completado",
+                matchesProcessed = processedMatches,
+                predictionsUpdated = processedPredictions
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error recalculating points");
+            var response = req.CreateResponse(System.Net.HttpStatusCode.InternalServerError);
+            await response.WriteAsJsonAsync(new { error = ex.Message });
+            return response;
+        }
+    }
+
     private async Task ProcessPredictions(Models.Match match)
     {
         try
