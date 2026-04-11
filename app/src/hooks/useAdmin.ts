@@ -24,7 +24,20 @@ export function useAdmin(): UseAdminResult {
       setLoading(true);
       setError(null);
       const data = await getUsers();
-      setUsers(data);
+      // API returns { Users: [...], TotalCount: N } with PascalCase fields
+      const raw: any[] = Array.isArray(data) ? data : (data as any).Users ?? [];
+      const list: AdminUser[] = raw.map((u) => ({
+        userId: u.Id ?? u.userId,
+        displayName: u.DisplayName ?? u.displayName ?? '',
+        email: u.Email ?? u.email ?? '',
+        identityProvider: (u.IdentityProvider ?? u.identityProvider ?? 'email') as AdminUser['identityProvider'],
+        joinedAtUtc: u.CreatedAt ?? u.joinedAtUtc ?? '',
+        lastActiveAtUtc: u.LastLoginAt ?? u.lastActiveAtUtc ?? '',
+        totalPoints: u.TotalPoints ?? u.totalPoints ?? 0,
+        totalPredictions: u.TotalPredictions ?? u.totalPredictions ?? 0,
+        isActive: (u.Status ?? u.status) === 'active',
+      }));
+      setUsers(list);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Error fetching users'));
     } finally {
