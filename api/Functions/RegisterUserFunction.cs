@@ -60,8 +60,14 @@ public class RegisterUserFunction
             if (string.IsNullOrWhiteSpace(body.Token))
                 return ErrorResponse(req, "Token es requerido", HttpStatusCode.BadRequest);
 
-            if (string.IsNullOrWhiteSpace(body.Name))
-                return ErrorResponse(req, "Nombre es requerido", HttpStatusCode.BadRequest);
+            if (string.IsNullOrWhiteSpace(body.FirstName))
+                return ErrorResponse(req, "Nombres es requerido", HttpStatusCode.BadRequest);
+
+            if (string.IsNullOrWhiteSpace(body.LastName))
+                return ErrorResponse(req, "Apellidos es requerido", HttpStatusCode.BadRequest);
+
+            if (string.IsNullOrWhiteSpace(body.PhoneNumber))
+                return ErrorResponse(req, "Número de celular es requerido", HttpStatusCode.BadRequest);
 
             if (string.IsNullOrWhiteSpace(body.Password) || body.Password.Length < 8)
                 return ErrorResponse(req, "La contraseña debe tener mínimo 8 caracteres", HttpStatusCode.BadRequest);
@@ -102,7 +108,10 @@ public class RegisterUserFunction
             {
                 Id = Guid.NewGuid().ToString(),
                 Email = email,
-                DisplayName = body.Name,
+                FirstName = body.FirstName.Trim(),
+                LastName = body.LastName.Trim(),
+                DisplayName = $"{body.FirstName.Trim()} {body.LastName.Trim()}",
+                PhoneNumber = body.PhoneNumber.Trim(),
                 PasswordHash = ComputePasswordHash(body.Password),
                 Status = "active",
                 Role = "user",

@@ -11,7 +11,7 @@ import {
   Divider,
   useTheme,
 } from '@mui/material';
-import { Person, Lock } from '@mui/icons-material';
+import { Person, Lock, Phone } from '@mui/icons-material';
 import { getApiBase } from '../services/apiClient';
 import { FrancachelaLogo } from '../components/FrancachelaLogo';
 
@@ -22,7 +22,9 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -51,8 +53,16 @@ export function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (name.trim().length < 2) {
-      setError('El nombre debe tener al menos 2 caracteres');
+    if (firstName.trim().length < 2) {
+      setError('Los nombres deben tener al menos 2 caracteres');
+      return;
+    }
+    if (lastName.trim().length < 2) {
+      setError('Los apellidos deben tener al menos 2 caracteres');
+      return;
+    }
+    if (phoneNumber.trim().length < 7) {
+      setError('Ingresa un número de celular válido');
       return;
     }
     if (password.length < 8) {
@@ -70,7 +80,7 @@ export function RegisterPage() {
       const response = await fetch(`${apiUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, code, name, password }),
+        body: JSON.stringify({ token, code, firstName, lastName, phoneNumber, password }),
       });
 
       const data = await response.json();
@@ -150,15 +160,44 @@ export function RegisterPage() {
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Nombre"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            label="Nombres"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
             margin="normal"
             disabled={loading}
             required
             slotProps={{
               input: {
                 startAdornment: <Person sx={{ mr: 1, color: theme.palette.primary.main }} />,
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Apellidos"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            margin="normal"
+            disabled={loading}
+            required
+            slotProps={{
+              input: {
+                startAdornment: <Person sx={{ mr: 1, color: theme.palette.primary.main }} />,
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Número de Celular"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            margin="normal"
+            disabled={loading}
+            required
+            type="tel"
+            slotProps={{
+              input: {
+                startAdornment: <Phone sx={{ mr: 1, color: theme.palette.primary.main }} />,
               },
             }}
           />

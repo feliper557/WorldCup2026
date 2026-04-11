@@ -31,7 +31,9 @@ public record ValidateInvitationRequest(string Token);
 /// </summary>
 public record RegisterUserRequest(
     string Token,
-    string Name,
+    string FirstName,
+    string LastName,
+    string PhoneNumber,
     string Password
 );
 
