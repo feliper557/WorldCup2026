@@ -87,7 +87,7 @@ export function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || data.error || 'Error al registrar');
+        setError(data.Message || data.message || data.error || 'Error al registrar');
         return;
       }
 
