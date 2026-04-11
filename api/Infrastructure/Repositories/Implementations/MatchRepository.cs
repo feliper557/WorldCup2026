@@ -45,19 +45,19 @@ public class MatchRepository : IMatchRepository
         var hasChanges = false;
         foreach (var match in filtered)
         {
-            var currentStatus = match.Status?.ToUpper() ?? "";
+            var status = match.Status?.ToUpper() ?? "";
+            var minutesSinceKickoff = (colombiaTime - match.MatchDate).TotalMinutes;
 
-            // SCHEDULED → LIVE: partido ya comenzó
-            if (currentStatus == "SCHEDULED" && match.MatchDate <= colombiaTime)
+            if (status != "FINISHED" && minutesSinceKickoff >= 105)
             {
-                match.Status = "LIVE";
+                // Más de 105 min desde inicio → FINISHED
+                match.Status = "FINISHED";
                 hasChanges = true;
             }
-
-            // LIVE → FINISHED: pasaron 105 minutos desde el inicio (90 min + 15 min extra)
-            if (currentStatus == "LIVE" && match.MatchDate.AddMinutes(105) <= colombiaTime)
+            else if (status == "SCHEDULED" && minutesSinceKickoff >= 0)
             {
-                match.Status = "FINISHED";
+                // Partido ya comenzó pero menos de 105 min → LIVE
+                match.Status = "LIVE";
                 hasChanges = true;
             }
         }
