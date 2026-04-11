@@ -2,7 +2,12 @@ import React, { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
-export function HeroParticipants() {
+interface HeroParticipantsProps {
+  participantCount?: number;
+  leaderPoints?: number;
+}
+
+export function HeroParticipants({ participantCount, leaderPoints }: HeroParticipantsProps) {
   const theme = useTheme();
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -191,7 +196,7 @@ export function HeroParticipants() {
                     fontSize: '0.9rem',
                   }}
                 >
-                  18
+                  {participantCount ?? '—'}
                 </Typography>
               </Box>
             </Box>
@@ -232,7 +237,7 @@ export function HeroParticipants() {
                     fontSize: '0.9rem',
                   }}
                 >
-                  187 pts
+                  {leaderPoints !== undefined ? `${leaderPoints} pts` : '—'}
                 </Typography>
               </Box>
             </Box>

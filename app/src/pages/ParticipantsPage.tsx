@@ -93,7 +93,10 @@ export function ParticipantsPage() {
   return (
     <Box>
       {/* Hero Section */}
-      <HeroParticipants />
+      <HeroParticipants
+        participantCount={ranking.length}
+        leaderPoints={ranking.length > 0 ? ranking[0].totalPoints : undefined}
+      />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 3 }}>
