@@ -27,6 +27,12 @@ export interface Invitation {
   notificationChannel: string;
 }
 
+export interface CreateInvitationResponse {
+  link: string;
+  expiresAt: string;
+  invitationCode: string;
+}
+
 export interface ResetPasswordRequest {
   userId: string;
   newPassword: string;

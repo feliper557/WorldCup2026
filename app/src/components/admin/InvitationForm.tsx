@@ -21,19 +21,13 @@ import {
   Tooltip,
   OutlinedInput,
 } from '@mui/material';
-import { Send, ContentCopy, Check } from '@mui/icons-material';
-import type { InvitationRequest, Invitation } from '../../types/admin';
+import { Send, ContentCopy, Check, WhatsApp } from '@mui/icons-material';
+import type { InvitationRequest, Invitation, CreateInvitationResponse } from '../../types/admin';
 
 interface InvitationFormProps {
-  onSubmit: (data: InvitationRequest) => Promise<void>;
+  onSubmit: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
   invitations: Invitation[];
   loading?: boolean;
-}
-
-interface SuccessData {
-  link: string;
-  invitationCode: string;
-  expiresAt: string;
 }
 
 export function InvitationForm({ onSubmit, invitations, loading = false }: InvitationFormProps) {
@@ -41,7 +35,7 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [successData, setSuccessData] = useState<CreateInvitationResponse | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
 
@@ -82,6 +76,14 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
     return true;
   };
 
+  // Compartir por WhatsApp
+  const shareWhatsApp = (link: string) => {
+    const msg = encodeURIComponent(
+      `¡Hola! Te invito a la polla mundialista de Francachela 🏆⚽\n\nRegístrate aquí:\n${link}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  };
+
   // Copiar al portapapeles
   const copyToClipboard = async (text: string) => {
     try {
@@ -120,20 +122,9 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
       setSubmitting(true);
       const sanitizedEmail = sanitizeEmail(email);
 
-      await onSubmit({ displayName: sanitizedEmail.split('@')[0], email: sanitizedEmail });
-
-      // Si la API actual devuelve datos de invitación, mostrarlos
-      // Por ahora mostramos un mensaje de éxito simple
-      setSuccessData({
-        link: '',
-        invitationCode: '',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      });
-
+      const result = await onSubmit({ displayName: sanitizedEmail.split('@')[0], email: sanitizedEmail });
+      setSuccessData(result);
       setEmail('');
-
-      // Limpiar mensaje de éxito después de 5 segundos
-      setTimeout(() => setSuccessData(null), 5000);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : 'Error enviando invitación'
@@ -192,7 +183,7 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
 
           {successData && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              <Stack spacing={1}>
+              <Stack spacing={1.5}>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   ✅ Invitación creada correctamente
                 </Typography>
@@ -203,17 +194,14 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                 )}
                 {successData.link && (
                   <>
-                    <Typography variant="body2">
-                      <strong>Enlace:</strong>
-                    </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                       <OutlinedInput
                         value={successData.link}
                         readOnly
                         size="small"
-                        sx={{ flex: 1 }}
+                        sx={{ flex: 1, fontSize: '0.75rem' }}
                       />
-                      <Tooltip title={copiedLink ? 'Copiado!' : 'Copiar'}>
+                      <Tooltip title={copiedLink ? '¡Copiado!' : 'Copiar enlace'}>
                         <IconButton
                           size="small"
                           onClick={() => copyToClipboard(successData.link)}
@@ -223,6 +211,22 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                         </IconButton>
                       </Tooltip>
                     </Box>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<WhatsApp />}
+                      onClick={() => shareWhatsApp(successData.link)}
+                      sx={{
+                        backgroundColor: '#25D366',
+                        color: '#fff',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        alignSelf: 'flex-start',
+                        '&:hover': { backgroundColor: '#1ebe5d' },
+                      }}
+                    >
+                      Enviar por WhatsApp
+                    </Button>
                   </>
                 )}
                 <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>

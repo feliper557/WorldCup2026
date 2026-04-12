@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUsers, getInvitations, sendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
-import type { AdminUser, InvitationRequest, Invitation } from '../types/admin';
+import type { AdminUser, InvitationRequest, Invitation, CreateInvitationResponse } from '../types/admin';
 
 interface UseAdminResult {
   users: AdminUser[];
@@ -8,7 +8,7 @@ interface UseAdminResult {
   loading: boolean;
   error: Error | null;
   fetchUsers: () => Promise<void>;
-  sendInvitation: (data: InvitationRequest) => Promise<void>;
+  sendInvitation: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
   resetPassword: (userId: string, newPassword: string) => Promise<void>;
   toggleActive: (userId: string, isActive: boolean) => Promise<void>;
 }
@@ -54,13 +54,15 @@ export function useAdmin(): UseAdminResult {
     }
   };
 
-  const sendInvitationHandler = async (data: InvitationRequest) => {
-    try {
-      await sendInvitation(data);
-      await fetchInvitations();
-    } catch (err) {
-      throw err;
-    }
+  const sendInvitationHandler = async (data: InvitationRequest): Promise<CreateInvitationResponse> => {
+    const raw: any = await sendInvitation(data);
+    await fetchInvitations();
+    // La API devuelve PascalCase desde C#
+    return {
+      link: raw.Link ?? raw.link ?? '',
+      expiresAt: raw.ExpiresAt ?? raw.expiresAt ?? '',
+      invitationCode: raw.InvitationCode ?? raw.invitationCode ?? '',
+    };
   };
 
   const resetPasswordHandler = async (userId: string, newPassword: string) => {
