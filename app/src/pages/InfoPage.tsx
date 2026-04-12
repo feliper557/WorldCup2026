@@ -68,14 +68,14 @@ export function InfoPage() {
     {
       id: '1',
       title: 'Bienvenida a Polla Mundialista',
-      body: 'Hola! Estás en la polla mundialista oficial de Francachela MX. Haz tus predicciones y compite por el primer lugar.',
+      body: 'Hola! Estás en la polla mundialista de Francachela MX. Haz tus predicciones y compite por el primer lugar.',
       severity: 'info' as const,
       publishedAt: new Date().toISOString(),
     },
     {
       id: '2',
       title: '🎁 Primera Rifa — Gorra de la Selección Colombia',
-      body: '¡Inscríbete rápido y entra al sorteo! Solo los primeros participantes tienen derecho a ganarse esta gorra oficial de la Selección Colombia. Cupos limitados, sorteo en vivo durante el evento. ¡No te quedes por fuera!',
+      body: '¡Inscríbete rápido y entra al sorteo! Solo los primeros participantes tienen derecho a ganarse esta gorra de la Selección Colombia. Cupos limitados, sorteo en vivo durante el evento. ¡No te quedes por fuera!',
       severity: 'success' as const,
       publishedAt: new Date(Date.now() - 86400000).toISOString(),
     },

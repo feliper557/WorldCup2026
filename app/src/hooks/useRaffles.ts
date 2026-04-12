@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Raffle, RaffleJoinRequest, RaffleCreateRequest } from '../types';
-import { getRaffles, joinRaffle, createRaffle, drawRaffle } from '../services/apiClient';
+import { getRaffles, joinRaffle, createRaffle, drawRaffle, addRaffleParticipant, removeRaffleParticipant } from '../services/apiClient';
 
 export interface UseRafflesResult {
   raffles: Raffle[];
@@ -11,6 +11,8 @@ export interface UseRafflesResult {
   joining: boolean;
   createRaffle: (data: RaffleCreateRequest) => Promise<void>;
   drawRaffle: (raffleId: string) => Promise<void>;
+  addParticipant: (raffleId: string, userId: string) => Promise<void>;
+  removeParticipant: (raffleId: string, userId: string) => Promise<void>;
 }
 
 export function useRaffles(): UseRafflesResult {
@@ -65,7 +67,6 @@ export function useRaffles(): UseRafflesResult {
     try {
       setLoading(true);
       await drawRaffle(raffleId);
-      // Refrescar después de sortear
       await fetchRaffles();
     } catch (err) {
       console.error('Error drawing raffle:', err);
@@ -75,9 +76,30 @@ export function useRaffles(): UseRafflesResult {
     }
   };
 
+  const addParticipantHandler = async (raffleId: string, userId: string) => {
+    await addRaffleParticipant(raffleId, userId);
+    await fetchRaffles();
+  };
+
+  const removeParticipantHandler = async (raffleId: string, userId: string) => {
+    await removeRaffleParticipant(raffleId, userId);
+    await fetchRaffles();
+  };
+
   useEffect(() => {
     fetchRaffles();
   }, []);
 
-  return { raffles, loading, error, refetch: fetchRaffles, join, joining, createRaffle: createRaffleHandler, drawRaffle: drawRaffleHandler };
+  return {
+    raffles,
+    loading,
+    error,
+    refetch: fetchRaffles,
+    join,
+    joining,
+    createRaffle: createRaffleHandler,
+    drawRaffle: drawRaffleHandler,
+    addParticipant: addParticipantHandler,
+    removeParticipant: removeParticipantHandler,
+  };
 }

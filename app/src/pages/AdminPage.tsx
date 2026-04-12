@@ -19,7 +19,7 @@ export function AdminPage() {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
   const { users, invitations, loading, error, sendInvitation, resetPassword, toggleActive } = useAdmin();
-  const { raffles, loading: rafflesLoading, createRaffle, drawRaffle } = useRaffles();
+  const { raffles, loading: rafflesLoading, createRaffle, drawRaffle, addParticipant, removeParticipant } = useRaffles();
 
   const handleTabChange = (_: unknown, newValue: number) => {
     setTabValue(newValue);
@@ -112,8 +112,11 @@ export function AdminPage() {
       {tabValue === 2 && (
         <RaffleManager
           raffles={raffles}
+          users={users}
           onCreateRaffle={createRaffle}
           onDrawRaffle={drawRaffle}
+          onAddParticipant={addParticipant}
+          onRemoveParticipant={removeParticipant}
           loading={rafflesLoading}
         />
       )}

@@ -171,6 +171,12 @@ export const joinRaffle = (body: RaffleJoinRequest): Promise<Raffle> =>
 export const drawRaffle = (raffleId: string): Promise<Raffle> =>
   post(`/raffles/${raffleId}/draw`, {});
 
+export const addRaffleParticipant = (raffleId: string, userId: string): Promise<Raffle> =>
+  post(`/mgmt/raffles/${raffleId}/participants`, { userId });
+
+export const removeRaffleParticipant = (raffleId: string, userId: string): Promise<{ success: boolean }> =>
+  request(`/mgmt/raffles/${raffleId}/participants/${encodeURIComponent(userId)}`, 'DELETE');
+
 // Endpoints de Admin
 export interface SyncOptions {
   competition: 'laliga' | 'worldcup';
