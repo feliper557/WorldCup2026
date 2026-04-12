@@ -13,6 +13,8 @@ import {
   Drawer,
   Stack,
   Button,
+  Typography,
+  Divider,
 } from '@mui/material';
 import {
   SportsSoccer,
@@ -24,6 +26,8 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
   GetApp as GetAppIcon,
+  EmojiEvents,
+  KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
@@ -95,22 +99,24 @@ export function Navbar() {
 
   const getUserInitial = () => {
     if (!user) return '?';
-    // Para JWT users, obtener de displayName
-    if ('displayName' in user) {
-      return user.displayName?.charAt(0).toUpperCase() || '?';
-    }
-    // Para GitHub users, obtener de userDetails
-    return user?.userDetails?.charAt(0).toUpperCase() || '?';
+    if ('displayName' in user) return user.displayName?.charAt(0).toUpperCase() || '?';
+    return (user as any)?.userDetails?.charAt(0).toUpperCase() || '?';
   };
 
   const getUserLabel = () => {
     if (!user) return 'Usuario';
-    // Para JWT users, mostrar displayName
-    if ('displayName' in user) {
-      return user.displayName || 'Usuario';
-    }
-    // Para GitHub users, mostrar userDetails
-    return user?.userDetails || 'Usuario';
+    if ('displayName' in user) return user.displayName || 'Usuario';
+    return (user as any)?.userDetails || 'Usuario';
+  };
+
+  const getUserPoints = () => {
+    if (!user) return 0;
+    return (user as any).totalPoints ?? (user as any).TotalPoints ?? 0;
+  };
+
+  const getUserEmail = () => {
+    if (!user) return '';
+    return (user as any).email ?? (user as any).Email ?? '';
   };
 
   return (
@@ -300,25 +306,52 @@ export function Navbar() {
                   variant="outlined"
                 />
 
-                {/* Avatar + Menu */}
-                <Avatar
+                {/* Chip usuario desktop: avatar + nombre + puntos */}
+                <Box
                   onClick={handleMenuOpen}
                   sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    px: 1,
+                    py: 0.4,
+                    borderRadius: 10,
                     cursor: 'pointer',
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.background.paper,
-                    fontWeight: 600,
-                    width: 32,
-                    height: 32,
+                    border: `1.5px solid ${theme.palette.primary.main}50`,
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}18 0%, ${theme.palette.secondary.main}10 100%)`,
                     transition: 'all 0.2s ease',
                     '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                      transform: 'scale(1.05)',
+                      border: `1.5px solid ${theme.palette.primary.main}`,
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main}28 0%, ${theme.palette.secondary.main}18 100%)`,
+                      transform: 'scale(1.02)',
                     },
                   }}
                 >
-                  {getUserInitial()}
-                </Avatar>
+                  <Avatar
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      color: theme.palette.background.paper,
+                      fontWeight: 700,
+                      width: 26,
+                      height: 26,
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    {getUserInitial()}
+                  </Avatar>
+                  <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column', lineHeight: 1 }}>
+                    <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: theme.palette.text.primary, lineHeight: 1.2, maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getUserLabel()}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                      <EmojiEvents sx={{ fontSize: 10, color: theme.palette.warning.main }} />
+                      <Typography sx={{ fontSize: '0.65rem', fontWeight: 600, color: theme.palette.warning.main }}>
+                        {getUserPoints()} pts
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <KeyboardArrowDown sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                </Box>
                 <Menu
                   anchorEl={anchorEl}
                   open={Boolean(anchorEl)}
@@ -389,20 +422,57 @@ export function Navbar() {
       >
         <Box sx={{ p: 2 }}>
           <Stack spacing={1}>
-            {/* World Cup Badge Mobile */}
-            <Chip
-              icon={<SportsSoccer sx={{ fontSize: 14 }} />}
-              label="Mundial 2026"
-              size="small"
-              sx={{
-                borderColor: `${theme.palette.warning.main}40`,
-                backgroundColor: `${theme.palette.warning.main}15`,
-                color: theme.palette.warning.main,
-                fontWeight: 600,
-                alignSelf: 'flex-start',
-              }}
-              variant="outlined"
-            />
+            {/* Card de perfil móvil */}
+            {user && (
+              <>
+                <Box
+                  onClick={() => { setMobileOpen(false); setProfileOpen(true); }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    p: 1.5,
+                    mb: 0.5,
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main}18 0%, ${theme.palette.secondary.main}10 100%)`,
+                    border: `1px solid ${theme.palette.primary.main}30`,
+                    '&:hover': { border: `1px solid ${theme.palette.primary.main}60` },
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      color: theme.palette.background.paper,
+                      fontWeight: 700,
+                      width: 44,
+                      height: 44,
+                      fontSize: '1.1rem',
+                      border: `2px solid ${theme.palette.primary.main}`,
+                      boxShadow: `0 0 0 3px ${theme.palette.primary.main}25`,
+                    }}
+                  >
+                    {getUserInitial()}
+                  </Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: theme.palette.text.primary }} noWrap>
+                      {getUserLabel()}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.72rem', color: theme.palette.text.secondary }} noWrap>
+                      {getUserEmail()}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.3 }}>
+                      <EmojiEvents sx={{ fontSize: 12, color: theme.palette.warning.main }} />
+                      <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: theme.palette.warning.main }}>
+                        {getUserPoints()} puntos
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <KeyboardArrowDown sx={{ fontSize: 18, color: theme.palette.text.secondary, transform: 'rotate(-90deg)' }} />
+                </Box>
+                <Divider sx={{ borderColor: `${theme.palette.primary.main}20` }} />
+              </>
+            )}
 
             {/* Navigation Items */}
             {tabs.map((tab) => (
