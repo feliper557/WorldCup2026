@@ -132,9 +132,35 @@ export const getRanking = async (): Promise<Score[]> => {
 export const getParticipants = (): Promise<Score[]> => getRanking();
 
 // Endpoints de Rifas
-export const getRaffles = (): Promise<Raffle[]> => get('/raffles');
+const mapRaffle = (r: any): Raffle => ({
+  id:               r.Id              ?? r.id              ?? '',
+  title:            r.Title           ?? r.title           ?? '',
+  description:      r.Description     ?? r.description     ?? '',
+  prize:            r.Prize           ?? r.prize           ?? '',
+  status:           r.Status          ?? r.status          ?? 'OPEN',
+  maxParticipants:  r.MaxParticipants ?? r.maxParticipants ?? null,
+  participantCount: r.ParticipantCount ?? r.participantCount ?? (r.Participants?.length ?? r.participants?.length ?? 0),
+  createdAtUtc:     r.CreatedAtUtc    ?? r.createdAtUtc    ?? '',
+  drawAtUtc:        r.DrawAtUtc       ?? r.drawAtUtc       ?? '',
+  winnerId:         r.WinnerId        ?? r.winnerId        ?? null,
+  winnerName:       r.WinnerName      ?? r.winnerName      ?? null,
+  participants:     (r.Participants   ?? r.participants    ?? []).map((p: any) => ({
+    userId:      p.UserId      ?? p.userId      ?? '',
+    displayName: p.DisplayName ?? p.displayName ?? '',
+    joinedAtUtc: p.JoinedAtUtc ?? p.joinedAtUtc ?? '',
+    tickets:     p.Tickets     ?? p.tickets     ?? 1,
+  })),
+});
 
-export const getRaffleById = (raffleId: string): Promise<Raffle> => get(`/raffles/${raffleId}`);
+export const getRaffles = async (): Promise<Raffle[]> => {
+  const data = await get<any[]>('/raffles');
+  return data.map(mapRaffle);
+};
+
+export const getRaffleById = async (raffleId: string): Promise<Raffle> => {
+  const data = await get<any>(`/raffles/${raffleId}`);
+  return mapRaffle(data);
+};
 
 export const createRaffle = (body: RaffleCreateRequest): Promise<Raffle> =>
   post('/mgmt/raffles', body);
