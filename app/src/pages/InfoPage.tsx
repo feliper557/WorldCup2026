@@ -74,8 +74,8 @@ export function InfoPage() {
     },
     {
       id: '2',
-      title: 'Fase de grupos abierta',
-      body: 'Se ha abierto la predicción para todos los partidos de la fase de grupos. ¡Bienvenido!',
+      title: '🎁 Primera Rifa — Gorra de la Selección Colombia',
+      body: '¡Inscríbete rápido y entra al sorteo! Solo los primeros participantes tienen derecho a ganarse esta gorra oficial de la Selección Colombia. Cupos limitados, sorteo en vivo durante el evento. ¡No te quedes por fuera!',
       severity: 'success' as const,
       publishedAt: new Date(Date.now() - 86400000).toISOString(),
     },
