@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getAuthMe, getStoredUser, getStoredToken } from '../services/auth';
+import { getApiBase } from '../services/apiClient';
 import type { ClientPrincipal, UserProfile } from '../services/auth';
 
 export interface AuthUser {
@@ -17,20 +18,45 @@ export function useAuthUser(): AuthUser {
     try {
       const token = getStoredToken();
       if (token) {
+        // Mostrar datos cacheados inmediatamente para no bloquear la UI
         const storedUser = getStoredUser();
-        if (storedUser) {
-          setUser(storedUser);
-          setLoading(false);
-          return;
-        }
+        if (storedUser) setUser(storedUser);
+
+        // Refrescar desde la API para tener puntos actualizados
+        try {
+          const response = await fetch(`${getApiBase()}/auth/profile`, {
+            headers: { 'X-Auth-Token': token },
+          });
+          if (response.ok) {
+            const raw = await response.json();
+            const fresh: UserProfile = {
+              id:                 raw.Id               ?? raw.id               ?? storedUser?.id,
+              email:              raw.Email            ?? raw.email            ?? storedUser?.email,
+              displayName:        raw.DisplayName      ?? raw.displayName      ?? storedUser?.displayName ?? '',
+              role:               raw.Role             ?? raw.role             ?? storedUser?.role ?? 'user',
+              status:             raw.Status           ?? raw.status           ?? 'active',
+              phoneNumber:        raw.PhoneNumber      ?? raw.phoneNumber      ?? storedUser?.phoneNumber,
+              isEmailVerified:    raw.IsEmailVerified  ?? raw.isEmailVerified  ?? true,
+              totalPoints:        raw.TotalPoints      ?? raw.totalPoints      ?? 0,
+              totalPredictions:   raw.TotalPredictions ?? raw.totalPredictions ?? 0,
+              correctPredictions: raw.CorrectPredictions ?? raw.correctPredictions ?? 0,
+              accuracyPercentage: raw.AccuracyPercentage ?? raw.accuracyPercentage ?? 0,
+              leaderboardRank:    raw.LeaderboardRank  ?? raw.leaderboardRank  ?? 0,
+              createdAt:          raw.CreatedAt        ?? raw.createdAt        ?? '',
+            };
+            localStorage.setItem('user', JSON.stringify(fresh));
+            setUser(fresh);
+          }
+        } catch { /* silencioso — usamos caché si falla */ }
+
+        setLoading(false);
+        return;
       }
 
-      // Si no hay JWT, limpiar usuario e intentar Azure SWA auth
+      // Sin JWT → intentar Azure SWA auth
       setUser(null);
       const authMe = await getAuthMe();
-      if (authMe.clientPrincipal) {
-        setUser(authMe.clientPrincipal);
-      }
+      if (authMe.clientPrincipal) setUser(authMe.clientPrincipal);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'));
     } finally {
