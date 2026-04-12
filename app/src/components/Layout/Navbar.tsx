@@ -13,12 +13,6 @@ import {
   Drawer,
   Stack,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Divider,
 } from '@mui/material';
 import {
   SportsSoccer,
@@ -35,6 +29,7 @@ import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { getLogoutUrl, logout, getStoredToken } from '../../services/auth';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { ProfileModal } from '../auth/ProfileModal';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -335,47 +330,12 @@ export function Navbar() {
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
 
-                {/* Profile Dialog */}
-                <Dialog open={profileOpen} onClose={() => setProfileOpen(false)} maxWidth="xs" fullWidth>
-                  <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 40, height: 40, fontWeight: 700 }}>
-                      {getUserInitial()}
-                    </Avatar>
-                    {getUserLabel()}
-                  </DialogTitle>
-                  <Divider />
-                  <DialogContent>
-                    {user && 'email' in user && (
-                      <Stack spacing={2} sx={{ mt: 1 }}>
-                        {('displayName' in user) && (
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Nombre</Typography>
-                            <Typography variant="body1">{(user as any).displayName}</Typography>
-                          </Box>
-                        )}
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">Email</Typography>
-                          <Typography variant="body1">{(user as any).email}</Typography>
-                        </Box>
-                        {('phoneNumber' in user) && (user as any).phoneNumber && (
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Celular</Typography>
-                            <Typography variant="body1">{(user as any).phoneNumber}</Typography>
-                          </Box>
-                        )}
-                        {('role' in user) && (
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">Rol</Typography>
-                            <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>{(user as any).role}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
-                    )}
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => setProfileOpen(false)}>Cerrar</Button>
-                  </DialogActions>
-                </Dialog>
+                {/* Profile Modal */}
+                <ProfileModal
+                  open={profileOpen}
+                  onClose={() => setProfileOpen(false)}
+                  user={user}
+                />
               </>
             ) : (
               /* Login Button - for non-authenticated users */

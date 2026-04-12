@@ -178,3 +178,17 @@ export const toggleUserActive = (userId: string, isActive: boolean): Promise<Adm
 
 export const recalculatePoints = (userId?: string): Promise<{ message: string; matchesProcessed: number; predictionsUpdated: number }> =>
   post(`/mgmt/recalculate-points${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`, {});
+
+// Endpoints de Perfil
+export interface UpdateProfileBody {
+  displayName?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+}
+
+export const updateProfile = (body: UpdateProfileBody): Promise<any> =>
+  request('/auth/profile', 'PUT', body);
+
+export const changePassword = (body: { currentPassword: string; newPassword: string }): Promise<{ success: boolean; message: string }> =>
+  post('/auth/change-password', body);
