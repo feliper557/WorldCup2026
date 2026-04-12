@@ -137,7 +137,7 @@ const mapRaffle = (r: any): Raffle => ({
   title:            r.Title           ?? r.title           ?? '',
   description:      r.Description     ?? r.description     ?? '',
   prize:            r.Prize           ?? r.prize           ?? '',
-  status:           r.Status          ?? r.status          ?? 'OPEN',
+  status:           (r.Status ?? r.status ?? 'open').toUpperCase() as Raffle['status'],
   maxParticipants:  r.MaxParticipants ?? r.maxParticipants ?? null,
   participantCount: r.ParticipantCount ?? r.participantCount ?? (r.Participants?.length ?? r.participants?.length ?? 0),
   createdAtUtc:     r.CreatedAtUtc    ?? r.createdAtUtc    ?? '',
