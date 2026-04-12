@@ -2,8 +2,6 @@ import { useState } from 'react';
 import {
   Box,
   Container,
-  Tabs,
-  Tab,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -22,7 +20,7 @@ import {
   useTheme,
   Button,
 } from '@mui/material';
-import { ExpandMore, WhatsApp } from '@mui/icons-material';
+import { ExpandMore, WhatsApp, Gavel, Campaign } from '@mui/icons-material';
 import { HeroInfo } from '../components/sections';
 
 export function InfoPage() {
@@ -89,21 +87,63 @@ export function InfoPage() {
       <HeroInfo />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ borderBottom: 1, borderColor: theme.palette.primary.main, mb: 4 }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            sx={{
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-              },
-            }}
-          >
-            <Tab label="Reglas del Juego" />
-            <Tab label="Eventos / Novedades" />
-          </Tabs>
+        {/* Botones de sección */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+          {[
+            { index: 0, label: 'Reglas del Juego', icon: <Gavel sx={{ fontSize: 20 }} />, color: theme.palette.primary.main },
+            { index: 1, label: 'Eventos / Novedades', icon: <Campaign sx={{ fontSize: 20 }} />, color: theme.palette.secondary.main },
+          ].map(({ index, label, icon, color }) => {
+            const active = tabValue === index;
+            return (
+              <Box
+                key={index}
+                onClick={() => handleTabChange(null, index)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2.5,
+                  py: 1.2,
+                  borderRadius: 2,
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  letterSpacing: '0.03em',
+                  transition: 'all 0.22s ease',
+                  color: active ? '#fff' : color,
+                  background: active
+                    ? `linear-gradient(135deg, ${color}EE 0%, ${color}AA 100%)`
+                    : `${color}18`,
+                  border: `2px solid ${active ? color : `${color}50`}`,
+                  boxShadow: active ? `0 4px 16px ${color}55` : 'none',
+                  transform: active ? 'translateY(-1px)' : 'none',
+                  '&:hover': {
+                    background: active
+                      ? `linear-gradient(135deg, ${color}FF 0%, ${color}CC 100%)`
+                      : `${color}28`,
+                    border: `2px solid ${color}`,
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 4px 16px ${color}44`,
+                  },
+                }}
+              >
+                {icon}
+                {label}
+                {active && (
+                  <Box
+                    sx={{
+                      ml: 0.5,
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: '#fff',
+                      opacity: 0.8,
+                    }}
+                  />
+                )}
+              </Box>
+            );
+          })}
         </Box>
 
         {/* Pestaña 0 - Reglas */}
