@@ -29,10 +29,12 @@ import {
   AdminPanelSettings,
   Menu as MenuIcon,
   Close as CloseIcon,
+  GetApp as GetAppIcon,
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { getLogoutUrl, logout, getStoredToken } from '../../services/auth';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -45,6 +47,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { canInstall, triggerInstall } = usePWAInstall();
 
   const baseTabs = [
     { label: 'Partidos', icon: <SportsSoccer sx={{ fontSize: 16 }} />, path: '/matches' },
@@ -256,6 +259,33 @@ export function Navbar() {
 
           {/* Right: World Cup badge + Avatar or Login Button */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {/* Botón instalar PWA - Desktop */}
+            {canInstall && (
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<GetAppIcon sx={{ fontSize: 16 }} />}
+                onClick={triggerInstall}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  textTransform: 'uppercase',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  py: 0.5,
+                  px: 1.5,
+                  borderColor: `${theme.palette.primary.main}60`,
+                  color: theme.palette.primary.main,
+                  '&:hover': {
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: `${theme.palette.primary.main}10`,
+                  },
+                }}
+              >
+                Instalar
+              </Button>
+            )}
+
             {user ? (
               <>
                 {/* World Cup Badge - Desktop (only for authenticated users) */}
@@ -452,6 +482,31 @@ export function Navbar() {
                 {tab.label}
               </Box>
             ))}
+
+            {/* Botón instalar PWA - Mobile */}
+            {canInstall && (
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<GetAppIcon />}
+                onClick={() => { triggerInstall(); setMobileOpen(false); }}
+                sx={{
+                  mt: 1,
+                  textTransform: 'uppercase',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  borderColor: `${theme.palette.primary.main}60`,
+                  color: theme.palette.primary.main,
+                  '&:hover': {
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: `${theme.palette.primary.main}10`,
+                  },
+                }}
+              >
+                Instalar app
+              </Button>
+            )}
           </Stack>
         </Box>
       </Drawer>
