@@ -44,7 +44,7 @@ public class RafflesFunction
         {
             var raffles = await _raffleRepository.GetAllAsync();
 
-            // Mapear a respuesta
+            // Proyectar sin referencias circulares (Participants/Winners tienen back-ref a RaffleEntity)
             var response = raffles.Select(r => new
             {
                 r.Id,
@@ -52,10 +52,18 @@ public class RafflesFunction
                 r.Description,
                 r.Prize,
                 r.Status,
+                r.MaxParticipants,
                 r.NumberOfWinners,
                 ParticipantCount = r.Participants.Count,
-                r.Participants,
-                r.Winners,
+                Participants = r.Participants.Select(p => new
+                {
+                    UserId = p.UserId,
+                    DisplayName = p.User?.DisplayName ?? p.UserId,
+                    JoinedAtUtc = p.AddedAt,
+                    Tickets = 1
+                }),
+                WinnerId = r.Winners.FirstOrDefault()?.UserId,
+                WinnerName = r.Winners.FirstOrDefault()?.User?.DisplayName,
                 r.CreatedAtUtc,
                 r.DrawAtUtc
             }).ToList();

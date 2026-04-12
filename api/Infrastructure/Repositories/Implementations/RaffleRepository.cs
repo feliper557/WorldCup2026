@@ -12,14 +12,14 @@ public class RaffleRepository : IRaffleRepository
 
     public async Task<RaffleEntity?> GetByIdAsync(string id)
         => await _db.Raffles
-            .Include(r => r.Participants)
-            .Include(r => r.Winners)
+            .Include(r => r.Participants).ThenInclude(p => p.User)
+            .Include(r => r.Winners).ThenInclude(w => w.User)
             .FirstOrDefaultAsync(r => r.Id == id);
 
     public async Task<List<RaffleEntity>> GetAllAsync()
         => await _db.Raffles
-            .Include(r => r.Participants)
-            .Include(r => r.Winners)
+            .Include(r => r.Participants).ThenInclude(p => p.User)
+            .Include(r => r.Winners).ThenInclude(w => w.User)
             .OrderBy(r => r.CreatedAt)
             .ToListAsync();
 
