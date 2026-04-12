@@ -43,6 +43,8 @@ export function ProfileModal({ open, onClose, user, onProfileUpdated }: ProfileM
   const [tab, setTab] = useState(0);
 
   // Datos personales
+  const [firstName, setFirstName] = useState(user?.firstName || user?.FirstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || user?.LastName || '');
   const [displayName, setDisplayName] = useState(user?.displayName || user?.DisplayName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || user?.PhoneNumber || '');
   const [profileLoading, setProfileLoading] = useState(false);
@@ -72,7 +74,12 @@ export function ProfileModal({ open, onClose, user, onProfileUpdated }: ProfileM
     setProfileError('');
     setProfileSuccess('');
     try {
-      const updated = await updateProfile({ displayName: displayName.trim(), phoneNumber: phoneNumber.trim() });
+      const updated = await updateProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        displayName: displayName.trim(),
+        phoneNumber: phoneNumber.trim(),
+      });
       setProfileSuccess('Perfil actualizado correctamente');
       onProfileUpdated?.(updated);
     } catch (e: any) {
@@ -191,12 +198,37 @@ export function ProfileModal({ open, onClose, user, onProfileUpdated }: ProfileM
               }}
             />
 
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <TextField
+                label="Nombres"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                fullWidth
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Person sx={{ fontSize: 18, color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <TextField
+                label="Apellidos"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                fullWidth
+                size="small"
+              />
+            </Box>
+
             <TextField
-              label="Nombre"
+              label="Nombre para mostrar"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               fullWidth
               size="small"
+              helperText="Así apareces en el ranking"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
