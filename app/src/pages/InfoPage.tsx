@@ -26,11 +26,11 @@ import { ExpandMore, WhatsApp } from '@mui/icons-material';
 import { HeroInfo } from '../components/sections';
 
 export function InfoPage() {
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState<number | false>(false);
   const theme = useTheme();
 
   const handleTabChange = (_: unknown, newValue: number) => {
-    setTabValue(newValue);
+    setTabValue(prev => prev === newValue ? false : newValue);
   };
 
   const rules = [
@@ -116,7 +116,7 @@ export function InfoPage() {
             {rules.map((rule, idx) => (
               <Accordion
                 key={idx}
-                defaultExpanded={idx === 0 || rule.isSystemPoints}
+                defaultExpanded={false}
                 sx={{
                   backgroundColor: rule.isSystemPoints ? `${theme.palette.warning.main}08` : `${theme.palette.background.paper}`,
                   mb: 1.5,
