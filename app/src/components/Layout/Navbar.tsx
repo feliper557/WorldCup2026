@@ -360,6 +360,9 @@ export function Navbar() {
                   <MenuItem onClick={() => { handleMenuClose(); setProfileOpen(true); }}>
                     Mi Perfil
                   </MenuItem>
+                  <MenuItem onClick={() => { handleMenuClose(); navigate('/matches?tab=3'); }}>
+                    🏆 Mi Campeón
+                  </MenuItem>
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
 

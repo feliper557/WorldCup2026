@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Tabs,
@@ -19,9 +20,13 @@ import { PredictionForm } from '../components/matches/PredictionForm';
 import { ChampionPicker } from '../components/matches/ChampionPicker';
 
 export function MatchesPage() {
+  const [searchParams] = useSearchParams();
   const { matches, loading: matchesLoading, error: matchesError, refetch } = useMatches();
   const { predictions, upsertPrediction, loading: predictLoading } = usePredictions();
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(() => {
+    const tab = parseInt(searchParams.get('tab') || '0', 10);
+    return isNaN(tab) ? 0 : tab;
+  });
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
