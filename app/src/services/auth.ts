@@ -80,7 +80,21 @@ export async function loginWithCredentials(email: string, password: string): Pro
     if (data.token) {
       localStorage.setItem('jwtToken', data.token);
       localStorage.setItem('userId', data.userId || '');
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Normalizar PascalCase → camelCase (la API C# devuelve PascalCase)
+      const raw: any = data.user || {};
+      const normalized = {
+        id:                  raw.Id               ?? raw.id               ?? '',
+        email:               raw.Email            ?? raw.email            ?? '',
+        displayName:         raw.DisplayName      ?? raw.displayName      ?? '',
+        role:                raw.Role             ?? raw.role             ?? 'user',
+        phoneNumber:         raw.PhoneNumber      ?? raw.phoneNumber      ?? null,
+        totalPoints:         raw.TotalPoints      ?? raw.totalPoints      ?? 0,
+        totalPredictions:    raw.TotalPredictions ?? raw.totalPredictions ?? 0,
+        correctPredictions:  raw.CorrectPredictions ?? raw.correctPredictions ?? 0,
+        accuracyPercentage:  raw.AccuracyPercentage ?? raw.accuracyPercentage ?? 0,
+        leaderboardRank:     raw.LeaderboardRank  ?? raw.leaderboardRank  ?? 0,
+      };
+      localStorage.setItem('user', JSON.stringify(normalized));
     }
 
     return data;
