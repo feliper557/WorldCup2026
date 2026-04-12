@@ -15,16 +15,26 @@ import {
   Alert,
   useTheme,
   Chip,
-  Autocomplete,
   IconButton,
   List,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  ListItemButton,
+  Checkbox,
   Divider,
   Collapse,
+  InputAdornment,
 } from '@mui/material';
-import { Add, Gavel, PersonRemove, PersonAdd, ExpandMore, ExpandLess } from '@mui/icons-material';
+import {
+  Add,
+  Gavel,
+  PersonRemove,
+  PersonAdd,
+  ExpandMore,
+  ExpandLess,
+  Search,
+} from '@mui/icons-material';
 import type { Raffle, RaffleCreateRequest } from '../../types';
 import type { AdminUser } from '../../types/admin';
 
@@ -48,19 +58,28 @@ export function RaffleManager({
   loading = false,
 }: RaffleManagerProps) {
   const theme = useTheme();
+
+  // Create raffle dialog
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [drawingRaffleId, setDrawingRaffleId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [drawing, setDrawing] = useState(false);
 
-  // Participant management state per raffle
+  // Expand / collapse participants panel per raffle
   const [expandedRaffle, setExpandedRaffle] = useState<string | null>(null);
-  const [selectedUsers, setSelectedUsers] = useState<Record<string, AdminUser | null>>({});
-  const [addingTo, setAddingTo] = useState<string | null>(null);
-  const [removingKey, setRemovingKey] = useState<string | null>(null); // `${raffleId}-${userId}`
+
+  // Add participants modal
+  const [addModalRaffleId, setAddModalRaffleId] = useState<string | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState('');
+
+  // Remove participant
+  const [removingKey, setRemovingKey] = useState<string | null>(null);
   const [participantError, setParticipantError] = useState<Record<string, string>>({});
 
-  // Form state
+  // Create form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [prize, setPrize] = useState('');
@@ -68,13 +87,10 @@ export function RaffleManager({
   const [drawDate, setDrawDate] = useState('');
   const [drawTime, setDrawTime] = useState('');
 
+  // ── Create raffle ──────────────────────────────────────────────────────────
   const handleCreateClick = () => {
-    setTitle('');
-    setDescription('');
-    setPrize('');
-    setMaxParticipants('');
-    setDrawDate('');
-    setDrawTime('');
+    setTitle(''); setDescription(''); setPrize('');
+    setMaxParticipants(''); setDrawDate(''); setDrawTime('');
     setCreateDialogOpen(true);
   };
 
@@ -98,6 +114,7 @@ export function RaffleManager({
     }
   };
 
+  // ── Draw raffle ────────────────────────────────────────────────────────────
   const handleDrawRaffle = async (raffleId: string) => {
     try {
       setDrawingRaffleId(raffleId);
@@ -109,24 +126,46 @@ export function RaffleManager({
     }
   };
 
-  const handleAddParticipant = async (raffleId: string) => {
-    const user = selectedUsers[raffleId];
-    if (!user) return;
-    setAddingTo(raffleId);
-    setParticipantError((prev) => ({ ...prev, [raffleId]: '' }));
+  // ── Add participants modal ─────────────────────────────────────────────────
+  const openAddModal = (raffleId: string) => {
+    setAddModalRaffleId(raffleId);
+    setSelectedUserIds(new Set());
+    setSearchQuery('');
+    setAddError('');
+  };
+
+  const closeAddModal = () => {
+    setAddModalRaffleId(null);
+    setSelectedUserIds(new Set());
+    setSearchQuery('');
+    setAddError('');
+  };
+
+  const toggleUser = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      const next = new Set(prev);
+      next.has(userId) ? next.delete(userId) : next.add(userId);
+      return next;
+    });
+  };
+
+  const handleAddSelected = async () => {
+    if (!addModalRaffleId || selectedUserIds.size === 0) return;
+    setAdding(true);
+    setAddError('');
     try {
-      await onAddParticipant(raffleId, user.userId);
-      setSelectedUsers((prev) => ({ ...prev, [raffleId]: null }));
+      for (const userId of selectedUserIds) {
+        await onAddParticipant(addModalRaffleId, userId);
+      }
+      closeAddModal();
     } catch (err: any) {
-      setParticipantError((prev) => ({
-        ...prev,
-        [raffleId]: err.message?.replace('API Error: 400 - ', '') || 'Error al agregar',
-      }));
+      setAddError(err.message?.replace('API Error: 400 - ', '') || 'Error al agregar participantes');
     } finally {
-      setAddingTo(null);
+      setAdding(false);
     }
   };
 
+  // ── Remove participant ─────────────────────────────────────────────────────
   const handleRemoveParticipant = async (raffleId: string, userId: string) => {
     const key = `${raffleId}-${userId}`;
     setRemovingKey(key);
@@ -142,6 +181,7 @@ export function RaffleManager({
     }
   };
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const getStatusColor = (status: Raffle['status']) => {
     switch (status) {
       case 'OPEN': return theme.palette.primary.main;
@@ -161,19 +201,28 @@ export function RaffleManager({
 
   const openRaffles = raffles.filter((r) => r.status === 'OPEN' || r.status === 'DRAWING');
 
-  // Users not already in a given raffle
+  // Users not already enrolled in the given raffle
   const getAvailableUsers = (raffle: Raffle) => {
-    const participantIds = new Set(raffle.participants.map((p) => p.userId));
-    return users.filter((u) => !participantIds.has(u.userId));
+    const enrolled = new Set(raffle.participants.map((p) => p.userId));
+    return users.filter((u) => !enrolled.has(u.userId));
   };
+
+  // Active add modal raffle
+  const addModalRaffle = raffles.find((r) => r.id === addModalRaffleId);
+  const availableForModal = addModalRaffle ? getAvailableUsers(addModalRaffle) : [];
+  const filteredAvailable = availableForModal.filter((u) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      u.displayName.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <Stack spacing={3}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          🎁 Gestión de Rifas
-        </Typography>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>🎁 Gestión de Rifas</Typography>
         <Button
           variant="contained"
           color="primary"
@@ -186,7 +235,7 @@ export function RaffleManager({
         </Button>
       </Box>
 
-      {/* Rifas abiertas para sortear */}
+      {/* Pending draw */}
       {openRaffles.length > 0 && (
         <Card sx={{ borderLeft: `4px solid ${theme.palette.warning.main}`, backgroundColor: `${theme.palette.warning.main}08`, boxShadow: 1 }}>
           <CardContent>
@@ -198,13 +247,10 @@ export function RaffleManager({
                 <Box
                   key={raffle.id}
                   sx={{
-                    p: 2,
-                    borderRadius: 1,
+                    p: 2, borderRadius: 1,
                     border: `1px solid ${theme.palette.warning.main}30`,
                     backgroundColor: theme.palette.background.paper,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}
                 >
                   <Box sx={{ flex: 1 }}>
@@ -234,7 +280,7 @@ export function RaffleManager({
         </Card>
       )}
 
-      {/* Lista de todas las rifas */}
+      {/* All raffles */}
       <Card sx={{ borderTop: `4px solid ${theme.palette.primary.main}`, backgroundColor: theme.palette.background.paper, boxShadow: 1 }}>
         <CardContent>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
@@ -244,20 +290,14 @@ export function RaffleManager({
           <Stack spacing={2}>
             {raffles.map((raffle) => {
               const isExpanded = expandedRaffle === raffle.id;
-              const availableUsers = getAvailableUsers(raffle);
               const errMsg = participantError[raffle.id] || '';
 
               return (
                 <Box
                   key={raffle.id}
-                  sx={{
-                    borderRadius: 1,
-                    border: `1px solid ${theme.palette.primary.main}20`,
-                    backgroundColor: theme.palette.background.default,
-                    overflow: 'hidden',
-                  }}
+                  sx={{ borderRadius: 1, border: `1px solid ${theme.palette.primary.main}20`, backgroundColor: theme.palette.background.default, overflow: 'hidden' }}
                 >
-                  {/* Raffle header row */}
+                  {/* Header row */}
                   <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Box sx={{ flex: 1 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
@@ -283,8 +323,6 @@ export function RaffleManager({
                         </Alert>
                       )}
                     </Box>
-
-                    {/* Toggle participants panel */}
                     <IconButton
                       size="small"
                       onClick={() => setExpandedRaffle(isExpanded ? null : raffle.id)}
@@ -299,43 +337,25 @@ export function RaffleManager({
                   <Collapse in={isExpanded}>
                     <Divider />
                     <Box sx={{ p: 2, backgroundColor: `${theme.palette.primary.main}05` }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
-                        👥 Participantes ({raffle.participants.length})
-                      </Typography>
-
-                      {errMsg && (
-                        <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>{errMsg}</Alert>
-                      )}
-
-                      {/* Add participant */}
-                      {raffle.status !== 'COMPLETED' && (
-                        <Box sx={{ display: 'flex', gap: 1, mb: 2, alignItems: 'center' }}>
-                          <Autocomplete
-                            size="small"
-                            options={availableUsers}
-                            getOptionLabel={(u) => `${u.displayName} (${u.email})`}
-                            value={selectedUsers[raffle.id] ?? null}
-                            onChange={(_, val) => setSelectedUsers((prev) => ({ ...prev, [raffle.id]: val }))}
-                            renderInput={(params) => (
-                              <TextField {...params} label="Agregar participante" placeholder="Buscar usuario..." />
-                            )}
-                            sx={{ flex: 1 }}
-                            noOptionsText="No hay usuarios disponibles"
-                          />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          👥 Participantes ({raffle.participants.length})
+                        </Typography>
+                        {raffle.status !== 'COMPLETED' && (
                           <Button
-                            variant="contained"
                             size="small"
-                            startIcon={addingTo === raffle.id ? <CircularProgress size={14} /> : <PersonAdd />}
-                            onClick={() => handleAddParticipant(raffle.id)}
-                            disabled={!selectedUsers[raffle.id] || addingTo === raffle.id}
-                            sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}
+                            variant="outlined"
+                            startIcon={<PersonAdd />}
+                            onClick={() => openAddModal(raffle.id)}
+                            sx={{ fontWeight: 600 }}
                           >
-                            Agregar
+                            Agregar participantes
                           </Button>
-                        </Box>
-                      )}
+                        )}
+                      </Box>
 
-                      {/* Participants list */}
+                      {errMsg && <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>{errMsg}</Alert>}
+
                       {raffle.participants.length === 0 ? (
                         <Typography variant="body2" sx={{ color: theme.palette.text.secondary, textAlign: 'center', py: 1 }}>
                           No hay participantes aún
@@ -348,7 +368,7 @@ export function RaffleManager({
                               <ListItem disableGutters sx={{ py: 0.5 }}>
                                 <ListItemText
                                   primary={p.displayName}
-                                  secondary={`Inscrito: ${new Date(p.joinedAtUtc).toLocaleDateString('es-ES')}${p.tickets > 1 ? ` · ${p.tickets} tickets` : ''}`}
+                                  secondary={`Inscrito: ${new Date(p.joinedAtUtc).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}${p.tickets > 1 ? ` · ${p.tickets} tickets` : ''}`}
                                   primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
                                   secondaryTypographyProps={{ variant: 'caption' }}
                                 />
@@ -389,76 +409,144 @@ export function RaffleManager({
         </CardContent>
       </Card>
 
-      {/* Dialog crear rifa */}
+      {/* ── Add participants modal ──────────────────────────────────────── */}
+      <Dialog
+        open={!!addModalRaffleId}
+        onClose={closeAddModal}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { maxHeight: '80vh' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Agregar participantes
+            </Typography>
+            {addModalRaffle && (
+              <Typography variant="caption" color="text.secondary">
+                {addModalRaffle.title} · {availableForModal.length} usuarios disponibles
+              </Typography>
+            )}
+          </Box>
+        </DialogTitle>
+
+        <Box sx={{ px: 3, pb: 1 }}>
+          <TextField
+            size="small"
+            fullWidth
+            placeholder="Buscar por nombre o correo..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+
+        {addError && (
+          <Box sx={{ px: 3, pb: 1 }}>
+            <Alert severity="error" sx={{ py: 0.5 }}>{addError}</Alert>
+          </Box>
+        )}
+
+        <DialogContent sx={{ pt: 0, px: 1 }}>
+          {filteredAvailable.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                {availableForModal.length === 0
+                  ? 'Todos los usuarios ya están inscritos'
+                  : 'No hay usuarios que coincidan con la búsqueda'}
+              </Typography>
+            </Box>
+          ) : (
+            <List dense>
+              {filteredAvailable.map((user) => {
+                const checked = selectedUserIds.has(user.userId);
+                return (
+                  <ListItemButton
+                    key={user.userId}
+                    onClick={() => toggleUser(user.userId)}
+                    sx={{ borderRadius: 1, mb: 0.5 }}
+                  >
+                    <Checkbox
+                      edge="start"
+                      checked={checked}
+                      tabIndex={-1}
+                      disableRipple
+                      size="small"
+                      sx={{ mr: 1 }}
+                    />
+                    <ListItemText
+                      primary={user.displayName}
+                      secondary={
+                        <Box component="span" sx={{ display: 'flex', gap: 1.5 }}>
+                          <span>{user.email}</span>
+                          <span>·</span>
+                          <span>
+                            Inscrito:{' '}
+                            {new Date(user.joinedAtUtc).toLocaleDateString('es-CO', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </Box>
+                      }
+                      primaryTypographyProps={{ variant: 'body2', fontWeight: checked ? 700 : 400 }}
+                      secondaryTypographyProps={{ variant: 'caption', component: 'div' }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          )}
+        </DialogContent>
+
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 1.5, justifyContent: 'space-between' }}>
+          <Typography variant="caption" color="text.secondary">
+            {selectedUserIds.size > 0
+              ? `${selectedUserIds.size} seleccionado${selectedUserIds.size > 1 ? 's' : ''}`
+              : 'Selecciona uno o más usuarios'}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button onClick={closeAddModal} size="small" disabled={adding}>
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleAddSelected}
+              disabled={selectedUserIds.size === 0 || adding}
+              startIcon={adding ? <CircularProgress size={14} /> : <PersonAdd />}
+              sx={{ fontWeight: 600 }}
+            >
+              {adding ? 'Agregando...' : `Agregar (${selectedUserIds.size})`}
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Create raffle dialog ───────────────────────────────────────── */}
       <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 600 }}>🎲 Crear Nueva Rifa</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
-            <TextField
-              label="Título"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              fullWidth
-              placeholder="Ej: Camiseta oficial del Mundial"
-              disabled={creating}
-              autoFocus
-            />
-            <TextField
-              label="Descripción"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              rows={2}
-              placeholder="Detalles del premio"
-              disabled={creating}
-            />
-            <TextField
-              label="Premio"
-              value={prize}
-              onChange={(e) => setPrize(e.target.value)}
-              fullWidth
-              placeholder="Descripción del premio"
-              disabled={creating}
-              required
-            />
-            <TextField
-              label="Máximo de Participantes (opcional)"
-              type="number"
-              value={maxParticipants}
-              onChange={(e) => setMaxParticipants(e.target.value)}
-              fullWidth
-              inputProps={{ min: '1' }}
-              disabled={creating}
-            />
-            <TextField
-              label="Fecha del Sorteo"
-              type="date"
-              value={drawDate}
-              onChange={(e) => setDrawDate(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              disabled={creating}
-              required
-            />
-            <TextField
-              label="Hora del Sorteo"
-              type="time"
-              value={drawTime}
-              onChange={(e) => setDrawTime(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              disabled={creating}
-            />
+            <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth placeholder="Ej: Camiseta del Mundial" disabled={creating} autoFocus />
+            <TextField label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} fullWidth multiline rows={2} placeholder="Detalles del premio" disabled={creating} />
+            <TextField label="Premio" value={prize} onChange={(e) => setPrize(e.target.value)} fullWidth placeholder="Descripción del premio" disabled={creating} required />
+            <TextField label="Máximo de Participantes (opcional)" type="number" value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} fullWidth inputProps={{ min: '1' }} disabled={creating} />
+            <TextField label="Fecha del Sorteo" type="date" value={drawDate} onChange={(e) => setDrawDate(e.target.value)} fullWidth InputLabelProps={{ shrink: true }} disabled={creating} required />
+            <TextField label="Hora del Sorteo" type="time" value={drawTime} onChange={(e) => setDrawTime(e.target.value)} fullWidth InputLabelProps={{ shrink: true }} disabled={creating} />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)} disabled={creating}>Cancelar</Button>
-          <Button
-            onClick={handleCreateSubmit}
-            variant="contained"
-            disabled={!title.trim() || !prize.trim() || !drawDate || creating}
-          >
+          <Button onClick={handleCreateSubmit} variant="contained" disabled={!title.trim() || !prize.trim() || !drawDate || creating}>
             {creating ? 'Creando...' : 'Crear Rifa'}
           </Button>
         </DialogActions>
