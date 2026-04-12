@@ -137,7 +137,7 @@ export const getRaffles = (): Promise<Raffle[]> => get('/raffles');
 export const getRaffleById = (raffleId: string): Promise<Raffle> => get(`/raffles/${raffleId}`);
 
 export const createRaffle = (body: RaffleCreateRequest): Promise<Raffle> =>
-  post('/raffles', body);
+  post('/mgmt/raffles', body);
 
 export const joinRaffle = (body: RaffleJoinRequest): Promise<Raffle> =>
   post(`/raffles/${body.raffleId}/join`, { tickets: body.tickets });
