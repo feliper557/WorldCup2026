@@ -270,33 +270,47 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
       </Card>
 
       {/* Lista de invitaciones */}
-      {invitations.length > 0 && (
-        <Card
-          sx={{
-            borderLeft: `4px solid ${theme.palette.secondary.main}`,
-            backgroundColor: theme.palette.background.paper,
-            boxShadow: 1,
-          }}
-        >
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+      <Card
+        sx={{
+          borderLeft: `4px solid ${theme.palette.secondary.main}`,
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: 1,
+        }}
+      >
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
               📋 Invitaciones Enviadas
             </Typography>
+            <Chip label={`${invitations.length} total`} size="small" variant="outlined" />
+          </Box>
 
+          {invitations.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                No hay invitaciones enviadas aún
+              </Typography>
+            </Box>
+          ) : (
             <TableContainer>
-              <Table>
+              <Table size="small">
                 <TableHead>
                   <TableRow sx={{ backgroundColor: `${theme.palette.primary.main}15` }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Fecha Envío</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Expira</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Estado</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Fecha envío</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Expira</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {invitations.map((invitation) => (
+                  {invitations
+                    .slice()
+                    .sort((a, b) => new Date(b.createdAtUtc).getTime() - new Date(a.createdAtUtc).getTime())
+                    .map((invitation) => (
                     <TableRow key={invitation.id} sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}08` } }}>
-                      <TableCell sx={{ color: theme.palette.text.primary }}>{invitation.email}</TableCell>
+                      <TableCell sx={{ color: theme.palette.text.primary, fontSize: '0.82rem' }}>
+                        {invitation.email}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={getStatusLabel(invitation.status)}
@@ -304,14 +318,18 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                           sx={{
                             borderColor: getStatusColor(invitation.status),
                             color: getStatusColor(invitation.status),
+                            fontWeight: 600,
+                            fontSize: '0.72rem',
                           }}
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
-                        {new Date(invitation.createdAtUtc).toLocaleDateString('es-CO')}
+                      <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.82rem' }}>
+                        {new Date(invitation.createdAtUtc).toLocaleDateString('es-CO', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                        })}
                       </TableCell>
-                      <TableCell sx={{ color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
+                      <TableCell sx={{ fontSize: '0.82rem', color: invitation.status === 'expired' ? theme.palette.error.main : theme.palette.text.secondary }}>
                         {getExpirationInfo(invitation.expiresAtUtc)}
                       </TableCell>
                     </TableRow>
@@ -319,9 +337,9 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                 </TableBody>
               </Table>
             </TableContainer>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </Stack>
   );
 }

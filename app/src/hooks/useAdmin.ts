@@ -48,7 +48,20 @@ export function useAdmin(): UseAdminResult {
   const fetchInvitations = async () => {
     try {
       const data = await getInvitations();
-      setInvitations(data.invitations);
+      const raw: any[] = Array.isArray((data as any).invitations)
+        ? (data as any).invitations
+        : Array.isArray(data)
+        ? (data as any)
+        : [];
+      const list: Invitation[] = raw.map((i) => ({
+        id: i.Id ?? i.id ?? '',
+        email: i.Email ?? i.email ?? '',
+        status: (i.Status ?? i.status ?? 'pending') as Invitation['status'],
+        createdAtUtc: i.CreatedAtUtc ?? i.createdAtUtc ?? '',
+        expiresAtUtc: i.ExpiresAtUtc ?? i.expiresAtUtc ?? '',
+        notificationChannel: i.NotificationChannel ?? i.notificationChannel ?? 'email',
+      }));
+      setInvitations(list);
     } catch (err) {
       console.error('Error fetching invitations:', err);
     }
