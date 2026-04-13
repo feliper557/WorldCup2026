@@ -9,7 +9,7 @@ interface UseAdminResult {
   error: Error | null;
   fetchUsers: () => Promise<void>;
   sendInvitation: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
-  resendInvitation: (invitationId: string) => Promise<{ link: string }>;
+  resendInvitation: (invitationId: string, channel: 'email' | 'whatsapp') => Promise<{ link: string }>;
   resetPassword: (userId: string, newPassword: string) => Promise<void>;
   toggleActive: (userId: string, isActive: boolean) => Promise<void>;
 }
@@ -79,8 +79,8 @@ export function useAdmin(): UseAdminResult {
     };
   };
 
-  const resendInvitationHandler = async (invitationId: string): Promise<{ link: string }> => {
-    const raw: any = await resendInvitation(invitationId);
+  const resendInvitationHandler = async (invitationId: string, channel: 'email' | 'whatsapp'): Promise<{ link: string }> => {
+    const raw: any = await resendInvitation(invitationId, channel);
     await fetchInvitations();
     return { link: raw.NewLink ?? raw.newLink ?? '' };
   };

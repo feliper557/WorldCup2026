@@ -143,9 +143,19 @@ public class AdminInvitationsFunction
 
             // 5. Build new registration link
             var baseUrl = _config["App:BaseUrl"] ?? "http://localhost:3000";
-            var newRegistrationLink = $"{baseUrl}/register?token={Uri.EscapeDataString(newEncryptedToken)}&code={newInvitationCode}";
+            var newRegistrationLink = $"{baseUrl}/register?token={Uri.EscapeDataString(newEncryptedToken)}&code={newInvitationCode}&email={Uri.EscapeDataString(invitation.Email)}";
 
-            _logger.LogInformation("Invitation resent by admin {AdminId} for {Email}", admin.UserId, invitation.Email);
+            // 6. Optionally send email if channel == "email"
+            var channelParam = req.Query["channel"];
+            if (channelParam == "email")
+            {
+                await _emailService.SendInvitationEmailAsync(invitation.Email, newRegistrationLink, "Francachela");
+                _logger.LogInformation("Invitation resent via email by admin {AdminId} for {Email}", admin.UserId, invitation.Email);
+            }
+            else
+            {
+                _logger.LogInformation("Invitation link regenerated (whatsapp) by admin {AdminId} for {Email}", admin.UserId, invitation.Email);
+            }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(new ResendInvitationResponse(

@@ -26,7 +26,7 @@ import type { InvitationRequest, Invitation, CreateInvitationResponse } from '..
 
 interface InvitationFormProps {
   onSubmit: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
-  onResend: (invitationId: string) => Promise<{ link: string }>;
+  onResend: (invitationId: string, channel: 'email' | 'whatsapp') => Promise<{ link: string }>;
   invitations: Invitation[];
   loading?: boolean;
 }
@@ -39,7 +39,7 @@ export function InvitationForm({ onSubmit, onResend, invitations, loading = fals
   const [successData, setSuccessData] = useState<CreateInvitationResponse | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
-  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendingKey, setResendingKey] = useState<string | null>(null); // `${id}-email` or `${id}-whatsapp`
   const [resendError, setResendError] = useState<string | null>(null);
 
   // Validar email
@@ -106,16 +106,17 @@ export function InvitationForm({ onSubmit, onResend, invitations, loading = fals
     }
   };
 
-  const handleResend = async (invitationId: string) => {
-    setResendingId(invitationId);
+  const handleResend = async (invitationId: string, channel: 'email' | 'whatsapp') => {
+    const key = `${invitationId}-${channel}`;
+    setResendingKey(key);
     setResendError(null);
     try {
-      const result = await onResend(invitationId);
-      if (result.link) shareWhatsApp(result.link);
+      const result = await onResend(invitationId, channel);
+      if (channel === 'whatsapp' && result.link) shareWhatsApp(result.link);
     } catch (err: any) {
       setResendError(err.message?.replace('API Error: 400 - ', '') || 'Error al reenviar');
     } finally {
-      setResendingId(null);
+      setResendingKey(null);
     }
   };
 
@@ -351,18 +352,32 @@ export function InvitationForm({ onSubmit, onResend, invitations, loading = fals
                       <TableCell sx={{ fontSize: '0.82rem', color: invitation.status === 'expired' ? theme.palette.error.main : theme.palette.text.secondary }}>
                         {getExpirationInfo(invitation.expiresAtUtc)}
                       </TableCell>
-                      <TableCell align="right" sx={{ pr: 0.5 }}>
-                        <Tooltip title="Reenviar invitación">
+                      <TableCell align="right" sx={{ pr: 0.5, whiteSpace: 'nowrap' }}>
+                        <Tooltip title="Reenviar por correo">
                           <span>
                             <IconButton
                               size="small"
-                              onClick={() => handleResend(invitation.id)}
-                              disabled={resendingId === invitation.id}
+                              onClick={() => handleResend(invitation.id, 'email')}
+                              disabled={!!resendingKey}
                               color="primary"
                             >
-                              {resendingId === invitation.id
+                              {resendingKey === `${invitation.id}-email`
                                 ? <CircularProgress size={16} />
                                 : <Refresh fontSize="small" />}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title="Compartir por WhatsApp">
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleResend(invitation.id, 'whatsapp')}
+                              disabled={!!resendingKey}
+                              sx={{ color: '#25D366' }}
+                            >
+                              {resendingKey === `${invitation.id}-whatsapp`
+                                ? <CircularProgress size={16} />
+                                : <WhatsApp fontSize="small" />}
                             </IconButton>
                           </span>
                         </Tooltip>
