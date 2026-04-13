@@ -58,6 +58,7 @@ public class InvitationRepository : IInvitationRepository
 
     public async Task<IEnumerable<InvitationEntity>> GetPendingByAdminAsync(string adminId)
         => await _db.Invitations
+            .Where(i => i.Status == "pending")
             .OrderByDescending(i => i.CreatedAtUtc)
             .ToListAsync();
 
