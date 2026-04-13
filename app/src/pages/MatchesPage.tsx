@@ -27,6 +27,12 @@ export function MatchesPage() {
     const tab = parseInt(searchParams.get('tab') || '0', 10);
     return isNaN(tab) ? 0 : tab;
   });
+
+  // Sincronizar tab cuando cambia la URL (ej: desde navbar "Mi Campeón")
+  useEffect(() => {
+    const tab = parseInt(searchParams.get('tab') || '0', 10);
+    setTabValue(isNaN(tab) ? 0 : tab);
+  }, [searchParams]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
