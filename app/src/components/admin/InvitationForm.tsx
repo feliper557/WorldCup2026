@@ -21,16 +21,17 @@ import {
   Tooltip,
   OutlinedInput,
 } from '@mui/material';
-import { Send, ContentCopy, Check, WhatsApp } from '@mui/icons-material';
+import { Send, ContentCopy, Check, WhatsApp, Refresh } from '@mui/icons-material';
 import type { InvitationRequest, Invitation, CreateInvitationResponse } from '../../types/admin';
 
 interface InvitationFormProps {
   onSubmit: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
+  onResend: (invitationId: string) => Promise<{ link: string }>;
   invitations: Invitation[];
   loading?: boolean;
 }
 
-export function InvitationForm({ onSubmit, invitations, loading = false }: InvitationFormProps) {
+export function InvitationForm({ onSubmit, onResend, invitations, loading = false }: InvitationFormProps) {
   const theme = useTheme();
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +39,8 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
   const [successData, setSuccessData] = useState<CreateInvitationResponse | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   // Validar email
   const isValidEmail = (value: string): boolean => {
@@ -100,6 +103,19 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
       document.body.removeChild(textarea);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleResend = async (invitationId: string) => {
+    setResendingId(invitationId);
+    setResendError(null);
+    try {
+      const result = await onResend(invitationId);
+      if (result.link) shareWhatsApp(result.link);
+    } catch (err: any) {
+      setResendError(err.message?.replace('API Error: 400 - ', '') || 'Error al reenviar');
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -285,6 +301,8 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
             <Chip label={`${invitations.length} total`} size="small" variant="outlined" />
           </Box>
 
+          {resendError && <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>{resendError}</Alert>}
+
           {invitations.length === 0 ? (
             <Box sx={{ py: 4, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
@@ -300,6 +318,7 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                     <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Estado</TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Fecha envío</TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Expira</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -331,6 +350,22 @@ export function InvitationForm({ onSubmit, invitations, loading = false }: Invit
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.82rem', color: invitation.status === 'expired' ? theme.palette.error.main : theme.palette.text.secondary }}>
                         {getExpirationInfo(invitation.expiresAtUtc)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ pr: 0.5 }}>
+                        <Tooltip title="Reenviar invitación">
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleResend(invitation.id)}
+                              disabled={resendingId === invitation.id}
+                              color="primary"
+                            >
+                              {resendingId === invitation.id
+                                ? <CircularProgress size={16} />
+                                : <Refresh fontSize="small" />}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}

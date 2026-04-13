@@ -202,6 +202,9 @@ export const getInvitations = (): Promise<{ invitations: Invitation[]; total: nu
 export const sendInvitation = (body: InvitationRequest): Promise<Invitation> =>
   post('/mgmt/invitations', body);
 
+export const resendInvitation = (invitationId: string): Promise<{ success: boolean; newLink: string; newExpiresAt: string }> =>
+  post(`/mgmt/invitations/${invitationId}/resend`, {});
+
 export const resetUserPassword = (userId: string, body: ResetPasswordRequest): Promise<{ success: boolean }> =>
   post(`/mgmt/users/${userId}/reset-password`, body);
 

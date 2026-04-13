@@ -18,7 +18,7 @@ import { useRaffles } from '../hooks/useRaffles';
 export function AdminPage() {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
-  const { users, invitations, loading, error, sendInvitation, resetPassword, toggleActive } = useAdmin();
+  const { users, invitations, loading, error, sendInvitation, resendInvitation, resetPassword, toggleActive } = useAdmin();
   const { raffles, loading: rafflesLoading, createRaffle, drawRaffle, addParticipant, removeParticipant } = useRaffles();
 
   const handleTabChange = (_: unknown, newValue: number) => {
@@ -93,6 +93,7 @@ export function AdminPage() {
       {tabValue === 0 && (
         <InvitationForm
           onSubmit={sendInvitation}
+          onResend={resendInvitation}
           invitations={invitations}
           loading={loading}
         />

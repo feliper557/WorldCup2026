@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUsers, getInvitations, sendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
+import { getUsers, getInvitations, sendInvitation, resendInvitation, resetUserPassword, toggleUserActive } from '../services/apiClient';
 import type { AdminUser, InvitationRequest, Invitation, CreateInvitationResponse } from '../types/admin';
 
 interface UseAdminResult {
@@ -9,6 +9,7 @@ interface UseAdminResult {
   error: Error | null;
   fetchUsers: () => Promise<void>;
   sendInvitation: (data: InvitationRequest) => Promise<CreateInvitationResponse>;
+  resendInvitation: (invitationId: string) => Promise<{ link: string }>;
   resetPassword: (userId: string, newPassword: string) => Promise<void>;
   toggleActive: (userId: string, isActive: boolean) => Promise<void>;
 }
@@ -78,6 +79,12 @@ export function useAdmin(): UseAdminResult {
     };
   };
 
+  const resendInvitationHandler = async (invitationId: string): Promise<{ link: string }> => {
+    const raw: any = await resendInvitation(invitationId);
+    await fetchInvitations();
+    return { link: raw.NewLink ?? raw.newLink ?? '' };
+  };
+
   const resetPasswordHandler = async (userId: string, newPassword: string) => {
     try {
       await resetUserPassword(userId, { userId, newPassword });
@@ -109,6 +116,7 @@ export function useAdmin(): UseAdminResult {
     error,
     fetchUsers,
     sendInvitation: sendInvitationHandler,
+    resendInvitation: resendInvitationHandler,
     resetPassword: resetPasswordHandler,
     toggleActive: toggleActiveHandler,
   };
