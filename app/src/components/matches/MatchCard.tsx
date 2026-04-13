@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, Box, Typography, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
 import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
-import { getTimeUntilMatch } from '../../utils/dateUtils';
+import { getTimeUntilMatch, getCountdownColor } from '../../utils/dateUtils';
 import { getMatches } from '../../services/apiClient';
 import { TeamCrest } from './TeamCrest';
 
@@ -14,7 +14,7 @@ interface MatchCardProps {
 
 export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
-  const [countdown, setCountdown] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<{ label: string; msLeft: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Backend already stores times in Colombia time (UTC-5)
@@ -95,11 +95,11 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
               color="primary"
               variant="outlined"
             />
-            {countdown && match.status === 'SCHEDULED' && (
+            {countdown && match.status === 'SCHEDULED' && countdown.msLeft <= 24 * 60 * 60 * 1000 && (
               <Chip
-                label={countdown}
+                label={countdown.label}
                 size="small"
-                color="success"
+                color={getCountdownColor(countdown.msLeft)}
                 sx={{ fontWeight: 700, animation: 'pulse 1.6s infinite' }}
               />
             )}
