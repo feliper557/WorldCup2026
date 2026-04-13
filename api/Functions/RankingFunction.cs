@@ -44,23 +44,24 @@ public class RankingFunction
 
             foreach (var user in users)
             {
-                // Obtener todas las predicciones del usuario
                 var predictions = await _predictionRepository.GetByUserIdAsync(user.Id);
 
-                // Sumar todos los PointsEarned
-                int totalPoints = predictions.Sum(p => p.PointsEarned);
+                // Calcular todo dinámicamente desde predicciones
+                int totalPoints    = predictions.Sum(p => p.PointsEarned);
+                int totalPreds     = predictions.Count();
+                int exactScores    = predictions.Count(p => p.PointsEarned >= 3); // 3 pts = exacto, 5 = exacto + bonus
+                int correctWinners = predictions.Count(p => p.PointsEarned == 1); // 1 pt = acertó ganador
 
                 usersWithCalculatedPoints.Add(new
                 {
                     user.Id,
                     user.Email,
                     user.DisplayName,
-                    TotalPoints = totalPoints, // Calculado dinámicamente
-                    user.TotalPredictions,
-                    user.CorrectPredictions,
-                    user.AccuracyPercentage,
+                    TotalPoints    = totalPoints,
+                    TotalPredictions = totalPreds,
+                    ExactScores    = exactScores,
+                    CorrectWinners = correctWinners,
                     user.LeaderboardRank,
-                    exactScores = user.CorrectPredictions // Para compatibilidad con frontend
                 });
             }
 
@@ -74,11 +75,10 @@ public class RankingFunction
                     u.DisplayName,
                     u.TotalPoints,
                     u.TotalPredictions,
-                    u.CorrectPredictions,
-                    u.AccuracyPercentage,
+                    u.ExactScores,
+                    u.CorrectWinners,
                     u.LeaderboardRank,
-                    Rank = index + 1, // Posición en ranking
-                    u.exactScores
+                    Rank = index + 1,
                 })
                 .ToList();
 
