@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -31,6 +31,14 @@ export function PredictionForm({
 }: PredictionFormProps) {
   const [homeScore, setHomeScore] = useState(prediction?.homeScorePred ?? 0);
   const [awayScore, setAwayScore] = useState(prediction?.awayScorePred ?? 0);
+
+  // Sync state when dialog opens or prediction changes
+  useEffect(() => {
+    if (open) {
+      setHomeScore(prediction?.homeScorePred ?? 0);
+      setAwayScore(prediction?.awayScorePred ?? 0);
+    }
+  }, [open, prediction]);
 
   const handleSave = () => {
     onSave(homeScore, awayScore);
