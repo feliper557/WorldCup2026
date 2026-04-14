@@ -15,7 +15,7 @@ public class SyncResultsFunction
     private readonly IScoringService _scoringService;
     private readonly ILogger<SyncResultsFunction> _logger;
 
-    private const int BufferMinutes = 105;
+    private const int BufferMinutes = 118;
 
     public SyncResultsFunction(
         IFootballDataService footballDataService,
