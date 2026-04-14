@@ -254,7 +254,7 @@ export function LeaderboardTable() {
                     const isVisible = idx < visibleRows;
                     const medal = sortBy === 'points' ? MEDALS[p.rank] : undefined;
                     const avatarColors = getAvatarColors(p.rank);
-                    const isMe = currentUserId && p.userId === currentUserId;
+                    const isMe = !!(currentUserId && p.userId === currentUserId);
 
                     return (
                       <TableRow
