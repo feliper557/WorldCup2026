@@ -114,6 +114,35 @@ export const getMyPredictions = async (): Promise<Prediction[]> => {
 export const getPredictionsByMatch = (matchId: string): Promise<Prediction[]> =>
   get(`/predictions/match/${matchId}`);
 
+export interface UserPredictionResult {
+  matchId: string;
+  homeTeam: string;
+  awayTeam: string;
+  stage: string;
+  matchDate: string;
+  homeScore: number;
+  awayScore: number;
+  predictedHome: number;
+  predictedAway: number;
+  pointsEarned: number;
+}
+
+export const getUserPredictions = async (userId: string): Promise<UserPredictionResult[]> => {
+  const data = await get<any[]>(`/predictions/user/${encodeURIComponent(userId)}`);
+  return data.map((item) => ({
+    matchId:       item.matchId       ?? item.MatchId       ?? '',
+    homeTeam:      item.homeTeam      ?? item.HomeTeam      ?? '',
+    awayTeam:      item.awayTeam      ?? item.AwayTeam      ?? '',
+    stage:         item.stage         ?? item.Stage         ?? '',
+    matchDate:     item.matchDate     ?? item.MatchDate     ?? '',
+    homeScore:     item.homeScore     ?? item.HomeScore     ?? 0,
+    awayScore:     item.awayScore     ?? item.AwayScore     ?? 0,
+    predictedHome: item.predictedHome ?? item.PredictedHome ?? 0,
+    predictedAway: item.predictedAway ?? item.PredictedAway ?? 0,
+    pointsEarned:  item.pointsEarned  ?? item.PointsEarned  ?? 0,
+  }));
+};
+
 // Endpoints de Ranking
 export const getRanking = async (): Promise<Score[]> => {
   const data = await get<any[]>('/ranking');

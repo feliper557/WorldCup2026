@@ -183,6 +183,53 @@ public class PredictionsFunction
         return ok;
     }
 
+    [Function("GetUserPredictions")]
+    public async Task<HttpResponseData> GetUserPredictions(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "predictions/user/{targetUserId}")] HttpRequestData req,
+        string targetUserId)
+    {
+        var requesterId = ExtractUserIdFromJwt(req);
+        if (string.IsNullOrEmpty(requesterId))
+        {
+            var unauthorized = req.CreateResponse(HttpStatusCode.Unauthorized);
+            await unauthorized.WriteStringAsync("Usuario no autenticado.");
+            return unauthorized;
+        }
+
+        var predictions = await _predictions.GetByUserIdAsync(targetUserId);
+        var allMatches = await _matches.GetAllAsync();
+        var matchesById = allMatches.ToDictionary(m => m.Id);
+
+        var result = predictions
+            .Where(p =>
+                matchesById.TryGetValue(p.MatchId, out var m) &&
+                string.Equals(m.Status, "FINISHED", StringComparison.OrdinalIgnoreCase) &&
+                m.HomeScore.HasValue && m.AwayScore.HasValue)
+            .OrderByDescending(p => matchesById[p.MatchId].MatchDate)
+            .Select(p =>
+            {
+                var m = matchesById[p.MatchId];
+                return new
+                {
+                    matchId       = m.Id,
+                    homeTeam      = m.HomeTeam,
+                    awayTeam      = m.AwayTeam,
+                    stage         = m.Stage,
+                    matchDate     = m.MatchDate,
+                    homeScore     = m.HomeScore,
+                    awayScore     = m.AwayScore,
+                    predictedHome = p.PredictedHomeScore,
+                    predictedAway = p.PredictedAwayScore,
+                    pointsEarned  = p.PointsEarned,
+                };
+            })
+            .ToList();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(result);
+        return response;
+    }
+
     private string? ExtractUserIdFromJwt(HttpRequestData req)
     {
         var token = SecureTokenService.ExtractTokenFromRequest(req);

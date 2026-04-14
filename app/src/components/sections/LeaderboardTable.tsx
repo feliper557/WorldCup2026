@@ -26,6 +26,7 @@ import {
 import { Search } from '@mui/icons-material';
 import { useRanking } from '../../hooks/useRanking';
 import { useAuthUser } from '../../hooks/useAuthUser';
+import { UserPredictionsModal } from './UserPredictionsModal';
 
 type SortBy = 'points' | 'predictions' | 'exactos' | 'alfabetico';
 
@@ -50,6 +51,7 @@ export function LeaderboardTable() {
   const [visibleRows, setVisibleRows] = useState(0);
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('points');
+  const [selectedUser, setSelectedUser] = useState<{ userId: string; name: string } | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const { ranking, loading, error } = useRanking();
   const { user } = useAuthUser();
@@ -259,7 +261,9 @@ export function LeaderboardTable() {
                     return (
                       <TableRow
                         key={p.userId}
+                        onClick={() => setSelectedUser({ userId: p.userId, name: p.name })}
                         sx={{
+                          cursor: 'pointer',
                           borderBottom: `1px solid ${theme.palette.primary.main}08`,
                           borderLeft: isMe ? `3px solid ${theme.palette.secondary.main}` : '3px solid transparent',
                           animation: isVisible ? `slideUp 0.5s ease-out ${idx * 55}ms forwards` : 'none',
@@ -335,6 +339,13 @@ export function LeaderboardTable() {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
+
+      <UserPredictionsModal
+        open={!!selectedUser}
+        userId={selectedUser?.userId ?? null}
+        displayName={selectedUser?.name ?? ''}
+        onClose={() => setSelectedUser(null)}
+      />
     </Box>
   );
 }
