@@ -194,9 +194,9 @@ public class SyncResultsFunction
                 var matchModel = new Models.Match
                 {
                     Id = match.Id,
-                    HomeTeam = match.HomeTeam,
-                    AwayTeam = match.AwayTeam,
-                    Stage = match.Stage,
+                    HomeTeam = match.HomeTeam ?? string.Empty,
+                    AwayTeam = match.AwayTeam ?? string.Empty,
+                    Stage = match.Stage ?? string.Empty,
                     HomeScoreFinal = match.HomeScore,
                     AwayScoreFinal = match.AwayScore,
                     Status = match.Status,
