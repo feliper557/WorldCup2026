@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -16,19 +16,18 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  InputAdornment,
 } from '@mui/material';
-import { EmojiEvents } from '@mui/icons-material';
+import { Search } from '@mui/icons-material';
 import { useRanking } from '../../hooks/useRanking';
+import { useAuthUser } from '../../hooks/useAuthUser';
 
-interface Participant {
-  rank: number;
-  name: string;
-  avatar: string;
-  predictions: number;
-  exactos: number;
-  ganadores: number;
-  points: number;
-}
+type SortBy = 'points' | 'predictions' | 'exactos' | 'alfabetico';
 
 const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
@@ -43,31 +42,56 @@ function getAvatarColors(rank: number): { bg: string; text: string } {
     { bg: '#FFD166', text: '#1E1E1E' },
     { bg: '#2F8F7B', text: '#fff' },
   ];
-  return { bg: palettes[(rank - 1) % palettes.length].bg, text: palettes[(rank - 1) % palettes.length].text };
+  return palettes[(rank - 1) % palettes.length];
 }
 
 export function LeaderboardTable() {
   const theme = useTheme();
   const [visibleRows, setVisibleRows] = useState(0);
+  const [searchText, setSearchText] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('points');
   const tableRef = useRef<HTMLDivElement>(null);
   const { ranking, loading, error } = useRanking();
+  const { user } = useAuthUser();
 
-  // Convertir datos de API a formato de participante
-  const participants: Participant[] = ranking
-    .filter((score) => score && score.displayName) // Filtrar nulls
-    .map((score) => ({
-      rank: score.rank || 0,
-      name: score.displayName || 'Unknown',
-      avatar: ((score.displayName) || 'AN').substring(0, 2).toUpperCase(),
-      predictions: score.totalPredictions || 0,
-      exactos: (score as any).ExactScores ?? (score as any).exactScores ?? score.exactScores ?? 0,
-      ganadores: (score as any).CorrectPredictions ?? (score as any).correctPredictions ?? score.correctWinners ?? 0,
-      points: score.totalPoints || 0,
-    }));
+  const currentUserId = user
+    ? ('id' in user ? user.id : ('clientPrincipalId' in user ? user.clientPrincipalId : null))
+    : null;
+
+  const filteredAndSorted = useMemo(() => {
+    let list = ranking.filter((p) => p && p.displayName);
+
+    if (searchText.trim()) {
+      const q = searchText.toLowerCase();
+      list = list.filter((p) => (p.displayName || '').toLowerCase().includes(q));
+    }
+
+    switch (sortBy) {
+      case 'predictions':
+        return [...list].sort((a, b) => (b.totalPredictions || 0) - (a.totalPredictions || 0));
+      case 'exactos':
+        return [...list].sort((a, b) => (b.exactScores || 0) - (a.exactScores || 0));
+      case 'alfabetico':
+        return [...list].sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
+      default: // points
+        return [...list].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+    }
+  }, [ranking, searchText, sortBy]);
+
+  // Convertir a formato de tabla con rank dinámico según orden actual
+  const participants = filteredAndSorted.map((score, idx) => ({
+    rank: sortBy === 'points' ? (score.rank || idx + 1) : idx + 1,
+    userId: score.userId,
+    name: score.displayName || 'Unknown',
+    avatar: ((score.displayName) || 'AN').substring(0, 2).toUpperCase(),
+    predictions: score.totalPredictions || 0,
+    exactos: score.exactScores || 0,
+    ganadores: score.correctWinners || 0,
+    points: score.totalPoints || 0,
+  }));
 
   useEffect(() => {
     if (participants.length === 0) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -88,37 +112,35 @@ export function LeaderboardTable() {
     return () => observer.disconnect();
   }, [participants.length]);
 
+  // Reset animation when search/sort changes
+  useEffect(() => {
+    setVisibleRows(0);
+    const timeout = setTimeout(() => setVisibleRows(participants.length), 50);
+    return () => clearTimeout(timeout);
+  }, [searchText, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (error) {
     return (
       <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
         <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2 } }}>
-          <Alert severity="error">
-            Error al cargar el ranking: {error.message}
-          </Alert>
+          <Alert severity="error">Error al cargar el ranking: {error.message}</Alert>
         </Container>
       </Box>
     );
   }
 
+  const totalExactos = ranking.reduce((s, p) => s + (p.exactScores || 0), 0);
+  const totalGanadores = ranking.reduce((s, p) => s + (p.correctWinners || 0), 0);
+  const maxPts = ranking.length > 0 ? Math.max(...ranking.map(p => p.totalPoints || 0)) : 0;
+
   return (
     <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
       <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2 } }}>
-        {/* Section Header */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={{ xs: 2.5, sm: 3 }} sx={{ mb: 4 }}>
+
+        {/* Header */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={{ xs: 2.5, sm: 3 }} sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 1,
-                backgroundColor: `${theme.palette.primary.main}20`,
-                color: theme.palette.primary.main,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.3rem',
-              }}
-            >
+            <Box sx={{ width: 40, height: 40, borderRadius: 1, backgroundColor: `${theme.palette.primary.main}20`, color: theme.palette.primary.main, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
               🏆
             </Box>
             <Box>
@@ -126,224 +148,184 @@ export function LeaderboardTable() {
                 Ranking Competitivo
               </Typography>
               <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                {participants.length} participantes · Fase de grupos
+                {ranking.length} participantes · Fase de grupos
               </Typography>
             </Box>
           </Stack>
 
-          {/* Legend — totals across all participants */}
-          {participants.length > 0 && (() => {
-            const totalExactos = participants.reduce((s, p) => s + p.exactos, 0);
-            const totalGanadores = participants.reduce((s, p) => s + p.ganadores, 0);
-            const maxPts = participants[0].points;
-            return (
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 3 }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Chip label={String(totalExactos)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
-                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                    Exactos
-                  </Typography>
-                </Stack>
-                <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Chip label={String(totalGanadores)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
-                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                    Ganadores
-                  </Typography>
-                </Stack>
-                <Stack direction="row" alignItems="center" spacing={0.75}>
-                  <Typography variant="caption" sx={{ color: theme.palette.secondary.main, fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
-                    {maxPts}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
-                    Pts
-                  </Typography>
-                </Stack>
+          {ranking.length > 0 && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 3 }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Chip label={String(totalExactos)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Exactos</Typography>
               </Stack>
-            );
-          })()}
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Chip label={String(totalGanadores)} size="small" color="warning" sx={{ height: 24, fontSize: '0.7rem' }} />
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Ganadores</Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.75}>
+                <Typography variant="caption" sx={{ color: theme.palette.secondary.main, fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>{maxPts}</Typography>
+                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Pts</Typography>
+              </Stack>
+            </Stack>
+          )}
         </Stack>
 
-        {/* Table Container */}
+        {/* Search + Sort */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+          <TextField
+            size="small"
+            placeholder="Buscar participante..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ fontSize: 18, color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <FormControl size="small" sx={{ minWidth: 190, flexShrink: 0 }}>
+            <InputLabel>Ordenar por</InputLabel>
+            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} label="Ordenar por">
+              <MenuItem value="points">Puntos</MenuItem>
+              <MenuItem value="predictions">Predicciones</MenuItem>
+              <MenuItem value="exactos">Exactos</MenuItem>
+              <MenuItem value="alfabetico">Alfabético</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+
+        {/* Table */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
             <CircularProgress />
           </Box>
+        ) : participants.length === 0 ? (
+          <Alert severity="info">No se encontraron participantes</Alert>
         ) : (
-        <Box sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <TableContainer
-            component={Paper}
-            ref={tableRef}
-            sx={{
-              backgroundColor: '#1A1A1A',
-              border: `1px solid ${theme.palette.primary.main}15`,
-              borderRadius: 2,
-              overflow: 'hidden',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
-              minWidth: { xs: '100%', sm: 'auto' },
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: '3px',
-                background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 40%, ${theme.palette.warning.main} 70%, ${theme.palette.primary.light} 100%)`,
-              },
-            }}
-          >
-          <Table>
-            <TableHead>
-              <TableRow
-                sx={{
-                  backgroundColor: 'rgba(0,0,0,0.3)',
-                  borderBottom: `1px solid ${theme.palette.primary.main}15`,
-                }}
-              >
-                <TableCell sx={{ width: 50, py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 } }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                    #
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 } }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                    Participante
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>
-                    Pred.
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>
-                    Exactos
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>
-                    Ganadores
-                  </Typography>
-                </TableCell>
-                <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 }, textAlign: 'center' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                    Puntos
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {participants.map((p, idx) => {
-                const isVisible = idx < visibleRows;
-                const medal = MEDALS[p.rank];
-                const avatarColors = getAvatarColors(p.rank);
-
-                return (
-                  <TableRow
-                    key={p.rank}
-                    sx={{
-                      borderBottom: `1px solid ${theme.palette.primary.main}08`,
-                      animation: isVisible ? `slideUp 0.5s ease-out ${idx * 55}ms forwards` : 'none',
-                      opacity: isVisible ? 1 : 0,
-                      backgroundColor:
-                        p.rank <= 3
-                          ? p.rank === 1
-                            ? `${theme.palette.secondary.main}10`
-                            : `${theme.palette.primary.main}08`
-                          : 'transparent',
-                      '&:hover': {
-                        backgroundColor: `${theme.palette.primary.main}12`,
-                      },
-                      '@keyframes slideUp': {
-                        from: { opacity: 0, transform: 'translateY(20px)' },
-                        to: { opacity: 1, transform: 'translateY(0)' },
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 }, textAlign: 'center' }}>
-                      {medal ? (
-                        <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' } }}>{medal}</Typography>
-                      ) : (
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.secondary, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                          {p.rank}
-                        </Typography>
-                      )}
+          <Box sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <TableContainer
+              component={Paper}
+              ref={tableRef}
+              sx={{
+                backgroundColor: '#1A1A1A',
+                border: `1px solid ${theme.palette.primary.main}15`,
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+                minWidth: { xs: '100%', sm: 'auto' },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0,
+                  height: '3px',
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 40%, ${theme.palette.warning.main} 70%, ${theme.palette.primary.light} 100%)`,
+                },
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: 'rgba(0,0,0,0.3)', borderBottom: `1px solid ${theme.palette.primary.main}15` }}>
+                    <TableCell sx={{ width: 50, py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 } }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>#</Typography>
                     </TableCell>
                     <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 } }}>
-                      <Stack direction="row" alignItems="flex-start" spacing={{ xs: 0.75, sm: 1 }}>
-                        <Avatar
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            backgroundColor: avatarColors.bg,
-                            color: avatarColors.text,
-                            fontWeight: 700,
-                            fontSize: '0.75rem',
-                            border: p.rank <= 3 ? `2px solid ${avatarColors.bg}` : 'none',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {p.avatar}
-                        </Avatar>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: p.rank <= 3 ? 600 : 500,
-                              color: theme.palette.text.primary,
-                              fontSize: { xs: '0.85rem', sm: '0.875rem' },
-                              wordBreak: 'break-word',
-                            }}
-                          >
-                            {p.name}
-                          </Typography>
-                          <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'flex', sm: 'none' }, mt: 0.75, flexWrap: 'wrap' }}>
-                            <Chip
-                              label={`${p.exactos}E`}
-                              size="small"
-                              color="warning"
-                              sx={{ height: 20, fontSize: '0.65rem' }}
-                            />
-                            <Chip
-                              label={`${p.ganadores}G`}
-                              size="small"
-                              color="warning"
-                              sx={{ height: 20, fontSize: '0.65rem' }}
-                            />
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: theme.palette.text.secondary,
-                                fontSize: '0.65rem',
-                                alignSelf: 'center',
-                              }}
-                            >
-                              {p.predictions}p
-                            </Typography>
-                          </Stack>
-                        </Box>
-                      </Stack>
-                    </TableCell>
-                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center', color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
-                      {p.predictions}
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Participante</Typography>
                     </TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
-                      <Chip label={p.exactos} size="small" color="warning" sx={{ height: 22, fontSize: '0.7rem' }} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>Pred.</Typography>
                     </TableCell>
                     <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
-                      <Chip label={p.ganadores} size="small" color="warning" sx={{ height: 22, fontSize: '0.7rem' }} />
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>Exactos</Typography>
+                    </TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: '0.7rem' }}>Ganadores</Typography>
                     </TableCell>
                     <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 }, textAlign: 'center' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.secondary.main, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
-                        {p.points}
-                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.palette.text.secondary, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Puntos</Typography>
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          </TableContainer>
-        </Box>
+                </TableHead>
+                <TableBody>
+                  {participants.map((p, idx) => {
+                    const isVisible = idx < visibleRows;
+                    const medal = sortBy === 'points' ? MEDALS[p.rank] : undefined;
+                    const avatarColors = getAvatarColors(p.rank);
+                    const isMe = currentUserId && p.userId === currentUserId;
+
+                    return (
+                      <TableRow
+                        key={p.userId}
+                        sx={{
+                          borderBottom: `1px solid ${theme.palette.primary.main}08`,
+                          borderLeft: isMe ? `3px solid ${theme.palette.secondary.main}` : '3px solid transparent',
+                          animation: isVisible ? `slideUp 0.5s ease-out ${idx * 55}ms forwards` : 'none',
+                          opacity: isVisible ? 1 : 0,
+                          backgroundColor: isMe
+                            ? `${theme.palette.secondary.main}12`
+                            : p.rank <= 3
+                            ? p.rank === 1 ? `${theme.palette.secondary.main}10` : `${theme.palette.primary.main}08`
+                            : 'transparent',
+                          '&:hover': { backgroundColor: isMe ? `${theme.palette.secondary.main}1C` : `${theme.palette.primary.main}12` },
+                          '@keyframes slideUp': {
+                            from: { opacity: 0, transform: 'translateY(20px)' },
+                            to: { opacity: 1, transform: 'translateY(0)' },
+                          },
+                        }}
+                      >
+                        <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 }, textAlign: 'center' }}>
+                          {medal
+                            ? <Typography sx={{ fontSize: { xs: '1.1rem', sm: '1.3rem' } }}>{medal}</Typography>
+                            : <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.text.secondary, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{p.rank}</Typography>
+                          }
+                        </TableCell>
+
+                        <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 } }}>
+                          <Stack direction="row" alignItems="flex-start" spacing={{ xs: 0.75, sm: 1 }}>
+                            <Avatar sx={{ width: 36, height: 36, backgroundColor: isMe ? theme.palette.secondary.main : avatarColors.bg, color: isMe ? '#fff' : avatarColors.text, fontWeight: 700, fontSize: '0.75rem', border: isMe ? `2px solid ${theme.palette.secondary.main}` : p.rank <= 3 ? `2px solid ${avatarColors.bg}` : 'none', flexShrink: 0 }}>
+                              {p.avatar}
+                            </Avatar>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                                <Typography variant="body2" sx={{ fontWeight: isMe || p.rank <= 3 ? 700 : 500, color: isMe ? theme.palette.secondary.main : theme.palette.text.primary, fontSize: { xs: '0.85rem', sm: '0.875rem' }, wordBreak: 'break-word' }}>
+                                  {p.name}
+                                </Typography>
+                                {isMe && <Chip label="Eres tú" size="small" color="secondary" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }} />}
+                              </Box>
+                              {/* Mobile stats */}
+                              <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'flex', sm: 'none' }, mt: 0.75, flexWrap: 'wrap' }}>
+                                <Chip label={`${p.exactos}E`} size="small" color="warning" sx={{ height: 20, fontSize: '0.65rem' }} />
+                                <Chip label={`${p.ganadores}G`} size="small" color="warning" sx={{ height: 20, fontSize: '0.65rem' }} />
+                                <Typography variant="caption" sx={{ color: theme.palette.text.secondary, fontSize: '0.65rem', alignSelf: 'center' }}>{p.predictions}p</Typography>
+                              </Stack>
+                            </Box>
+                          </Stack>
+                        </TableCell>
+
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center', color: theme.palette.text.secondary, fontSize: '0.85rem' }}>
+                          {p.predictions}
+                        </TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
+                          <Chip label={p.exactos} size="small" color="warning" sx={{ height: 22, fontSize: '0.7rem' }} />
+                        </TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, py: 2, px: 1, textAlign: 'center' }}>
+                          <Chip label={p.ganadores} size="small" color="warning" sx={{ height: 22, fontSize: '0.7rem' }} />
+                        </TableCell>
+                        <TableCell sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 0.75, sm: 1 }, textAlign: 'center' }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: isMe ? theme.palette.secondary.main : theme.palette.secondary.main, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                            {p.points}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
         )}
       </Container>
 

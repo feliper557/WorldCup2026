@@ -51,7 +51,6 @@ export function Navbar() {
   const baseTabs = [
     { label: 'Partidos', icon: <SportsSoccer sx={{ fontSize: 16 }} />, path: '/matches' },
     { label: 'Posiciones', icon: <Leaderboard sx={{ fontSize: 16 }} />, path: '/ranking' },
-    { label: 'Participantes', icon: <Group sx={{ fontSize: 16 }} />, path: '/participants' },
     { label: 'Rifas', icon: <CardGiftcard sx={{ fontSize: 16 }} />, path: '/raffles' },
     { label: 'Info', icon: <InfoOutlined sx={{ fontSize: 16 }} />, path: '/info' },
   ];
