@@ -3,6 +3,7 @@ import { Card, CardContent, Box, Typography, Chip, Button, Badge, Alert, useThem
 import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch, getCountdownColor } from '../../utils/dateUtils';
+import { getTeamDisplayName } from '../../utils/teamAssets';
 import { getMatches } from '../../services/apiClient';
 import { TeamCrest } from './TeamCrest';
 
@@ -110,7 +111,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1 }}>
             <TeamCrest name={match.homeTeam} size={42} />
             <Typography variant="h6" sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {match.homeTeam}
+              {getTeamDisplayName(match.homeTeam)}
             </Typography>
           </Box>
 
@@ -122,7 +123,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, justifyContent: 'flex-end', minWidth: 0, flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {match.awayTeam}
+              {getTeamDisplayName(match.awayTeam)}
             </Typography>
             <TeamCrest name={match.awayTeam} size={42} />
           </Box>

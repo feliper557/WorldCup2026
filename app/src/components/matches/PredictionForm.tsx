@@ -11,6 +11,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import type { Match, Prediction } from '../../types';
+import { getTeamDisplayName } from '../../utils/teamAssets';
 
 interface PredictionFormProps {
   open: boolean;
@@ -55,11 +56,11 @@ export function PredictionForm({
       <DialogTitle>
         {match ? (
           <Box>
-            <Typography variant="h6">{match.homeTeam}</Typography>
+            <Typography variant="h6">{getTeamDisplayName(match.homeTeam)}</Typography>
             <Typography variant="caption" color="textSecondary">
               vs
             </Typography>
-            <Typography variant="h6">{match.awayTeam}</Typography>
+            <Typography variant="h6">{getTeamDisplayName(match.awayTeam)}</Typography>
           </Box>
         ) : (
           'Realizar predicción'
@@ -69,7 +70,7 @@ export function PredictionForm({
       <DialogContent sx={{ pt: '20px !important', overflow: 'visible' }}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
-            label={match?.homeTeam}
+            label={match ? getTeamDisplayName(match.homeTeam) : ''}
             InputLabelProps={{ shrink: true }}
             type="number"
             value={homeScore}
@@ -84,7 +85,7 @@ export function PredictionForm({
           </Typography>
 
           <TextField
-            label={match?.awayTeam}
+            label={match ? getTeamDisplayName(match.awayTeam) : ''}
             InputLabelProps={{ shrink: true }}
             type="number"
             value={awayScore}
