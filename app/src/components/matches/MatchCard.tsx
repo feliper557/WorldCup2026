@@ -43,7 +43,7 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
   const isPredictionAvailable = match.status === 'SCHEDULED' && now < kickoffTime;
 
   // Detectar si es La Liga (DEMO)
-  const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
+  const isDemo = match.stage?.toUpperCase().includes('REGULAR') ?? false;
 
   // Validar estado del partido antes de permitir predicción
   const handlePredictClick = async () => {
