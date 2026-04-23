@@ -16,6 +16,8 @@ export function FrancachelaLogo({ variant = 'watermark', size = 200, opacity = 0
         component="img"
         src="/Francachelaicon.jpeg"
         alt="Francachela Logo"
+        width={size}
+        height={size}
         sx={{
           width: size,
           height: 'auto',

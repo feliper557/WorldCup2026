@@ -91,7 +91,7 @@ export function InfoPage() {
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
           {[
             { index: 0, label: 'Reglas del Juego', icon: <Gavel sx={{ fontSize: 20 }} />, color: theme.palette.primary.main },
-            { index: 1, label: 'Eventos / Novedades', icon: <Campaign sx={{ fontSize: 20 }} />, color: theme.palette.secondary.main },
+            { index: 1, label: 'Eventos / Novedades', icon: <Campaign sx={{ fontSize: 20 }} />, color: theme.palette.secondary.light },
           ].map(({ index, label, icon, color }) => {
             const active = tabValue === index;
             return (

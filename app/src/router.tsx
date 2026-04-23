@@ -1,17 +1,17 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { RequireAuth } from './components/auth/RequireAuth';
-import {
-  LoginPage,
-  RegisterPage,
-  MatchesPage,
-  RankingPage,
-  ParticipantsPage,
-  InfoPage,
-  RafflesPage,
-  AdminPage,
-  PaymentResultPage,
-} from './pages';
+
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const PaymentResultPage = lazy(() => import('./pages/PaymentResultPage').then(m => ({ default: m.PaymentResultPage })));
+const InfoPage = lazy(() => import('./pages/InfoPage').then(m => ({ default: m.InfoPage })));
+const MatchesPage = lazy(() => import('./pages/MatchesPage').then(m => ({ default: m.MatchesPage })));
+const RankingPage = lazy(() => import('./pages/RankingPage').then(m => ({ default: m.RankingPage })));
+const ParticipantsPage = lazy(() => import('./pages/ParticipantsPage').then(m => ({ default: m.ParticipantsPage })));
+const RafflesPage = lazy(() => import('./pages/RafflesPage').then(m => ({ default: m.RafflesPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 
 export const router = createBrowserRouter([
   {

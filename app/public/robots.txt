@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://mango-pebble-03e4a100f.2.azurestaticapps.net/sitemap.xml

@@ -395,6 +395,9 @@ export function Navbar() {
             {isMobile && (
               <IconButton
                 onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-drawer"
                 sx={{
                   color: theme.palette.text.primary,
                   '&:hover': {
@@ -411,6 +414,7 @@ export function Navbar() {
 
       {/* Mobile Drawer Menu */}
       <Drawer
+        id="mobile-drawer"
         anchor="top"
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
