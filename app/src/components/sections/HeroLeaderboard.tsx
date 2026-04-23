@@ -2,13 +2,17 @@ import React, { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { EmojiEvents, SportsFootball, LocalFireDepartment } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
-import { useRanking } from '../../hooks/useRanking';
 import { useMatches } from '../../hooks/useMatches';
+import type { Score } from '../../types';
 
-export function HeroLeaderboard() {
+interface HeroLeaderboardProps {
+  ranking: Score[];
+  loading: boolean;
+}
+
+export function HeroLeaderboard({ ranking, loading: rankingLoading }: HeroLeaderboardProps) {
   const theme = useTheme();
   const heroRef = useRef<HTMLDivElement>(null);
-  const { ranking, loading: rankingLoading } = useRanking();
   const { matches, loading: matchesLoading } = useMatches();
 
   const leader = ranking.length > 0 ? ranking[0] : null;

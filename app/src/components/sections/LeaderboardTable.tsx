@@ -24,9 +24,9 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
-import { useRanking } from '../../hooks/useRanking';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { UserPredictionsModal } from './UserPredictionsModal';
+import type { Score } from '../../types';
 
 type SortBy = 'points' | 'predictions' | 'exactos' | 'alfabetico';
 
@@ -46,14 +46,19 @@ function getAvatarColors(rank: number): { bg: string; text: string } {
   return palettes[(rank - 1) % palettes.length];
 }
 
-export function LeaderboardTable() {
+interface LeaderboardTableProps {
+  ranking: Score[];
+  loading: boolean;
+  error: Error | null;
+}
+
+export function LeaderboardTable({ ranking, loading, error }: LeaderboardTableProps) {
   const theme = useTheme();
   const [visibleRows, setVisibleRows] = useState(0);
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('points');
   const [selectedUser, setSelectedUser] = useState<{ userId: string; name: string } | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
-  const { ranking, loading, error } = useRanking();
   const { user } = useAuthUser();
 
   const currentUserId = user
@@ -80,8 +85,8 @@ export function LeaderboardTable() {
     }
   }, [ranking, searchText, sortBy]);
 
-  // Convertir a formato de tabla con rank dinámico según orden actual
-  const participants = filteredAndSorted.map((score, idx) => ({
+  // Memoizado para evitar .map() en cada render
+  const participants = useMemo(() => filteredAndSorted.map((score, idx) => ({
     rank: sortBy === 'points' ? (score.rank || idx + 1) : idx + 1,
     userId: score.userId,
     name: score.displayName || 'Unknown',
@@ -90,8 +95,16 @@ export function LeaderboardTable() {
     exactos: score.exactScores || 0,
     ganadores: score.correctWinners || 0,
     points: score.totalPoints || 0,
-  }));
+  })), [filteredAndSorted, sortBy]);
 
+  // Agregados memoizados — solo recalculan cuando cambia ranking
+  const { totalExactos, totalGanadores, maxPts } = useMemo(() => ({
+    totalExactos: ranking.reduce((s, p) => s + (p.exactScores || 0), 0),
+    totalGanadores: ranking.reduce((s, p) => s + (p.correctWinners || 0), 0),
+    maxPts: ranking.length > 0 ? Math.max(...ranking.map(p => p.totalPoints || 0)) : 0,
+  }), [ranking]);
+
+  // Animación de entrada solo en primer mount — sin reset en búsqueda/sort
   useEffect(() => {
     if (participants.length === 0) return;
     const observer = new IntersectionObserver(
@@ -112,14 +125,7 @@ export function LeaderboardTable() {
     );
     if (tableRef.current) observer.observe(tableRef.current);
     return () => observer.disconnect();
-  }, [participants.length]);
-
-  // Reset animation when search/sort changes
-  useEffect(() => {
-    setVisibleRows(0);
-    const timeout = setTimeout(() => setVisibleRows(participants.length), 50);
-    return () => clearTimeout(timeout);
-  }, [searchText, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) {
     return (
@@ -130,10 +136,6 @@ export function LeaderboardTable() {
       </Box>
     );
   }
-
-  const totalExactos = ranking.reduce((s, p) => s + (p.exactScores || 0), 0);
-  const totalGanadores = ranking.reduce((s, p) => s + (p.correctWinners || 0), 0);
-  const maxPts = ranking.length > 0 ? Math.max(...ranking.map(p => p.totalPoints || 0)) : 0;
 
   return (
     <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
