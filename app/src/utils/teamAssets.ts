@@ -204,6 +204,7 @@ const COUNTRY_ISO2: Record<string, string> = {
   'burkina faso': 'bf',
   guinea: 'gn',
   'cape verde': 'cv',
+  'cape verde islands': 'cv',
   benin: 'bj',
   togo: 'tg',
   gabon: 'ga',
@@ -300,6 +301,8 @@ const EN_TO_ES: Record<string, string> = {
   'guatemala':        'Guatemala',
   'el salvador':      'El Salvador',
   'cuba':             'Cuba',
+  'cape verde':         'Cabo Verde',
+  'cape verde islands': 'Cabo Verde',
 };
 
 /**
