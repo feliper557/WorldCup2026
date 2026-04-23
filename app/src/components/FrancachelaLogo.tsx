@@ -14,7 +14,7 @@ export function FrancachelaLogo({ variant = 'watermark', size = 200, opacity = 0
     return (
       <Box
         component="img"
-        src="/Francachelaicon.jpeg"
+        src="/Francachelaicon.webp"
         alt="Francachela Logo"
         width={size}
         height={size}

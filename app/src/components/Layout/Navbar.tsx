@@ -158,7 +158,7 @@ export function Navbar() {
           >
             <Box
               component="img"
-              src="/Francachelaicon.jpeg"
+              src="/Francachelaicon.webp"
               alt="Francachela"
               sx={{
                 width: 38,
