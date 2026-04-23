@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, startTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -31,12 +31,27 @@ export function MatchesPage() {
   // Sincronizar tab cuando cambia la URL (ej: desde navbar "Mi Campeón")
   useEffect(() => {
     const tab = parseInt(searchParams.get('tab') || '0', 10);
-    setTabValue(isNaN(tab) ? 0 : tab);
+    startTransition(() => setTabValue(isNaN(tab) ? 0 : tab));
   }, [searchParams]);
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
+
+  // Renderizado progresivo: primeros 5 cards inmediatos, resto cuando el browser está idle
+  const INITIAL_VISIBLE = 5;
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE);
+    const expand = () => setVisibleCount(Infinity);
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(expand);
+      return () => cancelIdleCallback(id);
+    }
+    const id = setTimeout(expand, 300);
+    return () => clearTimeout(id);
+  }, [tabValue]);
 
   // Sync en background — no bloquea el render inicial ni crea tareas largas
   useEffect(() => {
@@ -54,7 +69,7 @@ export function MatchesPage() {
   );
 
   const handleTabChange = useCallback((_: unknown, newValue: number) => {
-    setTabValue(newValue);
+    startTransition(() => setTabValue(newValue));
   }, []);
 
   const handlePredictClick = useCallback((match: Match) => {
@@ -163,7 +178,7 @@ export function MatchesPage() {
             {scheduledMatches.length === 0 ? (
               <Alert severity="info">No hay partidos disponibles para predecir</Alert>
             ) : (
-              scheduledMatches.map((match) => (
+              scheduledMatches.slice(0, visibleCount).map((match) => (
                 <MatchCard
                   key={match.id}
                   match={match}
@@ -181,7 +196,7 @@ export function MatchesPage() {
             {liveMatches.length === 0 ? (
               <Alert severity="info">No hay partidos en curso</Alert>
             ) : (
-              liveMatches.map((match) => (
+              liveMatches.slice(0, visibleCount).map((match) => (
                 <MatchCard
                   key={match.id}
                   match={match}
@@ -215,7 +230,7 @@ export function MatchesPage() {
             {finishedMatches.length === 0 ? (
               <Alert severity="info">No hay resultados disponibles</Alert>
             ) : (
-              finishedMatches.map((match) => (
+              finishedMatches.slice(0, visibleCount).map((match) => (
                 <ResultCard
                   key={match.id}
                   match={match}
