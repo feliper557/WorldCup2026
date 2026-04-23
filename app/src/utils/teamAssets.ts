@@ -343,7 +343,7 @@ export function getTeamCrestUrl(teamName: string): string | null {
   // 2) Selección nacional por ISO-2 → flagcdn
   const iso = COUNTRY_ISO2[key] ?? COUNTRY_ISO2[teamName.toLowerCase()];
   if (iso) {
-    return `https://flagcdn.com/w80/${iso}.png`;
+    return `https://flagcdn.com/w80/${iso}.webp`;
   }
 
   return null;

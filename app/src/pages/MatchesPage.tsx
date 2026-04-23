@@ -38,19 +38,12 @@ export function MatchesPage() {
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
 
-  // Sync results with Football-Data API when page loads (once on mount)
+  // Sync en background — no bloquea el render inicial ni crea tareas largas
   useEffect(() => {
     let isMounted = true;
-    const syncAndRefetch = async () => {
-      try {
-        await syncResults();
-        if (!isMounted) return;
-        refetch();
-      } catch (err) {
-        console.error('Error syncing results:', err);
-      }
-    };
-    syncAndRefetch();
+    syncResults()
+      .then(() => { if (isMounted) refetch(); })
+      .catch((err) => console.error('Error syncing results:', err));
     return () => { isMounted = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

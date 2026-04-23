@@ -52,6 +52,8 @@ export function TeamCrest({ name, size = 40 }: TeamCrestProps) {
         component="img"
         src={url}
         alt={name}
+        width={Math.round(size * 0.78)}
+        height={Math.round(size * 0.78)}
         loading="lazy"
         onError={() => setErrored(true)}
         sx={{
