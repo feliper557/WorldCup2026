@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -33,43 +33,44 @@ export function MatchesPage() {
     const tab = parseInt(searchParams.get('tab') || '0', 10);
     setTabValue(isNaN(tab) ? 0 : tab);
   }, [searchParams]);
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
+
   // Sync results with Football-Data API when page loads (once on mount)
   useEffect(() => {
     let isMounted = true;
-
     const syncAndRefetch = async () => {
       try {
         await syncResults();
         if (!isMounted) return;
-        // Always refetch so LIVE→FINISHED transitions are reflected immediately
         refetch();
       } catch (err) {
         console.error('Error syncing results:', err);
       }
     };
-
     syncAndRefetch();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleTabChange = (_: unknown, newValue: number) => {
-    setTabValue(newValue);
-  };
+  // Map de predicciones para búsqueda O(1) en lugar de O(n) por cada partido
+  const predictionsMap = useMemo(
+    () => new Map<string, Prediction>(predictions.map((p) => [p.matchId, p])),
+    [predictions]
+  );
 
-  const handlePredictClick = (match: Match) => {
+  const handleTabChange = useCallback((_: unknown, newValue: number) => {
+    setTabValue(newValue);
+  }, []);
+
+  const handlePredictClick = useCallback((match: Match) => {
     setSelectedMatch(match);
     setShowPredictionForm(true);
-  };
+  }, []);
 
-  const handlePredictionSave = async (homeScore: number, awayScore: number) => {
+  const handlePredictionSave = useCallback(async (homeScore: number, awayScore: number) => {
     if (!selectedMatch) return;
-
     try {
       await upsertPrediction({
         matchId: selectedMatch.id,
@@ -81,30 +82,43 @@ export function MatchesPage() {
     } catch (err) {
       console.error('Error saving prediction:', err);
     }
-  };
+  }, [selectedMatch, upsertPrediction]);
 
-  const getPredictionByMatchId = (matchId: string): Prediction | undefined => {
-    return predictions.find((p) => p.matchId === matchId);
-  };
+  const handleClosePredictionForm = useCallback(() => setShowPredictionForm(false), []);
 
-  const filterMatchesByStatus = (status: 'SCHEDULED' | 'LIVE' | 'FINISHED') => {
+  const handleStageChange = useCallback((_: unknown, newStages: string[]) => {
+    setSelectedStages(newStages);
+  }, []);
+
+  // Listas filtradas memoizadas — solo recalculan cuando cambian matches o stages
+  const availableStages = useMemo(
+    () => Array.from(new Set(matches.map((m) => m.stage))),
+    [matches]
+  );
+
+  const scheduledMatches = useMemo(() => {
     const now = new Date();
-    return matches.filter((m) => {
-      if (m.status !== status) return false;
-      // Para partidos SCHEDULED, excluir los que ya iniciaron
-      if (status === 'SCHEDULED') {
-        return new Date(m.kickoffAtUtc) > now;
-      }
-      return true;
-    });
-  };
+    const filtered = matches.filter(
+      (m) => m.status === 'SCHEDULED' && new Date(m.kickoffAtUtc) > now
+    );
+    return selectedStages.length === 0
+      ? filtered
+      : filtered.filter((m) => selectedStages.includes(m.stage));
+  }, [matches, selectedStages]);
 
-  const filterByStage = (matchList: Match[]) => {
-    if (selectedStages.length === 0) return matchList;
-    return matchList.filter((m) => selectedStages.includes(m.stage));
-  };
+  const liveMatches = useMemo(() => {
+    const filtered = matches.filter((m) => m.status === 'LIVE');
+    return selectedStages.length === 0
+      ? filtered
+      : filtered.filter((m) => selectedStages.includes(m.stage));
+  }, [matches, selectedStages]);
 
-  const availableStages = Array.from(new Set(matches.map((m) => m.stage)));
+  const finishedMatches = useMemo(() => {
+    const filtered = matches.filter((m) => m.status === 'FINISHED').reverse();
+    return selectedStages.length === 0
+      ? filtered
+      : filtered.filter((m) => selectedStages.includes(m.stage));
+  }, [matches, selectedStages]);
 
   if (matchesLoading) {
     return (
@@ -118,15 +132,10 @@ export function MatchesPage() {
     return <Alert severity="error">Error cargando partidos: {matchesError.message}</Alert>;
   }
 
-  const scheduledMatches = filterByStage(filterMatchesByStatus('SCHEDULED'));
-  const liveMatches = filterByStage(filterMatchesByStatus('LIVE'));
-  const finishedMatches = filterByStage(filterMatchesByStatus('FINISHED')).reverse();
-
   return (
     <Box>
       {/* Hero Section */}
       <HeroMatches />
-
 
       <Container maxWidth="sm" sx={{ py: { xs: 3, sm: 4 }, px: { xs: 1, sm: 2 } }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3, overflow: 'hidden' }}>
@@ -152,94 +161,88 @@ export function MatchesPage() {
           </Tabs>
         </Box>
 
-      {/* Pestaña 0 - Disponibles */}
-      {tabValue === 0 && (
-        <Box>
-          <Alert
-            severity="info"
-            sx={{ mb: 2, fontSize: '0.8rem' }}
-          >
-            <strong>Partidos DEMO</strong> — Los partidos marcados con la etiqueta <strong>DEMO</strong> son de práctica (La Liga española) y <strong>no suman puntos</strong> al ranking. Su único propósito es que te familiarices con la app antes del Mundial. Los datos DEMO se eliminarán el <strong>1 de junio de 2026</strong>.
-          </Alert>
-          {scheduledMatches.length === 0 ? (
-            <Alert severity="info">No hay partidos disponibles para predecir</Alert>
-          ) : (
-            scheduledMatches.map((match) => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                prediction={getPredictionByMatchId(match.id)}
-                onPredictClick={handlePredictClick}
-              />
-            ))
-          )}
-        </Box>
-      )}
+        {/* Pestaña 0 - Disponibles */}
+        {tabValue === 0 && (
+          <Box>
+            <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
+              <strong>Partidos DEMO</strong> — Los partidos marcados con la etiqueta <strong>DEMO</strong> son de práctica (La Liga española) y <strong>no suman puntos</strong> al ranking. Su único propósito es que te familiarices con la app antes del Mundial. Los datos DEMO se eliminarán el <strong>1 de junio de 2026</strong>.
+            </Alert>
+            {scheduledMatches.length === 0 ? (
+              <Alert severity="info">No hay partidos disponibles para predecir</Alert>
+            ) : (
+              scheduledMatches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  prediction={predictionsMap.get(match.id)}
+                  onPredictClick={handlePredictClick}
+                />
+              ))
+            )}
+          </Box>
+        )}
 
-      {/* Pestaña 1 - En Vivo */}
-      {tabValue === 1 && (
-        <Box>
-          {liveMatches.length === 0 ? (
-            <Alert severity="info">No hay partidos en curso</Alert>
-          ) : (
-            liveMatches.map((match) => (
-              <MatchCard
-                key={match.id}
-                match={match}
-                prediction={getPredictionByMatchId(match.id)}
-                onPredictClick={handlePredictClick}
-              />
-            ))
-          )}
-        </Box>
-      )}
+        {/* Pestaña 1 - En Vivo */}
+        {tabValue === 1 && (
+          <Box>
+            {liveMatches.length === 0 ? (
+              <Alert severity="info">No hay partidos en curso</Alert>
+            ) : (
+              liveMatches.map((match) => (
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  prediction={predictionsMap.get(match.id)}
+                  onPredictClick={handlePredictClick}
+                />
+              ))
+            )}
+          </Box>
+        )}
 
-      {/* Pestaña 2 - Resultados */}
-      {tabValue === 2 && (
-        <Box>
-          {availableStages.length > 0 && (
-            <Box sx={{ mb: 2 }}>
-              <ToggleButtonGroup
-                value={selectedStages}
-                onChange={(_, newStages) => setSelectedStages(newStages)}
-                size="small"
-                fullWidth
-              >
-                {availableStages.map((stage) => (
-                  <ToggleButton key={stage} value={stage}>
-                    {stage}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-            </Box>
-          )}
+        {/* Pestaña 2 - Resultados */}
+        {tabValue === 2 && (
+          <Box>
+            {availableStages.length > 0 && (
+              <Box sx={{ mb: 2 }}>
+                <ToggleButtonGroup
+                  value={selectedStages}
+                  onChange={handleStageChange}
+                  size="small"
+                  fullWidth
+                >
+                  {availableStages.map((stage) => (
+                    <ToggleButton key={stage} value={stage}>
+                      {stage}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              </Box>
+            )}
+            {finishedMatches.length === 0 ? (
+              <Alert severity="info">No hay resultados disponibles</Alert>
+            ) : (
+              finishedMatches.map((match) => (
+                <ResultCard
+                  key={match.id}
+                  match={match}
+                  prediction={predictionsMap.get(match.id)}
+                />
+              ))
+            )}
+          </Box>
+        )}
 
-          {finishedMatches.length === 0 ? (
-            <Alert severity="info">No hay resultados disponibles</Alert>
-          ) : (
-            finishedMatches.map((match) => (
-              <ResultCard
-                key={match.id}
-                match={match}
-                prediction={getPredictionByMatchId(match.id)}
-              />
-            ))
-          )}
-        </Box>
-      )}
-
-      {/* Pestaña 3 - Mi Campeón */}
-      {tabValue === 3 && (
-        <ChampionPicker />
-      )}
+        {/* Pestaña 3 - Mi Campeón */}
+        {tabValue === 3 && <ChampionPicker />}
 
         <PredictionForm
           open={showPredictionForm}
           match={selectedMatch}
-          prediction={selectedMatch ? getPredictionByMatchId(selectedMatch.id) : undefined}
+          prediction={selectedMatch ? predictionsMap.get(selectedMatch.id) : undefined}
           loading={predictLoading}
           onSave={handlePredictionSave}
-          onClose={() => setShowPredictionForm(false)}
+          onClose={handleClosePredictionForm}
         />
       </Container>
     </Box>

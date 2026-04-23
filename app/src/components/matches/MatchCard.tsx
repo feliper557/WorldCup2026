@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Card, CardContent, Box, Typography, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
 import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
@@ -13,7 +13,7 @@ interface MatchCardProps {
   onPredictClick: (match: Match) => void;
 }
 
-export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
+export const MatchCard = memo(function MatchCard({ match, prediction, onPredictClick }: MatchCardProps) {
   const theme = useTheme();
   const [countdown, setCountdown] = useState<{ label: string; msLeft: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -29,12 +29,13 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
     timeZone: 'America/Bogota',
   });
 
-  // Actualizar countdown cada segundo
+  // Timer solo para partidos dentro de las próximas 24h — evita N intervalos activos
   useEffect(() => {
-    setCountdown(getTimeUntilMatch(match.kickoffAtUtc));
-    const interval = setInterval(() => {
-      setCountdown(getTimeUntilMatch(match.kickoffAtUtc));
-    }, 1000);
+    const update = () => setCountdown(getTimeUntilMatch(match.kickoffAtUtc));
+    update();
+    const msLeft = new Date(match.kickoffAtUtc).getTime() - Date.now();
+    if (msLeft > 24 * 60 * 60 * 1000) return;
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [match.kickoffAtUtc]);
 
@@ -175,4 +176,4 @@ export function MatchCard({ match, prediction, onPredictClick }: MatchCardProps)
       />
     </Card>
   );
-}
+});
