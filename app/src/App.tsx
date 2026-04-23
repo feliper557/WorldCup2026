@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { router } from './router';
 import { theme } from './theme';
+import { UpdateNotification } from './components/ui/UpdateNotification';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Suspense fallback={null}>
         <RouterProvider router={router} />
       </Suspense>
+      <UpdateNotification />
     </ThemeProvider>
   );
 }
