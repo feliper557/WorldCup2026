@@ -193,7 +193,6 @@ const COUNTRY_ISO2: Record<string, string> = {
   nicaragua: 'ni',
   'new caledonia': 'nc',
   fiji: 'fj',
-  'ivory coast': 'ci',
   kenya: 'ke',
   tanzania: 'tz',
   uganda: 'ug',
