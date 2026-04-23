@@ -14,9 +14,9 @@ export function useMatches(): UseMatchesResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchMatches = async () => {
+  const fetchMatches = async (showSpinner = false) => {
     try {
-      setLoading(true);
+      if (showSpinner) setLoading(true);
       const data = await getMatches();
       setMatches(data);
       setError(null);
@@ -28,8 +28,8 @@ export function useMatches(): UseMatchesResult {
   };
 
   useEffect(() => {
-    fetchMatches();
+    fetchMatches(true);
   }, []);
 
-  return { matches, loading, error, refetch: fetchMatches };
+  return { matches, loading, error, refetch: () => fetchMatches(false) };
 }
