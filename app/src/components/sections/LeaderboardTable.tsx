@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Box,
   Container,
@@ -58,7 +58,6 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('points');
   const [selectedUser, setSelectedUser] = useState<{ userId: string; name: string } | null>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
   const { user } = useAuthUser();
 
   const currentUserId = user
@@ -104,28 +103,10 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
     maxPts: ranking.length > 0 ? Math.max(...ranking.map(p => p.totalPoints || 0)) : 0,
   }), [ranking]);
 
-  // Animación de entrada solo en primer mount — sin reset en búsqueda/sort
+  // Mostrar filas cuando los datos cargan o el filtro cambia
   useEffect(() => {
-    if (participants.length === 0) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            let count = 0;
-            const interval = setInterval(() => {
-              count++;
-              setVisibleRows(count);
-              if (count >= participants.length) clearInterval(interval);
-            }, 55);
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    if (tableRef.current) observer.observe(tableRef.current);
-    return () => observer.disconnect();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    setVisibleRows(participants.length);
+  }, [participants.length]);
 
   if (error) {
     return (
@@ -213,7 +194,6 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
           <Box sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <TableContainer
               component={Paper}
-              ref={tableRef}
               sx={{
                 backgroundColor: '#1A1A1A',
                 border: `1px solid ${theme.palette.primary.main}15`,
