@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import {
   Box,
   Container,
@@ -25,8 +25,11 @@ import {
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { useAuthUser } from '../../hooks/useAuthUser';
-import { UserPredictionsModal } from './UserPredictionsModal';
 import type { Score } from '../../types';
+
+const UserPredictionsModal = lazy(() =>
+  import('./UserPredictionsModal').then(m => ({ default: m.UserPredictionsModal }))
+);
 
 type SortBy = 'points' | 'predictions' | 'exactos' | 'alfabetico';
 
@@ -322,12 +325,16 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
         }
       `}</style>
 
-      <UserPredictionsModal
-        open={!!selectedUser}
-        userId={selectedUser?.userId ?? null}
-        displayName={selectedUser?.name ?? ''}
-        onClose={() => setSelectedUser(null)}
-      />
+      {!!selectedUser && (
+        <Suspense fallback={null}>
+          <UserPredictionsModal
+            open={!!selectedUser}
+            userId={selectedUser?.userId ?? null}
+            displayName={selectedUser?.name ?? ''}
+            onClose={() => setSelectedUser(null)}
+          />
+        </Suspense>
+      )}
     </Box>
   );
 }

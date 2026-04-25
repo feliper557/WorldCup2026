@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, startTransition } from 'react';
+import { useState, useEffect, useMemo, useCallback, startTransition, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -16,8 +16,13 @@ import { syncResults } from '../services/apiClient';
 import { HeroMatches } from '../components/sections';
 import { MatchCard } from '../components/matches/MatchCard';
 import { ResultCard } from '../components/matches/ResultCard';
-import { PredictionForm } from '../components/matches/PredictionForm';
-import { ChampionPicker } from '../components/matches/ChampionPicker';
+
+const PredictionForm = lazy(() =>
+  import('../components/matches/PredictionForm').then(m => ({ default: m.PredictionForm }))
+);
+const ChampionPicker = lazy(() =>
+  import('../components/matches/ChampionPicker').then(m => ({ default: m.ChampionPicker }))
+);
 
 export function MatchesPage() {
   const [searchParams] = useSearchParams();
@@ -242,16 +247,24 @@ export function MatchesPage() {
         )}
 
         {/* Pestaña 3 - Mi Campeón */}
-        {tabValue === 3 && <ChampionPicker />}
+        {tabValue === 3 && (
+          <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}>
+            <ChampionPicker />
+          </Suspense>
+        )}
 
-        <PredictionForm
-          open={showPredictionForm}
-          match={selectedMatch}
-          prediction={selectedMatch ? predictionsMap.get(selectedMatch.id) : undefined}
-          loading={predictLoading}
-          onSave={handlePredictionSave}
-          onClose={handleClosePredictionForm}
-        />
+        {showPredictionForm && (
+          <Suspense fallback={null}>
+            <PredictionForm
+              open={showPredictionForm}
+              match={selectedMatch}
+              prediction={selectedMatch ? predictionsMap.get(selectedMatch.id) : undefined}
+              loading={predictLoading}
+              onSave={handlePredictionSave}
+              onClose={handleClosePredictionForm}
+            />
+          </Suspense>
+        )}
       </Container>
     </Box>
   );

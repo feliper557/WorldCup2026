@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { Box, Container, Paper, Stack, Typography, useTheme, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { ChampionPicker } from '../matches/ChampionPicker';
+import { useState, lazy, Suspense } from 'react';
+import { Box, Container, Paper, Stack, Typography, useTheme, Button, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
+
+const ChampionPicker = lazy(() =>
+  import('../matches/ChampionPicker').then(m => ({ default: m.ChampionPicker }))
+);
 
 export function PointsSystemSection() {
   const theme = useTheme();
@@ -191,7 +194,9 @@ export function PointsSystemSection() {
             🏆 Elige el Campeón del Mundial 2026
           </DialogTitle>
           <DialogContent sx={{ pt: 2 }}>
-            <ChampionPicker />
+            <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}>
+              <ChampionPicker />
+            </Suspense>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setChampionDialogOpen(false)}>Cerrar</Button>
