@@ -1,20 +1,9 @@
-import React from 'react';
 import { Box, Container, Typography, useTheme, Button } from '@mui/material';
 import { WhatsApp } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
 export function HeroInfo() {
   const theme = useTheme();
-
-  React.useEffect(() => {
-    const el = document.querySelector('[data-hero-info]');
-    if (!el) return;
-
-    el.querySelectorAll<HTMLElement>('.fade-up').forEach((node, idx) => {
-      node.style.opacity = '0';
-      node.style.animation = `fadeUp 0.6s ease-out ${idx * 0.1}s forwards`;
-    });
-  }, []);
 
   return (
     <Box

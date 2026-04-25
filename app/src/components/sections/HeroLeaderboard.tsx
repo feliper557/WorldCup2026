@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { EmojiEvents, SportsFootball, LocalFireDepartment } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
@@ -12,7 +12,6 @@ interface HeroLeaderboardProps {
 
 export function HeroLeaderboard({ ranking, loading: rankingLoading }: HeroLeaderboardProps) {
   const theme = useTheme();
-  const heroRef = useRef<HTMLDivElement>(null);
   const { matches, loading: matchesLoading } = useMatches();
 
   const leader = ranking.length > 0 ? ranking[0] : null;
@@ -42,17 +41,6 @@ export function HeroLeaderboard({ ranking, loading: rankingLoading }: HeroLeader
     if (scheduled) return stageLabel(scheduled.stage);
     return 'Grupos';
   })();
-
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    // Fade-up animation trigger
-    el.querySelectorAll<HTMLElement>('.fade-up').forEach((node, idx) => {
-      node.style.opacity = '0';
-      node.style.animation = `fadeUp 0.6s ease-out ${idx * 0.1}s forwards`;
-    });
-  }, []);
 
   const StatPill = ({
     icon,
@@ -110,7 +98,6 @@ export function HeroLeaderboard({ ranking, loading: rankingLoading }: HeroLeader
 
   return (
     <Box
-      ref={heroRef}
       component="section"
       sx={{
         position: 'relative',

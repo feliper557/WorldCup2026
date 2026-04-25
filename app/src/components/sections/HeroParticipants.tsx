@@ -1,4 +1,3 @@
-import React, { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
@@ -9,21 +8,9 @@ interface HeroParticipantsProps {
 
 export function HeroParticipants({ participantCount, leaderPoints }: HeroParticipantsProps) {
   const theme = useTheme();
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    el.querySelectorAll<HTMLElement>('.fade-up').forEach((node, idx) => {
-      node.style.opacity = '0';
-      node.style.animation = `fadeUp 0.6s ease-out ${idx * 0.1}s forwards`;
-    });
-  }, []);
 
   return (
     <Box
-      ref={heroRef}
       component="section"
       sx={{
         position: 'relative',

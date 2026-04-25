@@ -1,30 +1,12 @@
-import { useEffect, useRef } from 'react';
 import { Box, Container, Typography, useTheme, Stack, Chip } from '@mui/material';
 import { CalendarMonth, SportsSoccer } from '@mui/icons-material';
 import { FrancachelaWatermark } from '../FrancachelaLogo';
 
 export function HeroMatches() {
   const theme = useTheme();
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.querySelectorAll<HTMLElement>('.fade-up').forEach((node, idx) => {
-      if (reduceMotion) {
-        node.style.opacity = '1';
-        return;
-      }
-      node.style.opacity = '0';
-      node.style.animation = `fadeUp 0.6s ease-out ${idx * 0.1}s forwards`;
-    });
-  }, []);
 
   return (
     <Box
-      ref={heroRef}
       component="section"
       sx={{
         position: 'relative',
@@ -74,7 +56,7 @@ export function HeroMatches() {
           {/* Left: Title Block */}
           <Box sx={{ flex: 1 }}>
             {/* Badge */}
-            <Box className="fade-up" sx={{ mb: 2 }}>
+            <Box className="fade-up" sx={{ mb: 2, animationDelay: '0s' }}>
               <Chip
                 icon={
                   <Box
@@ -107,7 +89,7 @@ export function HeroMatches() {
             </Box>
 
             {/* Main Heading */}
-            <Box className="fade-up" sx={{ mb: 2 }}>
+            <Box className="fade-up" sx={{ mb: 2, animationDelay: '0.1s' }}>
               <Typography
                 variant="h2"
                 sx={{
@@ -140,6 +122,7 @@ export function HeroMatches() {
             {/* Subtitle */}
             <Typography
               className="fade-up"
+              style={{ animationDelay: '0.2s' }}
               variant="body1"
               sx={{
                 fontSize: { xs: '0.9rem', sm: '1rem' },
@@ -157,6 +140,7 @@ export function HeroMatches() {
           {/* Right: Stats */}
           <Stack
             className="fade-up"
+            style={{ animationDelay: '0.3s' }}
             direction={{ xs: 'row', sm: 'row' }}
             spacing={1.5}
             sx={{ flexWrap: 'wrap', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}
