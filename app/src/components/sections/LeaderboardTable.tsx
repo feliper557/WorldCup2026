@@ -16,10 +16,6 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { useAuthUser } from '../../hooks/useAuthUser';
@@ -185,15 +181,34 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
               }}
             />
           </Box>
-          <FormControl size="small" sx={{ minWidth: 190, flexShrink: 0 }}>
-            <InputLabel>Ordenar por</InputLabel>
-            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} label="Ordenar por">
-              <MenuItem value="points">Puntos</MenuItem>
-              <MenuItem value="predictions">Predicciones</MenuItem>
-              <MenuItem value="exactos">Exactos</MenuItem>
-              <MenuItem value="alfabetico">Alfabético</MenuItem>
-            </Select>
-          </FormControl>
+          <Box
+            component="select"
+            value={sortBy}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as SortBy)}
+            aria-label="Ordenar por"
+            sx={{
+              minWidth: 190,
+              height: 40,
+              px: 1.5,
+              fontSize: '0.9rem',
+              fontFamily: 'inherit',
+              color: theme.palette.text.primary,
+              backgroundColor: 'transparent',
+              border: `1px solid ${theme.palette.primary.main}30`,
+              borderRadius: 1,
+              outline: 'none',
+              cursor: 'pointer',
+              flexShrink: 0,
+              '&:hover': { borderColor: `${theme.palette.primary.main}60` },
+              '&:focus': { borderColor: theme.palette.primary.main, boxShadow: `0 0 0 2px ${theme.palette.primary.main}25` },
+              '& option': { color: theme.palette.text.primary, backgroundColor: theme.palette.background.paper },
+            }}
+          >
+            <option value="points">Ordenar por: Puntos</option>
+            <option value="predictions">Ordenar por: Predicciones</option>
+            <option value="exactos">Ordenar por: Exactos</option>
+            <option value="alfabetico">Ordenar por: Alfabético</option>
+          </Box>
         </Stack>
 
         {/* Table */}

@@ -33,7 +33,10 @@ import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { getLogoutUrl, logout, getStoredToken } from '../../services/auth';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
-import { ProfileModal } from '../auth/ProfileModal';
+import { lazy, Suspense } from 'react';
+const ProfileModal = lazy(() =>
+  import('../auth/ProfileModal').then(m => ({ default: m.ProfileModal }))
+);
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -362,12 +365,16 @@ export function Navbar() {
                   <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
                 </Menu>
 
-                {/* Profile Modal */}
-                <ProfileModal
-                  open={profileOpen}
-                  onClose={() => setProfileOpen(false)}
-                  user={user}
-                />
+                {/* Profile Modal - lazy: solo se carga al abrir */}
+                {profileOpen && (
+                  <Suspense fallback={null}>
+                    <ProfileModal
+                      open={profileOpen}
+                      onClose={() => setProfileOpen(false)}
+                      user={user}
+                    />
+                  </Suspense>
+                )}
               </>
             ) : (
               /* Login Button - for non-authenticated users */
