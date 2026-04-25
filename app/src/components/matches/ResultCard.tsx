@@ -22,6 +22,7 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
   const isDemo = match.stage?.toUpperCase().includes('REGULAR') || !match.tournamentId?.includes('2026');
 
   const determinePointsColor = (points: number | null) => {
+    if (points !== null && points >= 5) return 'success';
     if (points === 3) return 'success';
     if (points === 1) return 'warning';
     return 'default';
@@ -120,7 +121,7 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <EmojiEvents sx={{ fontSize: 16, color: theme.palette.text.secondary }} />
               <Chip
-                label={`+${prediction.pointsAwarded ?? 0} pts`}
+                label={`+${prediction.pointsAwarded ?? 0} pts${(prediction.pointsAwarded ?? 0) >= 5 ? ' ⭐' : ''}`}
                 size="small"
                 color={determinePointsColor(prediction.pointsAwarded) as any}
                 sx={{ fontWeight: 700 }}
