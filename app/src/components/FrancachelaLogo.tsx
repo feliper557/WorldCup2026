@@ -261,16 +261,23 @@ export function FrancachelaWatermark({ position = 'bottom-right' }: { position?:
     'center': { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
   }[position];
 
+  // CSS background-image en vez de <img> — el browser no lo considera LCP
+  // así el LCP pasa a ser el texto del heading (mucho más rápido de renderizar)
   return (
     <Box
+      aria-hidden="true"
       sx={{
         position: 'absolute',
         ...positionProps,
+        width: 300,
+        height: 300,
+        backgroundImage: 'url(/Francachelaicon.webp)',
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
         pointerEvents: 'none',
         zIndex: 0,
       }}
-    >
-      <FrancachelaLogo variant="watermark" size={300} opacity={1} />
-    </Box>
+    />
   );
 }
