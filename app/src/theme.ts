@@ -233,9 +233,7 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha(COLORS.darkBgLight, 0.85),
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
+          backgroundColor: COLORS.darkBgLight,
           border: `1px solid ${alpha(COLORS.white, 0.06)}`,
           borderRadius: SHAPE_RADIUS,
           boxShadow: SHADOWS.soft,
