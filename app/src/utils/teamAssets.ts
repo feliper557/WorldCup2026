@@ -334,10 +334,12 @@ export function getTeamCrestUrl(teamName: string): string | null {
   if (!teamName) return null;
   const key = normalize(teamName);
 
-  // 1) Club de La Liga por ID api-sports
+  // 1) Club de La Liga por ID api-sports — proxiado por wsrv.nl
+  // Convierte PNG 150x150 a WebP 64x64 (~95% menos peso, ~40KB → ~1.5KB)
   const clubId = LALIGA_TEAM_IDS[key] ?? LALIGA_TEAM_IDS[teamName.toLowerCase()];
   if (clubId) {
-    return `https://media.api-sports.io/football/teams/${clubId}.png`;
+    const original = `https://media.api-sports.io/football/teams/${clubId}.png`;
+    return `https://wsrv.nl/?url=${encodeURIComponent(original)}&w=64&output=webp&q=80`;
   }
 
   // 2) Selección nacional por ISO-2 → flagcdn

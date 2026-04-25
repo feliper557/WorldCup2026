@@ -35,14 +35,62 @@ export default defineConfig({
       workbox: {
         skipWaiting: false,
         clientsClaim: false,
-        globPatterns: ['**/*.{js,css,html,ico,svg,png,woff2,webp}'],
+        // Precache solo lo crítico — chunks lazy (páginas, modales) se cachean en runtime
+        globPatterns: [
+          'index.html',
+          'manifest.webmanifest',
+          'favicon.svg',
+          'icons.svg',
+          'Francachelaicon.webp',
+          'assets/index-*.js',
+          'assets/index-*.css',
+          'icons/icon-192x192.png',
+          'icons/icon-512x512.png',
+        ],
         runtimeCaching: [
+          // API: NetworkFirst con TTL corto (datos cambian)
           {
             urlPattern: /^https?:\/\/.*\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
               expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+            },
+          },
+          // Chunks lazy (páginas + modales): CacheFirst 30 días
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'app-assets',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          // Logos de equipos via proxy wsrv.nl: CacheFirst 30 días
+          {
+            urlPattern: /^https:\/\/wsrv\.nl\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'wsrv-images',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          // Banderas de selecciones (Mundial): CacheFirst 30 días
+          {
+            urlPattern: /^https:\/\/flagcdn\.com\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'flagcdn-images',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          // Fallback directo a api-sports si no pasa por wsrv: CacheFirst 30 días
+          {
+            urlPattern: /^https:\/\/media\.api-sports\.io\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'api-sports-images',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
         ],
