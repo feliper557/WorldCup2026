@@ -123,11 +123,8 @@ export function Navbar() {
       <AppBar
         position="fixed"
         sx={{
-          transition: 'all 0.3s ease',
-          backgroundColor: scrolled
-            ? `${theme.palette.background.default}F2`
-            : `${theme.palette.background.default}CC`,
-          backdropFilter: scrolled ? 'blur(12px)' : 'blur(8px)',
+          transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+          backgroundColor: theme.palette.background.default,
           borderBottom: `1px solid ${theme.palette.primary.main}${scrolled ? '30' : '15'}`,
           boxShadow: scrolled ? `0 4px 24px rgba(0,0,0,0.3)` : 'none',
         }}

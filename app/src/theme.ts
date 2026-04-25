@@ -165,9 +165,7 @@ export const theme = createTheme({
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: alpha(COLORS.darkBg, 0.75),
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
+          backgroundColor: COLORS.darkBg,
           borderBottom: `1px solid ${alpha(COLORS.turquoise, 0.18)}`,
           boxShadow: 'none',
           backgroundImage: 'none',

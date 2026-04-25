@@ -16,12 +16,10 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
-  InputAdornment,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { useAuthUser } from '../../hooks/useAuthUser';
@@ -161,20 +159,32 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
 
         {/* Search + Sort */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-          <TextField
-            size="small"
-            placeholder="Buscar participante..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ fontSize: 18, color: 'text.secondary' }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+          <Box sx={{ position: 'relative', flex: 1 }}>
+            <Search sx={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 18, color: 'text.secondary', pointerEvents: 'none' }} />
+            <Box
+              component="input"
+              type="search"
+              placeholder="Buscar participante..."
+              value={searchText}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
+              sx={{
+                width: '100%',
+                height: 40,
+                pl: 5,
+                pr: 1.5,
+                fontSize: '0.9rem',
+                color: theme.palette.text.primary,
+                backgroundColor: 'transparent',
+                border: `1px solid ${theme.palette.primary.main}30`,
+                borderRadius: 1,
+                outline: 'none',
+                fontFamily: 'inherit',
+                '&:hover': { borderColor: `${theme.palette.primary.main}60` },
+                '&:focus': { borderColor: theme.palette.primary.main, boxShadow: `0 0 0 2px ${theme.palette.primary.main}25` },
+                '&::placeholder': { color: theme.palette.text.secondary, opacity: 0.7 },
+              }}
+            />
+          </Box>
           <FormControl size="small" sx={{ minWidth: 190, flexShrink: 0 }}>
             <InputLabel>Ordenar por</InputLabel>
             <Select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} label="Ordenar por">
