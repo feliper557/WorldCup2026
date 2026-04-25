@@ -11,6 +11,7 @@ export function Layout() {
         component="main"
         sx={{
           flex: 1,
+          minHeight: 'calc(100vh - 64px)',
           px: { xs: 2, sm: 3, md: 4 },
           py: { xs: 2, sm: 3 },
           maxWidth: '1280px',

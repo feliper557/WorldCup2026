@@ -317,6 +317,7 @@ function FolkArtDecorations({ theme }: { theme: any }) {
           right: '-40px',
           opacity: 0.1,
           animation: 'rotate 20s linear infinite',
+          willChange: 'transform',
         }}
         width="200"
         height="200"
