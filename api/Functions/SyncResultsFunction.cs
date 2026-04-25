@@ -220,7 +220,9 @@ public class SyncResultsFunction
 
                     var isDemo = match.Stage?.ToUpper().Contains("REGULAR") ?? false;
                     var bonusTeams = isDemo ? new[] { "BARCELONA", "REAL MADRID" } : new[] { "COLOMBIA" };
-                    var hasBonus = bonusTeams.Contains(match.HomeTeam?.ToUpper()) || bonusTeams.Contains(match.AwayTeam?.ToUpper());
+                    var homeUpper = match.HomeTeam?.ToUpper() ?? string.Empty;
+                    var awayUpper = match.AwayTeam?.ToUpper() ?? string.Empty;
+                    var hasBonus = bonusTeams.Any(t => homeUpper.Contains(t) || awayUpper.Contains(t));
                     int totalPoints = (basePoints == 3 && hasBonus) ? 5 : basePoints;
 
                     var predictionEntity = new Infrastructure.Entities.PredictionEntity
@@ -275,7 +277,9 @@ public class SyncResultsFunction
 
             var isDemo = match.Stage?.ToUpper().Contains("REGULAR") ?? false;
             var bonusTeams = isDemo ? new[] { "BARCELONA", "REAL MADRID" } : new[] { "COLOMBIA" };
-            var hasBonus = bonusTeams.Contains(match.HomeTeam?.ToUpper()) || bonusTeams.Contains(match.AwayTeam?.ToUpper());
+            var homeUpper = match.HomeTeam?.ToUpper() ?? string.Empty;
+            var awayUpper = match.AwayTeam?.ToUpper() ?? string.Empty;
+            var hasBonus = bonusTeams.Any(t => homeUpper.Contains(t) || awayUpper.Contains(t));
 
             foreach (var prediction in predictions)
             {
