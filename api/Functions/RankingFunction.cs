@@ -36,14 +36,11 @@ public class RankingFunction
 
         try
         {
-            // Dos queries en paralelo: usuarios activos y agregados de predicciones.
             // Antes había N+1 (una query por usuario) — ahora son 2 roundtrips fijos.
-            var usersTask = _userRepository.GetLeaderboardAsync(limit: 1000);
-            var aggregatesTask = _predictionRepository.GetAggregatedByUserAsync();
-            await Task.WhenAll(usersTask, aggregatesTask);
-
-            var users = usersTask.Result;
-            var aggregates = aggregatesTask.Result;
+            // Nota: NO paralelizar con Task.WhenAll — ambos repos comparten el mismo
+            // DbContext scoped y EF Core no admite operaciones concurrentes.
+            var users = await _userRepository.GetLeaderboardAsync(limit: 1000);
+            var aggregates = await _predictionRepository.GetAggregatedByUserAsync();
 
             var ranking = users
                 .Select(user =>
