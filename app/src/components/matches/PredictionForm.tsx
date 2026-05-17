@@ -22,6 +22,16 @@ interface PredictionFormProps {
   onClose: () => void;
 }
 
+const toFieldValue = (n: number | null | undefined): string =>
+  n === null || n === undefined ? '' : String(n);
+
+const sanitizeScore = (raw: string): string => {
+  // Permitir vacío + solo dígitos (máx 2). Strip ceros a la izquierda: "02" → "2".
+  const digits = raw.replace(/\D/g, '').slice(0, 2);
+  if (digits === '') return '';
+  return String(parseInt(digits, 10));
+};
+
 export function PredictionForm({
   open,
   match,
@@ -30,25 +40,30 @@ export function PredictionForm({
   onSave,
   onClose,
 }: PredictionFormProps) {
-  const [homeScore, setHomeScore] = useState(prediction?.homeScorePred ?? 0);
-  const [awayScore, setAwayScore] = useState(prediction?.awayScorePred ?? 0);
+  const [homeScore, setHomeScore] = useState(toFieldValue(prediction?.homeScorePred));
+  const [awayScore, setAwayScore] = useState(toFieldValue(prediction?.awayScorePred));
 
   // Sync state when dialog opens or prediction changes
   useEffect(() => {
     if (open) {
-      setHomeScore(prediction?.homeScorePred ?? 0);
-      setAwayScore(prediction?.awayScorePred ?? 0);
+      setHomeScore(toFieldValue(prediction?.homeScorePred));
+      setAwayScore(toFieldValue(prediction?.awayScorePred));
     }
   }, [open, prediction]);
 
   const handleSave = () => {
-    onSave(homeScore, awayScore);
+    onSave(parseInt(homeScore || '0', 10), parseInt(awayScore || '0', 10));
   };
 
   const handleClose = () => {
-    setHomeScore(prediction?.homeScorePred ?? 0);
-    setAwayScore(prediction?.awayScorePred ?? 0);
+    setHomeScore(toFieldValue(prediction?.homeScorePred));
+    setAwayScore(toFieldValue(prediction?.awayScorePred));
     onClose();
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Seleccionar todo al enfocar → si el usuario teclea, reemplaza el valor existente
+    e.target.select();
   };
 
   return (
@@ -72,10 +87,17 @@ export function PredictionForm({
           <TextField
             label={match ? getTeamDisplayName(match.homeTeam) : ''}
             InputLabelProps={{ shrink: true }}
-            type="number"
+            type="text"
             value={homeScore}
-            onChange={(e) => setHomeScore(Math.max(0, parseInt(e.target.value) || 0))}
-            inputProps={{ min: 0 }}
+            onChange={(e) => setHomeScore(sanitizeScore(e.target.value))}
+            onFocus={handleFocus}
+            placeholder="0"
+            inputProps={{
+              inputMode: 'numeric',
+              pattern: '[0-9]*',
+              maxLength: 2,
+              style: { textAlign: 'center' },
+            }}
             fullWidth
             disabled={loading}
           />
@@ -87,10 +109,17 @@ export function PredictionForm({
           <TextField
             label={match ? getTeamDisplayName(match.awayTeam) : ''}
             InputLabelProps={{ shrink: true }}
-            type="number"
+            type="text"
             value={awayScore}
-            onChange={(e) => setAwayScore(Math.max(0, parseInt(e.target.value) || 0))}
-            inputProps={{ min: 0 }}
+            onChange={(e) => setAwayScore(sanitizeScore(e.target.value))}
+            onFocus={handleFocus}
+            placeholder="0"
+            inputProps={{
+              inputMode: 'numeric',
+              pattern: '[0-9]*',
+              maxLength: 2,
+              style: { textAlign: 'center' },
+            }}
             fullWidth
             disabled={loading}
           />
