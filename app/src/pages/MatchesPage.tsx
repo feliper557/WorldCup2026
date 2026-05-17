@@ -16,6 +16,7 @@ import { syncResults } from '../services/apiClient';
 import { HeroMatches } from '../components/sections';
 import { MatchCard } from '../components/matches/MatchCard';
 import { ResultCard } from '../components/matches/ResultCard';
+import { getStageLabel } from '../utils/stageLabels';
 
 const PredictionForm = lazy(() =>
   import('../components/matches/PredictionForm').then(m => ({ default: m.PredictionForm }))
@@ -226,7 +227,7 @@ export function MatchesPage() {
                 >
                   {availableStages.map((stage) => (
                     <ToggleButton key={stage} value={stage}>
-                      {stage}
+                      {getStageLabel(stage)}
                     </ToggleButton>
                   ))}
                 </ToggleButtonGroup>

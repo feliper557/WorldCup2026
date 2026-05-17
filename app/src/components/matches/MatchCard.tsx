@@ -4,6 +4,7 @@ import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch, getCountdownColor } from '../../utils/dateUtils';
 import { getTeamDisplayName } from '../../utils/teamAssets';
+import { getStageLabel } from '../../utils/stageLabels';
 import { getMatches } from '../../services/apiClient';
 import { TeamCrest } from './TeamCrest';
 
@@ -86,7 +87,7 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Chip label={match.stage} size="small" color="primary" />
+            <Chip label={getStageLabel(match.stage)} size="small" color="primary" />
             {isDemo && <Chip label="DEMO" size="small" color="warning" sx={{ fontWeight: 700, letterSpacing: '0.08em' }} />}
           </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>

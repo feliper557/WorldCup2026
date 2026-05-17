@@ -2,6 +2,7 @@ import { Card, CardContent, Box, Typography, Chip, Stack, useTheme } from '@mui/
 import { Assessment, EmojiEvents, WarningAmber } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { TeamCrest } from './TeamCrest';
+import { getStageLabel } from '../../utils/stageLabels';
 
 interface ResultCardProps {
   match: Match;
@@ -42,7 +43,7 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Chip label={match.stage} size="small" color="primary" />
+            <Chip label={getStageLabel(match.stage)} size="small" color="primary" />
             {isDemo && <Chip label="DEMO" size="small" color="warning" sx={{ fontWeight: 700, letterSpacing: '0.08em' }} />}
           </Box>
           <Chip label={formattedDate} size="small" color="primary" />

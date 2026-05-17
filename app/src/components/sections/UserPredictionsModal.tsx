@@ -20,6 +20,7 @@ import {
 import { Close, EmojiEvents, SportsSoccer } from '@mui/icons-material';
 import { getUserPredictions } from '../../services/apiClient';
 import type { UserPredictionResult } from '../../services/apiClient';
+import { getStageLabel } from '../../utils/stageLabels';
 
 interface UserPredictionsModalProps {
   open: boolean;
@@ -143,7 +144,7 @@ export function UserPredictionsModal({ open, userId, displayName, onClose }: Use
                             {p.homeTeam} vs {p.awayTeam}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                            {p.stage}
+                            {getStageLabel(p.stage)}
                           </Typography>
                         </TableCell>
                         <TableCell align="center" sx={{ py: 1.25 }}>
