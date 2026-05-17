@@ -1,7 +1,36 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// Inlinea manifest.webmanifest como data URI en index.html.
+// Lighthouse lo veía como request en el critical path (~1.2s en mobile);
+// como data URI desaparece del waterfall sin perder PWA installability en Chromium.
+function inlineManifest(): PluginOption {
+  let outDir = 'dist'
+  return {
+    name: 'inline-manifest',
+    apply: 'build',
+    enforce: 'post',
+    configResolved(config) {
+      outDir = config.build.outDir
+    },
+    closeBundle() {
+      const manifestPath = resolve(outDir, 'manifest.webmanifest')
+      const indexPath = resolve(outDir, 'index.html')
+      if (!existsSync(manifestPath) || !existsSync(indexPath)) return
+      const json = JSON.stringify(JSON.parse(readFileSync(manifestPath, 'utf-8')))
+      const dataUri = `data:application/manifest+json;base64,${Buffer.from(json).toString('base64')}`
+      const html = readFileSync(indexPath, 'utf-8').replace(
+        /<link[^>]*rel="manifest"[^>]*>/g,
+        `<link rel="manifest" href="${dataUri}">`,
+      )
+      writeFileSync(indexPath, html)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -129,5 +158,6 @@ export default defineConfig({
         ],
       },
     }),
+    inlineManifest(),
   ],
 })
