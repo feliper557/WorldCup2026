@@ -28,6 +28,23 @@ public class PredictionRepository : IPredictionRepository
             .Where(p => p.MatchId == matchId)
             .ToListAsync();
 
+    public async Task<Dictionary<string, PredictionAggregate>> GetAggregatedByUserAsync()
+    {
+        // Single GROUP BY query — replaces N+1 loop in RankingFunction.
+        // 3 pts = marcador exacto, 5 = exacto + bonus, 1 = solo ganador correcto.
+        var rows = await _db.Predictions
+            .GroupBy(p => p.UserId)
+            .Select(g => new PredictionAggregate(
+                g.Key,
+                g.Sum(p => p.PointsEarned),
+                g.Count(),
+                g.Count(p => p.PointsEarned >= 3),
+                g.Count(p => p.PointsEarned == 1)))
+            .ToListAsync();
+
+        return rows.ToDictionary(r => r.UserId);
+    }
+
     public async Task<PredictionEntity> CreateAsync(PredictionEntity prediction)
     {
         _db.Predictions.Add(prediction);

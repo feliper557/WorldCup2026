@@ -36,37 +36,31 @@ public class RankingFunction
 
         try
         {
-            // Obtener todos los usuarios activos
-            var users = await _userRepository.GetLeaderboardAsync(limit: 1000);
+            // Dos queries en paralelo: usuarios activos y agregados de predicciones.
+            // Antes había N+1 (una query por usuario) — ahora son 2 roundtrips fijos.
+            var usersTask = _userRepository.GetLeaderboardAsync(limit: 1000);
+            var aggregatesTask = _predictionRepository.GetAggregatedByUserAsync();
+            await Task.WhenAll(usersTask, aggregatesTask);
 
-            // Calcular puntos dinámicamente para cada usuario
-            var usersWithCalculatedPoints = new List<dynamic>();
+            var users = usersTask.Result;
+            var aggregates = aggregatesTask.Result;
 
-            foreach (var user in users)
-            {
-                var predictions = await _predictionRepository.GetByUserIdAsync(user.Id);
-
-                // Calcular todo dinámicamente desde predicciones
-                int totalPoints    = predictions.Sum(p => p.PointsEarned);
-                int totalPreds     = predictions.Count();
-                int exactScores    = predictions.Count(p => p.PointsEarned >= 3); // 3 pts = exacto, 5 = exacto + bonus
-                int correctWinners = predictions.Count(p => p.PointsEarned == 1); // 1 pt = acertó ganador
-
-                usersWithCalculatedPoints.Add(new
+            var ranking = users
+                .Select(user =>
                 {
-                    user.Id,
-                    user.Email,
-                    user.DisplayName,
-                    TotalPoints    = totalPoints,
-                    TotalPredictions = totalPreds,
-                    ExactScores    = exactScores,
-                    CorrectWinners = correctWinners,
-                    user.LeaderboardRank,
-                });
-            }
-
-            // Ordenar por puntos totales (descendente)
-            var ranking = usersWithCalculatedPoints
+                    aggregates.TryGetValue(user.Id, out var agg);
+                    return new
+                    {
+                        user.Id,
+                        user.Email,
+                        user.DisplayName,
+                        TotalPoints = agg?.TotalPoints ?? 0,
+                        TotalPredictions = agg?.TotalPredictions ?? 0,
+                        ExactScores = agg?.ExactScores ?? 0,
+                        CorrectWinners = agg?.CorrectWinners ?? 0,
+                        user.LeaderboardRank,
+                    };
+                })
                 .OrderByDescending(u => u.TotalPoints)
                 .Select((u, index) => new
                 {
@@ -85,6 +79,8 @@ public class RankingFunction
             _logger.LogInformation("Ranking calculated for {Count} users", ranking.Count);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
+            // Cache corto: el ranking solo cambia tras sync-results.
+            response.Headers.Add("Cache-Control", "public, max-age=30");
             await response.WriteAsJsonAsync(ranking);
             return response;
         }
