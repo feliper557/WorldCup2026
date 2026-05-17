@@ -9,6 +9,7 @@ import {
   Container,
   ToggleButton,
   ToggleButtonGroup,
+  Button,
 } from '@mui/material';
 import type { Match, Prediction } from '../types';
 import { useMatches, usePredictions } from '../hooks';
@@ -44,20 +45,17 @@ export function MatchesPage() {
   const [showPredictionForm, setShowPredictionForm] = useState(false);
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
 
-  // Renderizado progresivo: primeros 5 cards inmediatos, resto cuando el browser está idle
-  const INITIAL_VISIBLE = 5;
-  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
+  // Paginación: carga inicial de 10, y "Cargar más" suma 10 cada vez.
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    setVisibleCount(INITIAL_VISIBLE);
-    const expand = () => setVisibleCount(Infinity);
-    if (typeof requestIdleCallback !== 'undefined') {
-      const id = requestIdleCallback(expand);
-      return () => cancelIdleCallback(id);
-    }
-    const id = setTimeout(expand, 300);
-    return () => clearTimeout(id);
+    setVisibleCount(PAGE_SIZE);
   }, [tabValue]);
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((c) => c + PAGE_SIZE);
+  }, []);
 
   // Sync en background — no bloquea el render inicial ni crea tareas largas
   useEffect(() => {
@@ -112,9 +110,9 @@ export function MatchesPage() {
 
   const scheduledMatches = useMemo(() => {
     const now = new Date();
-    const filtered = matches.filter(
-      (m) => m.status === 'SCHEDULED' && new Date(m.kickoffAtUtc) > now
-    );
+    const filtered = matches
+      .filter((m) => m.status === 'SCHEDULED' && new Date(m.kickoffAtUtc) > now)
+      .sort((a, b) => new Date(a.kickoffAtUtc).getTime() - new Date(b.kickoffAtUtc).getTime());
     return selectedStages.length === 0
       ? filtered
       : filtered.filter((m) => selectedStages.includes(m.stage));
@@ -178,20 +176,26 @@ export function MatchesPage() {
         {/* Pestaña 0 - Disponibles */}
         {tabValue === 0 && (
           <Box>
-            <Alert severity="info" sx={{ mb: 2, fontSize: '0.8rem' }}>
-              <strong>Partidos DEMO</strong> — Los partidos marcados con la etiqueta <strong>DEMO</strong> son de práctica (La Liga española) y <strong>no suman puntos</strong> al ranking. Su único propósito es que te familiarices con la app antes del Mundial. Los datos DEMO se eliminarán el <strong>1 de junio de 2026</strong>.
-            </Alert>
             {scheduledMatches.length === 0 ? (
               <Alert severity="info">No hay partidos disponibles para predecir</Alert>
             ) : (
-              scheduledMatches.slice(0, visibleCount).map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  prediction={predictionsMap.get(match.id)}
-                  onPredictClick={handlePredictClick}
-                />
-              ))
+              <>
+                {scheduledMatches.slice(0, visibleCount).map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap.get(match.id)}
+                    onPredictClick={handlePredictClick}
+                  />
+                ))}
+                {visibleCount < scheduledMatches.length && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button variant="outlined" onClick={handleLoadMore}>
+                      Cargar más ({scheduledMatches.length - visibleCount} restantes)
+                    </Button>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         )}
@@ -202,14 +206,23 @@ export function MatchesPage() {
             {liveMatches.length === 0 ? (
               <Alert severity="info">No hay partidos en curso</Alert>
             ) : (
-              liveMatches.slice(0, visibleCount).map((match) => (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  prediction={predictionsMap.get(match.id)}
-                  onPredictClick={handlePredictClick}
-                />
-              ))
+              <>
+                {liveMatches.slice(0, visibleCount).map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap.get(match.id)}
+                    onPredictClick={handlePredictClick}
+                  />
+                ))}
+                {visibleCount < liveMatches.length && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button variant="outlined" onClick={handleLoadMore}>
+                      Cargar más ({liveMatches.length - visibleCount} restantes)
+                    </Button>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         )}
@@ -236,13 +249,22 @@ export function MatchesPage() {
             {finishedMatches.length === 0 ? (
               <Alert severity="info">No hay resultados disponibles</Alert>
             ) : (
-              finishedMatches.slice(0, visibleCount).map((match) => (
-                <ResultCard
-                  key={match.id}
-                  match={match}
-                  prediction={predictionsMap.get(match.id)}
-                />
-              ))
+              <>
+                {finishedMatches.slice(0, visibleCount).map((match) => (
+                  <ResultCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionsMap.get(match.id)}
+                  />
+                ))}
+                {visibleCount < finishedMatches.length && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button variant="outlined" onClick={handleLoadMore}>
+                      Cargar más ({finishedMatches.length - visibleCount} restantes)
+                    </Button>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         )}
