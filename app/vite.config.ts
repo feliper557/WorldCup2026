@@ -5,6 +5,28 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    // Targets modernos: navegadores con ES2022 (>97% global). Quita polyfills
+    // innecesarios y reduce el tamaño/tiempo de parse del bundle en mobile.
+    // Vite 8 + Rolldown usan minifier nativo por defecto — no forzamos esbuild.
+    target: 'es2022',
+    rollupOptions: {
+      output: {
+        // Code-splitting por vendor: el navegador parsea chunks en paralelo y
+        // un cambio en código de app no invalida el chunk de React/MUI en cache.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('@mui/icons-material')) return 'mui-icons';
+          if (id.includes('@mui/') || id.includes('@emotion/')) return 'mui-core';
+          if (id.includes('react-router')) return 'react-vendor';
+          if (id.includes('/react-dom/') || id.includes('/react/') || id.includes('/scheduler/')) {
+            return 'react-vendor';
+          }
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     visualizer({
@@ -42,15 +64,19 @@ export default defineConfig({
       workbox: {
         skipWaiting: false,
         clientsClaim: false,
-        // Precache solo lo crítico — chunks lazy (páginas, modales) se cachean en runtime
+        // Precache solo lo crítico — chunks lazy (páginas, modales) se cachean en runtime.
+        // manifest.webmanifest deliberadamente fuera: el navegador lo carga aparte y
+        // estaba apareciendo en el critical path del Lighthouse (1.2s). El SW lo
+        // resolverá vía runtime cache si hace falta.
         globPatterns: [
           'index.html',
-          'manifest.webmanifest',
           'favicon.svg',
           'icons.svg',
           'Francachelaicon.webp',
           'assets/index-*.js',
           'assets/index-*.css',
+          'assets/react-vendor-*.js',
+          'assets/mui-core-*.js',
           'icons/icon-192x192.png',
           'icons/icon-512x512.png',
         ],
