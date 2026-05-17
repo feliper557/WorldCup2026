@@ -73,7 +73,7 @@ export function BottomNav() {
           },
         }}
       >
-        <BottomNavigationAction label="Casa" icon={<Home />} />
+        <BottomNavigationAction label="Predicciones" icon={<Home />} />
         <BottomNavigationAction label="Ranking" icon={<Leaderboard />} />
         <BottomNavigationAction label="Mi Campeón" icon={<EmojiEvents />} />
       </BottomNavigation>
