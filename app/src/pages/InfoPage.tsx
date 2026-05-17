@@ -1,25 +1,5 @@
 import { useState } from 'react';
-import {
-  Box,
-  Container,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Card,
-  CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  Stack,
-  useTheme,
-  Button,
-} from '@mui/material';
+import { Box, Container, Stack, useTheme, Button, Chip } from '@mui/material';
 import { ExpandMore, WhatsApp, Gavel, Campaign } from '@mui/icons-material';
 import { HeroInfo } from '../components/sections';
 
@@ -81,17 +61,72 @@ export function InfoPage() {
     },
   ];
 
+  // Estilos del details/summary nativo (reemplazo de Accordion sin runtime CSS-in-JS pesado)
+  const detailsStyles = {
+    backgroundColor: theme.palette.background.paper,
+    mb: 1.5,
+    borderRadius: 1,
+    overflow: 'hidden',
+    '& > summary': {
+      listStyle: 'none',
+      cursor: 'pointer',
+      px: 2,
+      py: 1.75,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      fontWeight: 600,
+      fontSize: '1rem',
+      color: theme.palette.text.primary,
+      transition: 'background-color 200ms ease',
+      '&:hover': { backgroundColor: `${theme.palette.primary.main}08` },
+      '&::-webkit-details-marker': { display: 'none' },
+      '& .expand-icon': {
+        transition: 'transform 200ms ease',
+        color: theme.palette.text.secondary,
+      },
+    },
+    '&[open] > summary .expand-icon': {
+      transform: 'rotate(180deg)',
+    },
+    '& > .details-body': {
+      px: 2,
+      pt: 2,
+      pb: 2,
+      borderTop: `1px solid ${theme.palette.primary.main}15`,
+    },
+  };
+
+  const systemPointsDetailsStyles = {
+    ...detailsStyles,
+    backgroundColor: `${theme.palette.warning.main}08`,
+    borderLeft: `4px solid ${theme.palette.warning.main}`,
+  };
+
+  // Fila de la tabla de puntos via CSS grid (reemplazo de Table/TableRow/TableCell)
+  const pointsRow = {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr 1fr auto',
+    gap: { xs: 1, sm: 2 },
+    alignItems: 'center',
+    p: 1.5,
+    borderBottom: `1px solid ${theme.palette.primary.main}10`,
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    transition: 'background-color 160ms ease',
+    '&:hover': { backgroundColor: `${theme.palette.primary.main}05` },
+  };
+
   return (
     <Box>
-      {/* Hero Section */}
       <HeroInfo />
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* Botones de sección */}
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
           {[
-            { index: 0, label: 'Reglas del Juego', icon: <Gavel sx={{ fontSize: 20 }} />, color: theme.palette.primary.main },
-            { index: 1, label: 'Eventos / Novedades', icon: <Campaign sx={{ fontSize: 20 }} />, color: theme.palette.secondary.light },
+            { index: 0, label: 'Reglas del Juego', icon: <Gavel sx={{ fontSize: 20 }} />, color: theme.palette.primary.main, delay: '0s' },
+            { index: 1, label: 'Eventos / Novedades', icon: <Campaign sx={{ fontSize: 20 }} />, color: theme.palette.secondary.light, delay: '0.05s' },
           ].map(({ index, label, icon, color }) => {
             const active = tabValue === index;
             return (
@@ -149,265 +184,192 @@ export function InfoPage() {
         {/* Pestaña 0 - Reglas */}
         {tabValue === 0 && (
           <Box>
-            <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            <Box component="h2" sx={{ m: 0, mb: 3, fontSize: '1.5rem', fontWeight: 600, color: theme.palette.text.primary }}>
               📋 Reglas de Predicción
-            </Typography>
+            </Box>
 
             {rules.map((rule, idx) => (
-              <Accordion
+              <Box
                 key={idx}
-                defaultExpanded={false}
-                sx={{
-                  backgroundColor: rule.isSystemPoints ? `${theme.palette.warning.main}08` : `${theme.palette.background.paper}`,
-                  mb: 1.5,
-                  borderLeft: rule.isSystemPoints ? `4px solid ${theme.palette.warning.main}` : 'none',
-                  '&:before': {
-                    display: 'none',
-                  },
-                }}
+                component="details"
+                sx={rule.isSystemPoints ? systemPointsDetailsStyles : detailsStyles}
               >
-                <AccordionSummary
-                  expandIcon={<ExpandMore />}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: `${theme.palette.primary.main}08`,
-                    },
-                  }}
-                >
-                  <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
-                    {rule.isSystemPoints ? '🎯 Sistema de Puntos' : rule.title}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ pt: 2, borderTop: `1px solid ${theme.palette.primary.main}15` }}>
+                <Box component="summary">
+                  <span>{rule.isSystemPoints ? '🎯 Sistema de Puntos' : rule.title}</span>
+                  <ExpandMore className="expand-icon" />
+                </Box>
+                <Box className="details-body">
                   {rule.isSystemPoints ? (
                     <Stack spacing={2}>
-                      <Typography sx={{ color: theme.palette.text.primary, lineHeight: 1.7, fontSize: '0.95rem' }}>
+                      <Box component="p" sx={{ m: 0, color: theme.palette.text.primary, lineHeight: 1.7, fontSize: '0.95rem' }}>
                         El sistema de puntos de la polla funciona de la siguiente manera: Obtienes <strong>3 puntos por un marcador exacto</strong>, <strong>1 punto si aciertas el ganador o un empate</strong>, y <strong>0 puntos si tu predicción es incorrecta</strong>. Además, tenemos dos bonos especiales: si aciertas el marcador exacto en un partido de <strong>Colombia, recibes 5 puntos</strong> en lugar de 3, y si aciertas al <strong>campeón del torneo, obtienes 20 puntos</strong> adicionales. A continuación se muestran algunos ejemplos:
-                      </Typography>
-                      <TableContainer>
-                        <Table>
-                          <TableHead>
-                            <TableRow sx={{ backgroundColor: `${theme.palette.warning.main}15` }}>
-                              <TableCell sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
-                                Resultado Real
-                              </TableCell>
-                              <TableCell sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
-                                Tu Predicción
-                              </TableCell>
-                              <TableCell sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
-                                Resultado
-                              </TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
-                                Puntos
-                              </TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}05` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>Argentina 3 - 1 Francia</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>Argentina 3 - 1 Francia</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.success.main }}>✓ Exacto</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.warning.main }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.warning.main}20`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
-                                  3 pts
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow sx={{ backgroundColor: `${theme.palette.success.main}08`, '&:hover': { backgroundColor: `${theme.palette.success.main}15` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>🇨🇴 Colombia 2 - 1 Perú</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>🇨🇴 Colombia 2 - 1 Perú</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.success.main }}>✓ Exacto (Bonus)</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.success.main }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.success.main}30`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block', border: `2px solid ${theme.palette.success.main}` }}>
-                                  5 pts ⭐
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}05` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>Brasil 2 - 0 Alemania</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>Brasil 1 - 0 Alemania</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Ganador</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.secondary.main }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.secondary.main}20`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
-                                  1 pt
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}05` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>España 2 - 2 Italia</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>España 1 - 1 Italia</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Empate</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.secondary.main }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.secondary.main}20`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
-                                  1 pt
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow sx={{ '&:hover': { backgroundColor: `${theme.palette.primary.main}05` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>Holanda 1 - 2 Portugal</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>Holanda 2 - 1 Portugal</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.error.main }}>✗ Incorrecto</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.text.secondary }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.text.secondary}20`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
-                                  0 pts
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow sx={{ backgroundColor: `${theme.palette.info.main}08`, '&:hover': { backgroundColor: `${theme.palette.info.main}15` } }}>
-                              <TableCell sx={{ fontWeight: 500 }}>🏆 Campeón: Colombia</TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>🏆 Campeón: Colombia</TableCell>
-                              <TableCell sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Exacto (Bonus)</TableCell>
-                              <TableCell align="right" sx={{ fontWeight: 700, color: theme.palette.info.main }}>
-                                <Box sx={{ backgroundColor: `${theme.palette.info.main}30`, px: 2, py: 0.5, borderRadius: 1, display: 'inline-block', border: `2px solid ${theme.palette.info.main}` }}>
-                                  20 pts ⭐
-                                </Box>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
+                      </Box>
+
+                      {/* Tabla de puntos via CSS grid (sin MUI Table) */}
+                      <Box sx={{ borderRadius: 1, overflow: 'hidden', border: `1px solid ${theme.palette.primary.main}10` }}>
+                        {/* Header */}
+                        <Box sx={{
+                          ...pointsRow,
+                          backgroundColor: `${theme.palette.warning.main}15`,
+                          fontWeight: 700,
+                          color: theme.palette.warning.main,
+                          fontSize: '0.8rem',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                        }}>
+                          <span>Resultado Real</span>
+                          <span>Tu Predicción</span>
+                          <span>Resultado</span>
+                          <span style={{ textAlign: 'right' }}>Puntos</span>
+                        </Box>
+
+                        {/* Fila 1: Exacto 3 pts */}
+                        <Box sx={pointsRow}>
+                          <span>Argentina 3 - 1 Francia</span>
+                          <span>Argentina 3 - 1 Francia</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.success.main }}>✓ Exacto</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.warning.main, backgroundColor: `${theme.palette.warning.main}20`, px: 2, py: 0.5, borderRadius: 1 }}>3 pts</Box>
+                        </Box>
+
+                        {/* Fila 2: Colombia bonus 5 pts */}
+                        <Box sx={{ ...pointsRow, backgroundColor: `${theme.palette.success.main}08` }}>
+                          <span>🇨🇴 Colombia 2 - 1 Perú</span>
+                          <span>🇨🇴 Colombia 2 - 1 Perú</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.success.main }}>✓ Exacto (Bonus)</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.success.main, backgroundColor: `${theme.palette.success.main}30`, px: 2, py: 0.5, borderRadius: 1, border: `2px solid ${theme.palette.success.main}` }}>5 pts ⭐</Box>
+                        </Box>
+
+                        {/* Fila 3: Ganador 1 pt */}
+                        <Box sx={pointsRow}>
+                          <span>Brasil 2 - 0 Alemania</span>
+                          <span>Brasil 1 - 0 Alemania</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Ganador</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.secondary.main, backgroundColor: `${theme.palette.secondary.main}20`, px: 2, py: 0.5, borderRadius: 1 }}>1 pt</Box>
+                        </Box>
+
+                        {/* Fila 4: Empate 1 pt */}
+                        <Box sx={pointsRow}>
+                          <span>España 2 - 2 Italia</span>
+                          <span>España 1 - 1 Italia</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Empate</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.secondary.main, backgroundColor: `${theme.palette.secondary.main}20`, px: 2, py: 0.5, borderRadius: 1 }}>1 pt</Box>
+                        </Box>
+
+                        {/* Fila 5: Incorrecto 0 pts */}
+                        <Box sx={pointsRow}>
+                          <span>Holanda 1 - 2 Portugal</span>
+                          <span>Holanda 2 - 1 Portugal</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.error.main }}>✗ Incorrecto</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.text.secondary, backgroundColor: `${theme.palette.text.secondary}20`, px: 2, py: 0.5, borderRadius: 1 }}>0 pts</Box>
+                        </Box>
+
+                        {/* Fila 6: Campeón bonus 20 pts */}
+                        <Box sx={{ ...pointsRow, backgroundColor: `${theme.palette.info.main}08`, borderBottom: 'none' }}>
+                          <span>🏆 Campeón: Colombia</span>
+                          <span>🏆 Campeón: Colombia</span>
+                          <Box component="span" sx={{ fontWeight: 600, color: theme.palette.info.main }}>✓ Exacto (Bonus)</Box>
+                          <Box component="span" sx={{ justifySelf: 'end', fontWeight: 700, color: theme.palette.info.main, backgroundColor: `${theme.palette.info.main}30`, px: 2, py: 0.5, borderRadius: 1, border: `2px solid ${theme.palette.info.main}` }}>20 pts ⭐</Box>
+                        </Box>
+                      </Box>
+
                       <Box sx={{ p: 2, backgroundColor: `${theme.palette.success.main}10`, borderRadius: 1, borderLeft: `4px solid ${theme.palette.success.main}` }}>
-                        <Typography sx={{ fontWeight: 600, color: theme.palette.success.main, mb: 1 }}>
+                        <Box component="p" sx={{ m: 0, mb: 1, fontWeight: 600, color: theme.palette.success.main }}>
                           ⭐ BONUS ESPECIAL - COLOMBIA
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.9rem', color: theme.palette.text.primary }}>
+                        </Box>
+                        <Box component="p" sx={{ m: 0, fontSize: '0.9rem', color: theme.palette.text.primary }}>
                           Los marcadores exactos en partidos de <strong>Colombia</strong> valen <strong>5 puntos</strong> en lugar de 3.
-                        </Typography>
+                        </Box>
                       </Box>
                       <Box sx={{ p: 2, backgroundColor: `${theme.palette.info.main}10`, borderRadius: 1, borderLeft: `4px solid ${theme.palette.info.main}` }}>
-                        <Typography sx={{ fontWeight: 600, color: theme.palette.info.main, mb: 1 }}>
+                        <Box component="p" sx={{ m: 0, mb: 1, fontWeight: 600, color: theme.palette.info.main }}>
                           ⭐ BONUS ESPECIAL - CAMPEÓN
-                        </Typography>
-                        <Typography sx={{ fontSize: '0.9rem', color: theme.palette.text.primary }}>
+                        </Box>
+                        <Box component="p" sx={{ m: 0, fontSize: '0.9rem', color: theme.palette.text.primary }}>
                           Acertar al <strong>campeón del torneo</strong> te otorga <strong>20 puntos</strong> adicionales.
-                        </Typography>
+                        </Box>
                       </Box>
                     </Stack>
                   ) : (
-                    <Typography sx={{ color: theme.palette.text.primary, lineHeight: 1.7, fontSize: '0.95rem' }}>
+                    <Box component="p" sx={{ m: 0, color: theme.palette.text.primary, lineHeight: 1.7, fontSize: '0.95rem' }}>
                       {rule.content}
-                    </Typography>
+                    </Box>
                   )}
-                </AccordionDetails>
-              </Accordion>
+                </Box>
+              </Box>
             ))}
 
-
-            {/* Premiación Accordion */}
-            <Accordion
-              defaultExpanded={false}
-              sx={{
-                backgroundColor: `${theme.palette.background.paper}`,
-                mb: 1.5,
-                '&:before': {
-                  display: 'none',
-                },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMore />}
-                sx={{
-                  '&:hover': {
-                    backgroundColor: `${theme.palette.primary.main}08`,
-                  },
-                }}
-              >
-                <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>🏆 Premiación</Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 2, borderTop: `1px solid ${theme.palette.primary.main}15` }}>
+            {/* Premiación */}
+            <Box component="details" sx={detailsStyles}>
+              <Box component="summary">
+                <span>🏆 Premiación</span>
+                <ExpandMore className="expand-icon" />
+              </Box>
+              <Box className="details-body">
                 <Stack spacing={3}>
-                  {/* Descripción de rifas y sorteos */}
                   <Box sx={{ p: 2, backgroundColor: `${theme.palette.primary.main}08`, borderRadius: 1, borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.primary.main, mb: 1 }}>
+                    <Box component="p" sx={{ m: 0, mb: 1, fontWeight: 600, color: theme.palette.primary.main }}>
                       🎁 Rifas y Sorteos
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.9rem', color: theme.palette.text.primary, lineHeight: 1.6 }}>
+                    </Box>
+                    <Box component="p" sx={{ m: 0, fontSize: '0.9rem', color: theme.palette.text.primary, lineHeight: 1.6 }}>
                       Además de los premios al ranking principal, habrá <strong>rifas y sorteos especiales</strong> durante el torneo. Los participantes podrán ganar premios adicionales a través de sorteos realizados al final de cada fase (Grupos, Eliminatorias, Semis y Final). ¡Cada predicción te da más oportunidades de ganar!
-                    </Typography>
+                    </Box>
                   </Box>
 
-                  {/* Premios al ranking */}
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 2, color: theme.palette.text.primary }}>
+                    <Box component="p" sx={{ m: 0, mb: 2, fontWeight: 600, fontSize: '0.95rem', color: theme.palette.text.primary }}>
                       Premios Principales (Ranking Final):
-                    </Typography>
+                    </Box>
                     <Stack spacing={1.5}>
                       {/* 1er Lugar */}
-                      <Card
-                        sx={{
-                          borderTop: `3px solid ${theme.palette.warning.main}`,
-                          backgroundColor: `${theme.palette.warning.main}08`,
-                        }}
-                      >
-                        <CardContent sx={{ py: 1.5 }}>
-                          <Stack direction="row" spacing={2} alignItems="center">
-                            <Box sx={{ fontSize: '2rem' }}>🥇</Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>
-                                Primer Lugar
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'right' }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1.3rem', color: theme.palette.warning.main }}>
-                                $1.000.000
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </CardContent>
-                      </Card>
-
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        borderTop: `3px solid ${theme.palette.warning.main}`,
+                        backgroundColor: `${theme.palette.warning.main}08`,
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                      }}>
+                        <Box sx={{ fontSize: '2rem' }}>🥇</Box>
+                        <Box sx={{ flex: 1, fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>Primer Lugar</Box>
+                        <Box sx={{ fontWeight: 700, fontSize: '1.3rem', color: theme.palette.warning.main }}>$1.000.000</Box>
+                      </Box>
                       {/* 2do Lugar */}
-                      <Card
-                        sx={{
-                          borderTop: `3px solid ${theme.palette.secondary.main}`,
-                          backgroundColor: `${theme.palette.secondary.main}08`,
-                        }}
-                      >
-                        <CardContent sx={{ py: 1.5 }}>
-                          <Stack direction="row" spacing={2} alignItems="center">
-                            <Box sx={{ fontSize: '2rem' }}>🥈</Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>
-                                Segundo Lugar
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'right' }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1.3rem', color: theme.palette.secondary.main }}>
-                                $400.000
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </CardContent>
-                      </Card>
-
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        borderTop: `3px solid ${theme.palette.secondary.main}`,
+                        backgroundColor: `${theme.palette.secondary.main}08`,
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                      }}>
+                        <Box sx={{ fontSize: '2rem' }}>🥈</Box>
+                        <Box sx={{ flex: 1, fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>Segundo Lugar</Box>
+                        <Box sx={{ fontWeight: 700, fontSize: '1.3rem', color: theme.palette.secondary.main }}>$400.000</Box>
+                      </Box>
                       {/* 3er Lugar */}
-                      <Card
-                        sx={{
-                          borderTop: `3px solid #CD7F32`,
-                          backgroundColor: `#CD7F3208`,
-                        }}
-                      >
-                        <CardContent sx={{ py: 1.5 }}>
-                          <Stack direction="row" spacing={2} alignItems="center">
-                            <Box sx={{ fontSize: '2rem' }}>🥉</Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>
-                                Tercer Lugar
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'right' }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: '1.3rem', color: '#CD7F32' }}>
-                                $200.000
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </CardContent>
-                      </Card>
+                      <Box sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        borderTop: `3px solid #CD7F32`,
+                        backgroundColor: `#CD7F3208`,
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                      }}>
+                        <Box sx={{ fontSize: '2rem' }}>🥉</Box>
+                        <Box sx={{ flex: 1, fontWeight: 700, fontSize: '1rem', color: theme.palette.text.primary }}>Tercer Lugar</Box>
+                        <Box sx={{ fontWeight: 700, fontSize: '1.3rem', color: '#CD7F32' }}>$200.000</Box>
+                      </Box>
                     </Stack>
                   </Box>
                 </Stack>
-              </AccordionDetails>
-            </Accordion>
+              </Box>
+            </Box>
 
             {/* Register Button */}
             <Box sx={{ mt: 6, display: 'flex', justifyContent: 'center' }}>
@@ -416,18 +378,11 @@ export function InfoPage() {
                 color="success"
                 startIcon={<WhatsApp />}
                 onClick={() => {
-                  const message = encodeURIComponent(
-                    'Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉'
-                  );
+                  const message = encodeURIComponent('Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉');
                   const whatsappUrl = `https://wa.me/573133195197?text=${message}`;
                   window.open(whatsappUrl, '_blank');
                 }}
-                sx={{
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '0.95rem',
-                }}
+                sx={{ fontWeight: 600, px: 3, py: 1.5, fontSize: '0.95rem' }}
               >
                 Registrarme
               </Button>
@@ -438,84 +393,83 @@ export function InfoPage() {
         {/* Pestaña 1 - Eventos */}
         {tabValue === 1 && (
           <Box>
-            <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            <Box component="h2" sx={{ m: 0, mb: 3, fontSize: '1.5rem', fontWeight: 600, color: theme.palette.text.primary }}>
               🌍 Datos del Torneo
-            </Typography>
+            </Box>
 
-            <Card
-              sx={{
-                mb: 4,
-                borderTop: `4px solid ${theme.palette.primary.main}`,
-                backgroundColor: theme.palette.background.paper,
-                boxShadow: 2,
-              }}
-            >
-              <CardContent>
-                <Typography sx={{ fontWeight: 700, mb: 3, color: theme.palette.secondary.main, fontSize: '1.2rem' }}>
-                  ⚽ Copa Mundial FIFA 2026
-                </Typography>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}15` }}>
-                    <Typography sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>Sede:</Typography>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>
-                      Canadá, México y EE.UU.
-                    </Typography>
+            {/* Card del Mundial */}
+            <Box sx={{
+              mb: 4,
+              borderTop: `4px solid ${theme.palette.primary.main}`,
+              backgroundColor: theme.palette.background.paper,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.18)',
+              borderRadius: 1,
+              p: 2,
+            }}>
+              <Box component="p" sx={{ m: 0, mb: 3, fontWeight: 700, color: theme.palette.secondary.main, fontSize: '1.2rem' }}>
+                ⚽ Copa Mundial FIFA 2026
+              </Box>
+              <Stack spacing={2}>
+                {[
+                  ['Sede:', 'Canadá, México y EE.UU.'],
+                  ['Fechas:', '11 jun - 19 jul 2026'],
+                  ['Equipos:', '48 selecciones'],
+                  ['Partidos:', '104'],
+                ].map(([label, value], i, arr) => (
+                  <Box
+                    key={label}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      pb: i < arr.length - 1 ? 1.5 : 0,
+                      borderBottom: i < arr.length - 1 ? `1px solid ${theme.palette.primary.main}15` : 'none',
+                    }}
+                  >
+                    <Box component="span" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>{label}</Box>
+                    <Box component="span" sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>{value}</Box>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}15` }}>
-                    <Typography sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>Fechas:</Typography>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>
-                      11 jun - 19 jul 2026
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1.5, borderBottom: `1px solid ${theme.palette.primary.main}15` }}>
-                    <Typography sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>Equipos:</Typography>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>
-                      48 selecciones
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>Partidos:</Typography>
-                    <Typography sx={{ fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>
-                      104
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
+                ))}
+              </Stack>
+            </Box>
 
-            <Typography variant="h5" sx={{ mb: 3, fontWeight: 600 }}>
+            <Box component="h2" sx={{ m: 0, mb: 3, fontSize: '1.5rem', fontWeight: 600, color: theme.palette.text.primary }}>
               📢 Avisos y Novedades
-            </Typography>
+            </Box>
 
             <Stack spacing={2}>
               {announcements.map((announcement) => (
-                <Card
+                <Box
                   key={announcement.id}
                   sx={{
+                    p: 2,
+                    borderRadius: 1,
                     borderLeft: `4px solid ${announcement.severity === 'success' ? theme.palette.primary.main : theme.palette.secondary.main}`,
                     backgroundColor: announcement.severity === 'success'
                       ? `${theme.palette.primary.main}08`
                       : `${theme.palette.secondary.main}08`,
-                    boxShadow: 1,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    gap: 2,
                   }}
                 >
-                  <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600, mb: 1, color: theme.palette.text.primary, fontSize: '1rem' }}>
-                        {announcement.title}
-                      </Typography>
-                      <Typography sx={{ color: theme.palette.text.primary, fontSize: '0.95rem', lineHeight: 1.6 }}>
-                        {announcement.body}
-                      </Typography>
+                  <Box sx={{ flex: 1 }}>
+                    <Box component="p" sx={{ m: 0, mb: 1, fontWeight: 600, color: theme.palette.text.primary, fontSize: '1rem' }}>
+                      {announcement.title}
                     </Box>
-                    <Chip
-                      label={new Date(announcement.publishedAt).toLocaleDateString('es-ES')}
-                      size="small"
-                      variant="outlined"
-                      sx={{ flexShrink: 0 }}
-                    />
-                  </CardContent>
-                </Card>
+                    <Box component="p" sx={{ m: 0, color: theme.palette.text.primary, fontSize: '0.95rem', lineHeight: 1.6 }}>
+                      {announcement.body}
+                    </Box>
+                  </Box>
+                  <Chip
+                    label={new Date(announcement.publishedAt).toLocaleDateString('es-ES')}
+                    size="small"
+                    variant="outlined"
+                    sx={{ flexShrink: 0 }}
+                  />
+                </Box>
               ))}
             </Stack>
 
@@ -526,18 +480,11 @@ export function InfoPage() {
                 color="success"
                 startIcon={<WhatsApp />}
                 onClick={() => {
-                  const message = encodeURIComponent(
-                    'Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉'
-                  );
+                  const message = encodeURIComponent('Hola, me gustaría registrarme en Francachela Polla Mundial 2026 🎉');
                   const whatsappUrl = `https://wa.me/573133195197?text=${message}`;
                   window.open(whatsappUrl, '_blank');
                 }}
-                sx={{
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '0.95rem',
-                }}
+                sx={{ fontWeight: 600, px: 3, py: 1.5, fontSize: '0.95rem' }}
               >
                 Registrarme
               </Button>
