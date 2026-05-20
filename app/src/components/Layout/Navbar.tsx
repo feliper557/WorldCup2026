@@ -28,7 +28,10 @@ import {
   GetApp as GetAppIcon,
   EmojiEvents,
   KeyboardArrowDown,
+  Facebook,
+  Instagram,
 } from '@mui/icons-material';
+import { FACEBOOK_URL, INSTAGRAM_URL } from '../../config/social';
 import { useState, useEffect } from 'react';
 import { useAuthUser } from '../../hooks/useAuthUser';
 import { getLogoutUrl, logout, getStoredToken } from '../../services/auth';
@@ -143,60 +146,98 @@ export function Navbar() {
             minHeight: '64px',
           }}
         >
-          {/* Logo + Brand */}
-          <Box
-            onClick={() => navigate('/matches')}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.8,
-              },
-            }}
-          >
+          {/* Logo + Brand + Redes sociales */}
+          <Stack direction="row" alignItems="center" spacing={{ xs: 0.25, sm: 0.75 }}>
             <Box
-              component="img"
-              src="/Francachelaicon.webp"
-              alt="Francachela"
+              onClick={() => navigate('/matches')}
               sx={{
-                width: 38,
-                height: 38,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                border: `2px solid ${theme.palette.primary.main}`,
-                boxShadow: `0 0 0 3px ${theme.palette.primary.main}22`,
-                transition: 'transform 200ms ease, box-shadow 200ms ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: 'pointer',
                 '&:hover': {
-                  transform: 'scale(1.04)',
-                  boxShadow: `0 0 0 4px ${theme.palette.primary.main}33`,
+                  opacity: 0.8,
                 },
               }}
-            />
-            <Box sx={{ display: { xs: 'none', sm: 'block' }, marginTop: '0px' }}>
-              <div
-                style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  color: theme.palette.text.primary,
-                  lineHeight: 1.1,
+            >
+              <Box
+                component="img"
+                src="/Francachelaicon.webp"
+                alt="Francachela"
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  boxShadow: `0 0 0 3px ${theme.palette.primary.main}22`,
+                  transition: 'transform 200ms ease, box-shadow 200ms ease',
+                  '&:hover': {
+                    transform: 'scale(1.04)',
+                    boxShadow: `0 0 0 4px ${theme.palette.primary.main}33`,
+                  },
                 }}
-              >
-                Francachela
-              </div>
-              <div
-                style={{
-                  fontSize: '0.6rem',
-                  fontWeight: 500,
-                  color: theme.palette.primary.main,
-                  letterSpacing: '0.08em',
-                }}
-              >
-                POLLA
-              </div>
+              />
+              <Box sx={{ display: { xs: 'none', sm: 'block' }, marginTop: '0px' }}>
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Francachela
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 500,
+                    color: theme.palette.primary.main,
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  POLLA
+                </div>
+              </Box>
             </Box>
-          </Box>
+
+            {/* Iconos redes sociales — visibles en todas las vistas */}
+            <Stack direction="row" spacing={0}>
+              <IconButton
+                component="a"
+                href={FACEBOOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook de Francachela"
+                size="small"
+                sx={{
+                  p: 0.5,
+                  color: theme.palette.text.secondary,
+                  transition: 'color 0.2s ease',
+                  '&:hover': { color: theme.palette.primary.main },
+                }}
+              >
+                <Facebook sx={{ fontSize: 18 }} />
+              </IconButton>
+              <IconButton
+                component="a"
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram de Francachela"
+                size="small"
+                sx={{
+                  p: 0.5,
+                  color: theme.palette.text.secondary,
+                  transition: 'color 0.2s ease',
+                  '&:hover': { color: theme.palette.primary.main },
+                }}
+              >
+                <Instagram sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Stack>
+          </Stack>
 
           {/* Center: Tabs (Desktop) */}
           {!isMobile && (

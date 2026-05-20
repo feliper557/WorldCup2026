@@ -1,8 +1,6 @@
 import { Box, Container, IconButton, Link, Typography, useTheme, Divider, Stack } from '@mui/material';
 import { Facebook, Instagram, SportsSoccer } from '@mui/icons-material';
-
-const FACEBOOK_URL = 'https://www.facebook.com/share/1D4gQWvcbF/?mibextid=wwXIfr';
-const INSTAGRAM_URL = 'https://www.instagram.com/francachela_restarante?igsh=MTVmNnNmYWpkeTBtZg==';
+import { FACEBOOK_URL, INSTAGRAM_URL } from '../../config/social';
 
 export function Footer() {
   const theme = useTheme();
