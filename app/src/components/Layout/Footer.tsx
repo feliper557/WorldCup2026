@@ -1,5 +1,8 @@
-import { Box, Container, Link, Typography, useTheme, Divider, Stack } from '@mui/material';
-import { SportsSoccer } from '@mui/icons-material';
+import { Box, Container, IconButton, Link, Typography, useTheme, Divider, Stack } from '@mui/material';
+import { Facebook, Instagram, SportsSoccer } from '@mui/icons-material';
+
+const FACEBOOK_URL = 'https://www.facebook.com/share/1D4gQWvcbF/?mibextid=wwXIfr';
+const INSTAGRAM_URL = 'https://www.instagram.com/francachela_restarante?igsh=MTVmNnNmYWpkeTBtZg==';
 
 export function Footer() {
   const theme = useTheme();
@@ -117,6 +120,40 @@ export function Footer() {
               Contacto
             </Link>
           </Box>
+
+          {/* Redes sociales */}
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <IconButton
+              component="a"
+              href={FACEBOOK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook de Francachela"
+              size="small"
+              sx={{
+                color: theme.palette.text.secondary,
+                transition: 'color 0.2s ease',
+                '&:hover': { color: theme.palette.text.primary },
+              }}
+            >
+              <Facebook fontSize="small" />
+            </IconButton>
+            <IconButton
+              component="a"
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram de Francachela"
+              size="small"
+              sx={{
+                color: theme.palette.text.secondary,
+                transition: 'color 0.2s ease',
+                '&:hover': { color: theme.palette.text.primary },
+              }}
+            >
+              <Instagram fontSize="small" />
+            </IconButton>
+          </Stack>
 
           {/* Copyright */}
           <Typography
