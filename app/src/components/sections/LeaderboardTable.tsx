@@ -100,6 +100,20 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
     maxPts: ranking.length > 0 ? Math.max(...ranking.map(p => p.totalPoints || 0)) : 0,
   }), [ranking]);
 
+  // Posición del usuario actual — siempre por puntos, independiente del filtro/orden
+  const myScore = useMemo(() => {
+    if (!currentUserId) return null;
+    return ranking.find((s) => s.userId === currentUserId) || null;
+  }, [ranking, currentUserId]);
+
+  const myRank = useMemo(() => {
+    if (!myScore) return null;
+    if (typeof myScore.rank === 'number' && myScore.rank > 0) return myScore.rank;
+    const sorted = [...ranking].sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+    const idx = sorted.findIndex((s) => s.userId === currentUserId);
+    return idx >= 0 ? idx + 1 : null;
+  }, [ranking, myScore, currentUserId]);
+
   // Mostrar filas cuando los datos cargan o el filtro cambia
   useEffect(() => {
     setVisibleRows(participants.length);
@@ -118,6 +132,125 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
   return (
     <Box component="section" sx={{ py: { xs: 4, sm: 6 }, px: { xs: 1, sm: 2 } }}>
       <Container maxWidth="lg" sx={{ px: { xs: 0, sm: 2 } }}>
+
+        {/* Tu posición — pinned para no tener que hacer scroll */}
+        {!loading && !error && myScore && myRank !== null && (
+          <Paper
+            elevation={0}
+            onClick={() => setSelectedUser({ userId: myScore.userId, name: myScore.displayName || 'Tú' })}
+            sx={{
+              mb: 3,
+              p: { xs: 1.75, sm: 2.5 },
+              cursor: 'pointer',
+              backgroundColor: `${theme.palette.secondary.main}12`,
+              border: `1px solid ${theme.palette.secondary.main}40`,
+              borderLeft: `4px solid ${theme.palette.secondary.main}`,
+              borderRadius: 2,
+              boxShadow: `0 4px 24px ${theme.palette.secondary.main}20`,
+              transition: 'background-color 120ms ease, transform 120ms ease',
+              '&:hover': {
+                backgroundColor: `${theme.palette.secondary.main}1C`,
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={{ xs: 1.25, sm: 2 }}
+            >
+              <Box sx={{ minWidth: { xs: 44, sm: 56 }, textAlign: 'center', flexShrink: 0 }}>
+                {MEDALS[myRank] ? (
+                  <Typography sx={{ fontSize: { xs: '1.6rem', sm: '2rem' }, lineHeight: 1 }}>
+                    {MEDALS[myRank]}
+                  </Typography>
+                ) : (
+                  <Typography sx={{ fontWeight: 800, color: theme.palette.secondary.main, fontSize: { xs: '1.4rem', sm: '1.9rem' }, lineHeight: 1 }}>
+                    #{myRank}
+                  </Typography>
+                )}
+              </Box>
+
+              <Avatar
+                sx={{
+                  width: { xs: 38, sm: 44 },
+                  height: { xs: 38, sm: 44 },
+                  backgroundColor: theme.palette.secondary.main,
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                  border: `2px solid ${theme.palette.secondary.main}`,
+                  flexShrink: 0,
+                }}
+              >
+                {(myScore.displayName || 'AN').substring(0, 2).toUpperCase()}
+              </Avatar>
+
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.secondary.main,
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                  }}
+                >
+                  Tu posición · de {ranking.length}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.text.primary,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    mt: 0.25,
+                    wordBreak: 'break-word',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {myScore.displayName}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    display: 'block',
+                    color: theme.palette.text.secondary,
+                    fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                    mt: 0.5,
+                  }}
+                >
+                  {myScore.totalPredictions || 0} pred. · {myScore.exactScores || 0} exactos · {myScore.correctWinners || 0} ganadores
+                </Typography>
+              </Box>
+
+              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 800,
+                    color: theme.palette.secondary.main,
+                    fontSize: { xs: '1.3rem', sm: '1.8rem' },
+                    lineHeight: 1,
+                  }}
+                >
+                  {myScore.totalPoints || 0}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Puntos
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        )}
 
         {/* Header */}
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={{ xs: 2.5, sm: 3 }} sx={{ mb: 3 }}>
