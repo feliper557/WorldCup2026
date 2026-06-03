@@ -96,12 +96,8 @@ export function useAdmin(): UseAdminResult {
   };
 
   const toggleActiveHandler = async (userId: string, isActive: boolean) => {
-    try {
-      const updatedUser = await toggleUserActive(userId, isActive);
-      setUsers(users.map((u) => (u.userId === userId ? updatedUser : u)));
-    } catch (err) {
-      throw err;
-    }
+    await toggleUserActive(userId, isActive);
+    setUsers((prev) => prev.map((u) => (u.userId === userId ? { ...u, isActive } : u)));
   };
 
   useEffect(() => {

@@ -22,7 +22,7 @@ const BASE = getApiBase();
 // Helper para request
 async function request<T>(
   endpoint: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
   body?: unknown
 ): Promise<T> {
   const url = `${BASE}${endpoint}`;
@@ -70,6 +70,10 @@ function get<T>(endpoint: string): Promise<T> {
 
 function post<T>(endpoint: string, body: unknown): Promise<T> {
   return request<T>(endpoint, 'POST', body);
+}
+
+function patch<T>(endpoint: string, body: unknown): Promise<T> {
+  return request<T>(endpoint, 'PATCH', body);
 }
 
 // Endpoints de Matches
@@ -237,8 +241,8 @@ export const resendInvitation = (invitationId: string, channel: 'email' | 'whats
 export const resetUserPassword = (userId: string, body: ResetPasswordRequest): Promise<{ success: boolean }> =>
   post(`/mgmt/users/${userId}/reset-password`, body);
 
-export const toggleUserActive = (userId: string, isActive: boolean): Promise<AdminUser> =>
-  post(`/mgmt/users/${userId}`, { isActive });
+export const toggleUserActive = (userId: string, isActive: boolean): Promise<{ success: boolean; message?: string }> =>
+  patch(`/mgmt/users/${userId}/status`, { status: isActive ? 'active' : 'inactive' });
 
 export const recalculatePoints = (userId?: string): Promise<{ message: string; matchesProcessed: number; predictionsUpdated: number }> =>
   post(`/mgmt/recalculate-points${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`, {});
