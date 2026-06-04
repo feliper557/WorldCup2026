@@ -43,6 +43,11 @@ public record UserSummary(
 public record UpdateUserStatusRequest(string Status);
 
 /// <summary>
+/// Request to reset a user's password (admin action — no current-password check)
+/// </summary>
+public record ResetUserPasswordRequest(string NewPassword);
+
+/// <summary>
 /// Response for user status update
 /// </summary>
 public record UpdateUserStatusResponse(

@@ -1,4 +1,5 @@
 using System.Net;
+using static BCrypt.Net.BCrypt;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -113,6 +114,44 @@ public class AdminUsersFunction
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating user status");
+            return ErrorResponse(req, ex.Message, HttpStatusCode.InternalServerError);
+        }
+    }
+
+    [Function("AdminResetUserPassword")]
+    public async Task<HttpResponseData> ResetUserPassword(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "mgmt/users/{userId}/reset-password")]
+        HttpRequestData req,
+        string userId)
+    {
+        _logger.LogInformation("ResetUserPassword called for user {UserId}", userId);
+
+        try
+        {
+            // TODO: Validate admin token when auth is properly implemented
+            var body = await req.ReadFromJsonAsync<ResetUserPasswordRequest>();
+            if (body == null || string.IsNullOrWhiteSpace(body.NewPassword))
+                return ErrorResponse(req, "newPassword es requerido", HttpStatusCode.BadRequest);
+
+            if (body.NewPassword.Length < 8)
+                return ErrorResponse(req, "La contraseña debe tener al menos 8 caracteres", HttpStatusCode.BadRequest);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return ErrorResponse(req, "Usuario no encontrado", HttpStatusCode.NotFound);
+
+            user.PasswordHash = HashPassword(body.NewPassword, 12);
+            await _userRepository.UpdateAsync(user);
+
+            _logger.LogInformation("Password reset for user {UserId}", userId);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new { success = true, message = "Contraseña actualizada" });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting user password");
             return ErrorResponse(req, ex.Message, HttpStatusCode.InternalServerError);
         }
     }
