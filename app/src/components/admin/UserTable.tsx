@@ -50,6 +50,7 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
   const [recalcLoading, setRecalcLoading] = useState(false);
   const [recalcResult, setRecalcResult] = useState<string | null>(null);
+  const [resetResult, setResetResult] = useState<string | null>(null);
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -72,10 +73,15 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
 
     try {
       setResetLoading(true);
+      setResetResult(null);
       await onResetPassword(selectedUserId, newPassword);
       setResetDialogOpen(false);
       setSelectedUserId(null);
       setNewPassword('');
+      setResetResult('✅ Contraseña actualizada con éxito');
+      setTimeout(() => setResetResult(null), 5000);
+    } catch (err) {
+      setResetResult(`❌ Error: ${err instanceof Error ? err.message : 'No se pudo resetear la contraseña'}`);
     } finally {
       setResetLoading(false);
     }
@@ -116,6 +122,15 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
           {recalcResult && (
             <Alert severity={recalcResult.startsWith('✅') ? 'success' : 'error'} sx={{ mb: 2 }}>
               {recalcResult}
+            </Alert>
+          )}
+          {resetResult && (
+            <Alert
+              severity={resetResult.startsWith('✅') ? 'success' : 'error'}
+              sx={{ mb: 2 }}
+              onClose={() => setResetResult(null)}
+            >
+              {resetResult}
             </Alert>
           )}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
