@@ -89,9 +89,12 @@ public class AdminRemindersFunction
                 return emptyOk;
             }
 
-            // Solo se pueden predecir partidos scheduled o live (el cutoff no ha pasado)
+            // Solo se pueden predecir partidos que aún no han terminado
             var predictableMatches = dayMatches
-                .Where(m => m.Status == "scheduled" || m.Status == "live")
+                .Where(m => !m.Status.Equals("finished", StringComparison.OrdinalIgnoreCase)
+                         && !m.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase)
+                         && !m.Status.Equals("postponed", StringComparison.OrdinalIgnoreCase)
+                         && !m.Status.Equals("suspended", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             var matchIds = dayMatches.Select(m => m.Id).ToList();
@@ -124,9 +127,12 @@ public class AdminRemindersFunction
                     continue;
                 }
 
-                // Solo enviar email por partidos que aún se pueden predecir (scheduled/live)
+                // Solo enviar email por partidos que aún no han terminado
                 var missingPredictable = missingAll
-                    .Where(m => m.Status == "scheduled" || m.Status == "live")
+                    .Where(m => !m.Status.Equals("finished", StringComparison.OrdinalIgnoreCase)
+                             && !m.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase)
+                             && !m.Status.Equals("postponed", StringComparison.OrdinalIgnoreCase)
+                             && !m.Status.Equals("suspended", StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 bool notified = false;
