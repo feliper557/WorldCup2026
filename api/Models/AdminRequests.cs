@@ -164,6 +164,34 @@ public record ListRafflesResponse(
 );
 
 /// <summary>
+/// Request para aplicar el campeón y otorgar 20 puntos a quienes acertaron
+/// </summary>
+public record ApplyChampionRequest(string Champion);
+
+/// <summary>
+/// Detalle de un usuario en el resultado de aplicar campeón
+/// </summary>
+public record ChampionAwardDetail(
+    string UserId,
+    string Email,
+    string DisplayName,
+    string PredictedTeam,
+    bool IsCorrect,
+    int PointsAwarded
+);
+
+/// <summary>
+/// Respuesta tras aplicar el campeón
+/// </summary>
+public record ApplyChampionResponse(
+    string Champion,
+    int TotalPredictions,
+    int Winners,
+    List<ChampionAwardDetail> Details,
+    string Message
+);
+
+/// <summary>
 /// Request body for sending reminders — date is optional (yyyy-MM-dd), defaults to today (Colombia time)
 /// </summary>
 public record SendRemindersRequest(string? Date);

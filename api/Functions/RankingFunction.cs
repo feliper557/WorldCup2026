@@ -8,22 +8,24 @@ namespace WorldCup.Api.Functions;
 
 /// <summary>
 /// Function para obtener el ranking de participantes
-/// Calcula puntos dinámicamente sumando todas las predicciones
-/// Retorna lista de usuarios ordenada por puntos totales
+/// Calcula puntos dinámicamente sumando predicciones de partidos + predicción de campeón (20 pts)
 /// </summary>
 public class RankingFunction
 {
     private readonly IUserRepository _userRepository;
     private readonly IPredictionRepository _predictionRepository;
+    private readonly IChampionPredictionRepository _championRepository;
     private readonly ILogger<RankingFunction> _logger;
 
     public RankingFunction(
         IUserRepository userRepository,
         IPredictionRepository predictionRepository,
+        IChampionPredictionRepository championRepository,
         ILogger<RankingFunction> logger)
     {
         _userRepository = userRepository;
         _predictionRepository = predictionRepository;
+        _championRepository = championRepository;
         _logger = logger;
     }
 
@@ -36,25 +38,31 @@ public class RankingFunction
 
         try
         {
-            // Antes había N+1 (una query por usuario) — ahora son 2 roundtrips fijos.
-            // Nota: NO paralelizar con Task.WhenAll — ambos repos comparten el mismo
-            // DbContext scoped y EF Core no admite operaciones concurrentes.
+            // 3 roundtrips secuenciales — NO usar Task.WhenAll, los repos comparten DbContext.
             var users = await _userRepository.GetLeaderboardAsync(limit: 1000);
             var aggregates = await _predictionRepository.GetAggregatedByUserAsync();
+            var championPredictions = await _championRepository.GetAllAsync();
+
+            // Puntos de campeón por userId (solo quienes acertaron tienen PointsAwarded > 0)
+            var championPoints = championPredictions
+                .Where(cp => cp.PointsAwarded > 0)
+                .ToDictionary(cp => cp.UserId, cp => cp.PointsAwarded);
 
             var ranking = users
                 .Select(user =>
                 {
                     aggregates.TryGetValue(user.Id, out var agg);
+                    championPoints.TryGetValue(user.Id, out var champPts);
                     return new
                     {
                         user.Id,
                         user.Email,
                         user.DisplayName,
-                        TotalPoints = agg?.TotalPoints ?? 0,
+                        TotalPoints = (agg?.TotalPoints ?? 0) + champPts,
                         TotalPredictions = agg?.TotalPredictions ?? 0,
                         ExactScores = agg?.ExactScores ?? 0,
                         CorrectWinners = agg?.CorrectWinners ?? 0,
+                        ChampionPoints = champPts,
                         user.LeaderboardRank,
                     };
                 })

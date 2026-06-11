@@ -13,6 +13,9 @@ public class ChampionPredictionRepository : IChampionPredictionRepository
     public async Task<ChampionPredictionEntity?> GetByUserIdAsync(string userId)
         => await _db.ChampionPredictions.FirstOrDefaultAsync(cp => cp.UserId == userId);
 
+    public async Task<IEnumerable<ChampionPredictionEntity>> GetAllAsync()
+        => await _db.ChampionPredictions.ToListAsync();
+
     public async Task<ChampionPredictionEntity> CreateAsync(ChampionPredictionEntity prediction)
     {
         await _db.ChampionPredictions.AddAsync(prediction);

@@ -267,6 +267,26 @@ export interface SendRemindersResponse {
 export const sendReminders = (date: string): Promise<SendRemindersResponse> =>
   post('/mgmt/send-reminders', { date });
 
+export interface ChampionAwardDetail {
+  userId: string;
+  email: string;
+  displayName: string;
+  predictedTeam: string;
+  isCorrect: boolean;
+  pointsAwarded: number;
+}
+
+export interface ApplyChampionResponse {
+  champion: string;
+  totalPredictions: number;
+  winners: number;
+  details: ChampionAwardDetail[];
+  message: string;
+}
+
+export const applyChampion = (champion: string): Promise<ApplyChampionResponse> =>
+  post('/mgmt/apply-champion', { champion });
+
 // Endpoints de Perfil
 export interface UpdateProfileBody {
   displayName?: string;
