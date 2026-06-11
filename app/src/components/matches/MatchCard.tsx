@@ -45,8 +45,6 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
   const kickoffTime = new Date(match.kickoffAtUtc);
   const isPredictionAvailable = match.status === 'SCHEDULED' && now < kickoffTime;
 
-  // Detectar si es La Liga (DEMO)
-  const isDemo = match.stage?.toUpperCase().includes('REGULAR') ?? false;
 
   // Validar estado del partido antes de permitir predicción
   const handlePredictClick = async () => {
@@ -88,7 +86,6 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1, flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Chip label={getStageLabel(match.stage)} size="small" color="primary" />
-            {isDemo && <Chip label="DEMO" size="small" color="warning" sx={{ fontWeight: 700, letterSpacing: '0.08em' }} />}
           </Box>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Chip
