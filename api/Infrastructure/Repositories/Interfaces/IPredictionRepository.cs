@@ -15,6 +15,7 @@ public interface IPredictionRepository
     Task<PredictionEntity?> GetByUserAndMatchAsync(string userId, string matchId);
     Task<IEnumerable<PredictionEntity>> GetByUserIdAsync(string userId);
     Task<IEnumerable<PredictionEntity>> GetByMatchIdAsync(string matchId);
+    Task<IEnumerable<PredictionEntity>> GetByMatchIdsAsync(IEnumerable<string> matchIds);
     Task<Dictionary<string, PredictionAggregate>> GetAggregatedByUserAsync();
     Task<PredictionEntity> CreateAsync(PredictionEntity prediction);
     Task<PredictionEntity> UpdateAsync(PredictionEntity prediction);

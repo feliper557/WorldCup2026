@@ -224,6 +224,104 @@ Si no esperabas esta invitación, ignora este mensaje.";
     }
 
     /// <summary>
+    /// Envía recordatorio a un usuario con partidos pendientes de predecir hoy
+    /// </summary>
+    public async Task SendReminderEmailAsync(string email, string displayName, int pendingCount, List<string> matchDescriptions)
+    {
+        var siteUrl = _config["App:FrontendUrl"] ?? "https://francachelamxsubachoque.site";
+        var matchListHtml = string.Join("", matchDescriptions.Select(m =>
+            $"<li style=\"margin:0 0 6px;font-size:14px;color:#555;\">{m}</li>"));
+        var matchListText = string.Join("\n", matchDescriptions.Select(m => $"  - {m}"));
+
+        var html = $@"<!DOCTYPE html>
+<html lang=""es"">
+<head>
+  <meta charset=""utf-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+  <title>Partidos pendientes — Francachela</title>
+</head>
+<body style=""margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;"">
+
+  <span style=""display:none;max-height:0;overflow:hidden;"">Tienes {pendingCount} partido{(pendingCount > 1 ? "s" : "")} por predecir hoy ⚽</span>
+
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""background-color:#f4f4f5;"">
+    <tr>
+      <td align=""center"" style=""padding:32px 16px;"">
+        <table width=""100%"" cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""max-width:520px;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);"">
+
+          <!-- Header -->
+          <tr>
+            <td style=""background-color:#0f1923;padding:28px 32px;text-align:center;"">
+              <p style=""margin:0;font-size:22px;font-weight:700;color:#1D9E75;letter-spacing:1px;"">FRANCACHELA</p>
+              <p style=""margin:6px 0 0;font-size:12px;color:#8899a6;letter-spacing:2px;text-transform:uppercase;"">Polla Mundialista 2026</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style=""padding:36px 32px 28px;"">
+              <p style=""margin:0 0 16px;font-size:20px;font-weight:600;color:#0f1923;"">Hola, {displayName} ⚽</p>
+              <p style=""margin:0 0 8px;font-size:15px;color:#444;line-height:1.6;"">
+                Hoy hay <strong>{pendingCount} partido{(pendingCount > 1 ? "s" : "")}</strong> que todavía no has predicho.
+                ¡No te quedes sin puntos!
+              </p>
+
+              <ul style=""margin:12px 0 20px;padding-left:20px;"">
+                {matchListHtml}
+              </ul>
+
+              <table cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""margin:8px 0 24px;"">
+                <tr>
+                  <td style=""background-color:#1D9E75;border-radius:6px;"">
+                    <a href=""{siteUrl}/partidos"" style=""display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;"">Hacer mis predicciones</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style=""margin:0;font-size:13px;color:#999;"">Las predicciones cierran 1 minuto antes del inicio de cada partido.</p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style=""background-color:#f9f9f9;padding:20px 32px;border-top:1px solid #eee;"">
+              <p style=""margin:0;font-size:12px;color:#aaa;line-height:1.6;"">
+                Recibiste este correo porque participas en Francachela.<br>
+                Si ya hiciste tus predicciones, puedes ignorar este mensaje.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>";
+
+        var text = $@"Hola {displayName},
+
+Hoy tienes {pendingCount} partido{(pendingCount > 1 ? "s" : "")} pendiente{(pendingCount > 1 ? "s" : "")} por predecir:
+
+{matchListText}
+
+Entra ahora y haz tus predicciones: {siteUrl}/partidos
+
+Las predicciones cierran 1 minuto antes del inicio de cada partido.
+
+---
+Recibiste este correo porque participas en Francachela.
+Si ya hiciste tus predicciones, ignora este mensaje.";
+
+        await SendEmailAsync(
+            to: email,
+            subject: $"⚽ Tienes {pendingCount} partido{(pendingCount > 1 ? "s" : "")} por predecir hoy — Francachela",
+            html: html,
+            text: text
+        );
+    }
+
+    /// <summary>
     /// Método central de envío — incluye html + text para mejor deliverabilidad
     /// </summary>
     private async Task SendEmailAsync(string to, string subject, string html, string text)

@@ -28,6 +28,14 @@ public class PredictionRepository : IPredictionRepository
             .Where(p => p.MatchId == matchId)
             .ToListAsync();
 
+    public async Task<IEnumerable<PredictionEntity>> GetByMatchIdsAsync(IEnumerable<string> matchIds)
+    {
+        var ids = matchIds.ToList();
+        return await _db.Predictions
+            .Where(p => ids.Contains(p.MatchId))
+            .ToListAsync();
+    }
+
     public async Task<Dictionary<string, PredictionAggregate>> GetAggregatedByUserAsync()
     {
         // Single GROUP BY query — replaces N+1 loop in RankingFunction.

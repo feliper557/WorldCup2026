@@ -162,3 +162,31 @@ public record ListRafflesResponse(
     List<RaffleResponse> Raffles,
     int TotalCount
 );
+
+/// <summary>
+/// Request body for sending reminders — date is optional (yyyy-MM-dd), defaults to today (Colombia time)
+/// </summary>
+public record SendRemindersRequest(string? Date);
+
+/// <summary>
+/// Detail of a single user notified (or skipped) in a reminder run
+/// </summary>
+public record ReminderUserDetail(
+    string UserId,
+    string Email,
+    string DisplayName,
+    int MissingCount,
+    bool Notified
+);
+
+/// <summary>
+/// Response after sending reminders to users with pending predictions today
+/// </summary>
+public record SendRemindersResponse(
+    int MatchesToday,
+    int ActiveUsers,
+    int UsersNotified,
+    int UsersAlreadyComplete,
+    List<ReminderUserDetail> Details,
+    string Message
+);

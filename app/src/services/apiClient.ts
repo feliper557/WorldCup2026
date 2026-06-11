@@ -247,6 +247,26 @@ export const toggleUserActive = (userId: string, isActive: boolean): Promise<{ s
 export const recalculatePoints = (userId?: string): Promise<{ message: string; matchesProcessed: number; predictionsUpdated: number }> =>
   post(`/mgmt/recalculate-points${userId ? `?userId=${encodeURIComponent(userId)}` : ''}`, {});
 
+export interface ReminderUserDetail {
+  userId: string;
+  email: string;
+  displayName: string;
+  missingCount: number;
+  notified: boolean;
+}
+
+export interface SendRemindersResponse {
+  matchesToday: number;
+  activeUsers: number;
+  usersNotified: number;
+  usersAlreadyComplete: number;
+  details: ReminderUserDetail[];
+  message: string;
+}
+
+export const sendReminders = (date: string): Promise<SendRemindersResponse> =>
+  post('/mgmt/send-reminders', { date });
+
 // Endpoints de Perfil
 export interface UpdateProfileBody {
   displayName?: string;
