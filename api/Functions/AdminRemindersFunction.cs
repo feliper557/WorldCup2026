@@ -150,6 +150,9 @@ public class AdminRemindersFunction
                         matchDescriptions: matchDescriptions
                     );
 
+                    // 250 ms entre envíos → máximo 4 emails/segundo (límite Resend: 5/s)
+                    await Task.Delay(250);
+
                     notifiedCount++;
                     notified = true;
                     _logger.LogInformation("Reminder sent to {Email} — {Missing} partidos pendientes", user.Email, missingPredictable.Count);
