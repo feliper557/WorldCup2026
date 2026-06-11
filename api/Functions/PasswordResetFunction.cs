@@ -156,5 +156,60 @@ public class PasswordResetFunction
         return response;
     }
 
+    /// <summary>
+    /// Flujo público: el usuario ingresa su correo y recibe el enlace de reset.
+    /// Valida que el correo exista y sea de proveedor email (no GitHub/OAuth).
+    /// </summary>
+    [Function("ForgotPassword")]
+    public async Task<HttpResponseData> ForgotPassword(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "auth/forgot-password")]
+        HttpRequestData req)
+    {
+        _logger.LogInformation("ForgotPassword called");
+
+        try
+        {
+            var body = await req.ReadFromJsonAsync<ForgotPasswordRequest>();
+            if (string.IsNullOrWhiteSpace(body?.Email))
+                return Error(req, "El correo es requerido", HttpStatusCode.BadRequest);
+
+            var user = await _userRepo.GetByEmailAsync(body.Email.Trim().ToLowerInvariant());
+            if (user == null)
+                return Error(req, "No encontramos una cuenta registrada con ese correo", HttpStatusCode.NotFound);
+
+            if (string.IsNullOrEmpty(user.PasswordHash))
+                return Error(req, "Esta cuenta usa inicio de sesión con GitHub. No es posible restablecer la contraseña por este método.", HttpStatusCode.BadRequest);
+
+            // Invalidar tokens anteriores
+            await _tokenRepo.InvalidatePreviousTokensAsync(user.Id);
+
+            var rawToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var resetToken = new PasswordResetTokenEntity
+            {
+                UserId = user.Id,
+                Token = rawToken,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(TokenExpiryMinutes),
+            };
+            await _tokenRepo.CreateAsync(resetToken);
+
+            var frontendUrl = _config["App:FrontendUrl"] ?? "https://francachelamxsubachoque.site";
+            var resetLink = $"{frontendUrl}/reset-password?token={rawToken}";
+
+            await _emailService.SendPasswordResetEmailAsync(user.Email, user.DisplayName, resetLink);
+
+            _logger.LogInformation("Forgot-password link sent to {Email}", user.Email);
+
+            var ok = req.CreateResponse(HttpStatusCode.OK);
+            await ok.WriteAsJsonAsync(new { success = true, message = $"Te enviamos un enlace a {user.Email}. Revisa también la carpeta de spam." });
+            return ok;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error en ForgotPassword");
+            return Error(req, ex.Message, HttpStatusCode.InternalServerError);
+        }
+    }
+
     private record ResetWithTokenRequest(string Token, string NewPassword);
+    private record ForgotPasswordRequest(string Email);
 }

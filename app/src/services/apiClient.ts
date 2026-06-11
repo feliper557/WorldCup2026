@@ -293,6 +293,9 @@ export const sendPasswordResetLink = (userId: string): Promise<{ success: boolea
 export const resetPasswordWithToken = (token: string, newPassword: string): Promise<{ success: boolean; message: string }> =>
   post('/auth/reset-password-with-token', { token, newPassword });
 
+export const forgotPassword = (email: string): Promise<{ success: boolean; message: string }> =>
+  post('/auth/forgot-password', { email });
+
 // Endpoints de Perfil
 export interface UpdateProfileBody {
   displayName?: string;

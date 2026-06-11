@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Box, Paper, Typography, Button, Divider, useTheme, TextField, Alert, CircularProgress } from '@mui/material';
+import { Box, Paper, Typography, Button, Divider, useTheme, TextField, Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Email, Lock, WhatsApp, InfoOutlined } from '@mui/icons-material';
 import { useAuthUser } from '../hooks/useAuthUser';
 import { loginWithCredentials } from '../services/auth';
+import { forgotPassword } from '../services/apiClient';
 import { FrancachelaWatermark, FrancachelaLogo } from '../components/FrancachelaLogo';
 
 export function LoginPage() {
@@ -12,6 +13,10 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotResult, setForgotResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const theme = useTheme();
   const navigate = useNavigate();
 
@@ -23,6 +28,28 @@ export function LoginPage() {
   if (loading) {
     return null;
   }
+
+  const handleForgotOpen = () => {
+    setForgotEmail(email);
+    setForgotResult(null);
+    setForgotOpen(true);
+  };
+
+  const handleForgotSubmit = async () => {
+    if (!forgotEmail.trim()) return;
+    setForgotLoading(true);
+    setForgotResult(null);
+    try {
+      const res = await forgotPassword(forgotEmail.trim());
+      setForgotResult({ type: 'success', msg: res.message });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al enviar el correo';
+      const clean = msg.replace(/^API Error: \d+ - /, '');
+      setForgotResult({ type: 'error', msg: clean });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleCredentialLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,6 +208,16 @@ export function LoginPage() {
                 },
               }}
             />
+            <Box sx={{ textAlign: 'right', mt: 0.5 }}>
+              <Button
+                size="small"
+                onClick={handleForgotOpen}
+                sx={{ textTransform: 'none', color: theme.palette.text.secondary, fontSize: '0.8rem' }}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </Box>
+
             <Button
               type="submit"
               variant="contained"
@@ -189,7 +226,7 @@ export function LoginPage() {
               sx={{
                 py: 1.5,
                 fontSize: '1rem',
-                mt: 2,
+                mt: 1,
               }}
               disabled={isLoading}
             >
@@ -246,6 +283,49 @@ export function LoginPage() {
           </Box>
         </Box>
       </Paper>
+
+      {/* Dialog — Olvidé mi contraseña */}
+      <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>🔑 Restablecer contraseña</DialogTitle>
+        <DialogContent>
+          {forgotResult ? (
+            <Alert severity={forgotResult.type} sx={{ mt: 1 }}>
+              {forgotResult.msg}
+            </Alert>
+          ) : (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña (válido 30 minutos).
+              </Typography>
+              <TextField
+                fullWidth
+                label="Correo electrónico"
+                type="email"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                disabled={forgotLoading}
+                autoFocus
+                size="small"
+              />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setForgotOpen(false)}>
+            {forgotResult?.type === 'success' ? 'Cerrar' : 'Cancelar'}
+          </Button>
+          {!forgotResult && (
+            <Button
+              variant="contained"
+              onClick={handleForgotSubmit}
+              disabled={forgotLoading || !forgotEmail.trim()}
+              startIcon={forgotLoading ? <CircularProgress size={16} color="inherit" /> : undefined}
+            >
+              {forgotLoading ? 'Enviando...' : 'Enviar enlace'}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
