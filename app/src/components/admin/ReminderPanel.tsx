@@ -157,8 +157,10 @@ export function ReminderPanel() {
                       <TableCell align="center">
                         {d.notified ? (
                           <Chip label="Notificado" size="small" color="success" />
+                        ) : d.missingCount > 0 ? (
+                          <Chip label="Ya terminaron" size="small" color="default" variant="outlined" />
                         ) : (
-                          <Chip label="Al día" size="small" variant="outlined" />
+                          <Chip label="Al día" size="small" color="info" variant="outlined" />
                         )}
                       </TableCell>
                     </TableRow>

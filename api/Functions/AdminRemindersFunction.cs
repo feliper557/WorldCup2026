@@ -68,14 +68,15 @@ public class AdminRemindersFunction
             }
 
             var allMatches = await _matchRepository.GetAllAsync();
-            var todayMatches = allMatches
-                .Where(m => m.MatchDate.Date == todayColombia
-                            && (m.Status == "scheduled" || m.Status == "live"))
+
+            // Todos los partidos del día seleccionado, sin filtrar por status
+            var dayMatches = allMatches
+                .Where(m => m.MatchDate.Date == todayColombia)
                 .ToList();
 
-            if (todayMatches.Count == 0)
+            if (dayMatches.Count == 0)
             {
-                _logger.LogInformation("No hay partidos pendientes hoy ({Date})", todayColombia.ToString("yyyy-MM-dd"));
+                _logger.LogInformation("No hay partidos el {Date}", todayColombia.ToString("yyyy-MM-dd"));
                 var emptyOk = req.CreateResponse(HttpStatusCode.OK);
                 await emptyOk.WriteAsJsonAsync(new SendRemindersResponse(
                     MatchesToday: 0,
@@ -83,16 +84,21 @@ public class AdminRemindersFunction
                     UsersNotified: 0,
                     UsersAlreadyComplete: 0,
                     Details: new List<ReminderUserDetail>(),
-                    Message: $"No hay partidos pendientes el {todayColombia:dd/MM/yyyy}"
+                    Message: $"No hay partidos registrados el {todayColombia:dd/MM/yyyy}"
                 ));
                 return emptyOk;
             }
 
-            var matchIds = todayMatches.Select(m => m.Id).ToList();
+            // Solo se pueden predecir partidos scheduled o live (el cutoff no ha pasado)
+            var predictableMatches = dayMatches
+                .Where(m => m.Status == "scheduled" || m.Status == "live")
+                .ToList();
 
-            // Cargar todas las predicciones de hoy en una sola query
-            var todayPredictions = await _predictionRepository.GetByMatchIdsAsync(matchIds);
-            var predictedMatchesByUser = todayPredictions
+            var matchIds = dayMatches.Select(m => m.Id).ToList();
+
+            // Cargar todas las predicciones del día en una sola query
+            var dayPredictions = await _predictionRepository.GetByMatchIdsAsync(matchIds);
+            var predictedMatchesByUser = dayPredictions
                 .GroupBy(p => p.UserId)
                 .ToDictionary(g => g.Key, g => g.Select(p => p.MatchId).ToHashSet());
 
@@ -107,51 +113,65 @@ public class AdminRemindersFunction
             foreach (var user in activeUsers)
             {
                 var predictedIds = predictedMatchesByUser.TryGetValue(user.Id, out var set) ? set : new HashSet<string>();
-                var missingMatches = todayMatches.Where(m => !predictedIds.Contains(m.Id)).ToList();
 
-                if (missingMatches.Count == 0)
+                // Partidos del día que el usuario no ha predicho (todos, para mostrar en tabla)
+                var missingAll = dayMatches.Where(m => !predictedIds.Contains(m.Id)).ToList();
+
+                if (missingAll.Count == 0)
                 {
                     completeCount++;
                     details.Add(new ReminderUserDetail(user.Id, user.Email, user.DisplayName, 0, false));
                     continue;
                 }
 
-                var matchDescriptions = missingMatches
-                    .OrderBy(m => m.MatchDate)
-                    .Select(m =>
-                    {
-                        var hora = m.MatchDate.ToString("HH:mm");
-                        return $"{m.HomeTeam} vs {m.AwayTeam} ({hora})";
-                    })
+                // Solo enviar email por partidos que aún se pueden predecir (scheduled/live)
+                var missingPredictable = missingAll
+                    .Where(m => m.Status == "scheduled" || m.Status == "live")
                     .ToList();
 
-                await _emailService.SendReminderEmailAsync(
-                    email: user.Email,
-                    displayName: user.DisplayName,
-                    pendingCount: missingMatches.Count,
-                    matchDescriptions: matchDescriptions
-                );
+                bool notified = false;
+                if (missingPredictable.Count > 0)
+                {
+                    var matchDescriptions = missingPredictable
+                        .OrderBy(m => m.MatchDate)
+                        .Select(m => $"{m.HomeTeam} vs {m.AwayTeam} ({m.MatchDate:HH:mm})")
+                        .ToList();
 
-                notifiedCount++;
-                details.Add(new ReminderUserDetail(user.Id, user.Email, user.DisplayName, missingMatches.Count, true));
+                    await _emailService.SendReminderEmailAsync(
+                        email: user.Email,
+                        displayName: user.DisplayName,
+                        pendingCount: missingPredictable.Count,
+                        matchDescriptions: matchDescriptions
+                    );
 
-                _logger.LogInformation("Reminder sent to {Email} — {Missing} partidos pendientes", user.Email, missingMatches.Count);
+                    notifiedCount++;
+                    notified = true;
+                    _logger.LogInformation("Reminder sent to {Email} — {Missing} partidos pendientes", user.Email, missingPredictable.Count);
+                }
+
+                details.Add(new ReminderUserDetail(user.Id, user.Email, user.DisplayName, missingAll.Count, notified));
             }
 
             _logger.LogInformation(
-                "SendReminders complete: {Notified} notificados, {Complete} ya completos, {Matches} partidos hoy",
-                notifiedCount, completeCount, todayMatches.Count);
+                "SendReminders complete: {Notified} notificados, {Complete} ya completos, {Matches} partidos el día",
+                notifiedCount, completeCount, dayMatches.Count);
+
+            string message;
+            if (predictableMatches.Count == 0)
+                message = $"Todos los partidos del {todayColombia:dd/MM/yyyy} ya han terminado — no se enviaron recordatorios";
+            else if (notifiedCount == 0)
+                message = "Todos los usuarios ya tienen sus predicciones al día";
+            else
+                message = $"Se enviaron {notifiedCount} recordatorio{(notifiedCount > 1 ? "s" : "")} exitosamente";
 
             var ok = req.CreateResponse(HttpStatusCode.OK);
             await ok.WriteAsJsonAsync(new SendRemindersResponse(
-                MatchesToday: todayMatches.Count,
+                MatchesToday: dayMatches.Count,
                 ActiveUsers: activeUsers.Count,
                 UsersNotified: notifiedCount,
                 UsersAlreadyComplete: completeCount,
                 Details: details,
-                Message: notifiedCount == 0
-                    ? "Todos los usuarios ya tienen sus predicciones al día"
-                    : $"Se enviaron {notifiedCount} recordatorio{(notifiedCount > 1 ? "s" : "")} exitosamente"
+                Message: message
             ));
             return ok;
         }
