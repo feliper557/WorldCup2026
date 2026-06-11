@@ -32,7 +32,6 @@ export function LoginPage() {
     try {
       const response = await loginWithCredentials(email, password);
       if (response.success) {
-        sessionStorage.setItem('showEmailReminderNotice', 'true');
         navigate('/matches');
       } else {
         setError(response.message || 'Error al iniciar sesión');

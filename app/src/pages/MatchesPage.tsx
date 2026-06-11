@@ -13,7 +13,6 @@ import {
 } from '@mui/material';
 import type { Match, Prediction } from '../types';
 import { useMatches, usePredictions } from '../hooks';
-import { EmailReminderNotice } from '../components/ui/EmailReminderNotice';
 import { syncResults } from '../services/apiClient';
 import { HeroMatches } from '../components/sections';
 import { MatchCard } from '../components/matches/MatchCard';
@@ -147,8 +146,6 @@ export function MatchesPage() {
 
   return (
     <Box>
-      <EmailReminderNotice />
-
       {/* Hero Section */}
       <HeroMatches />
 
