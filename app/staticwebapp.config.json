@@ -54,12 +54,7 @@
       "*.{css,scss,js,png,gif,ico,jpg,jpeg,svg,woff,woff2,ttf,eot,json,webmanifest}"
     ]
   },
-  "responseOverrides": {
-    "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
-    }
-  },
+  "responseOverrides": {},
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
