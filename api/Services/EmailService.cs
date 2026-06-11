@@ -273,7 +273,7 @@ Si no esperabas esta invitación, ignora este mensaje.";
               <table cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""margin:8px 0 24px;"">
                 <tr>
                   <td style=""background-color:#1D9E75;border-radius:6px;"">
-                    <a href=""{siteUrl}/partidos"" style=""display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;"">Hacer mis predicciones</a>
+                    <a href=""{siteUrl}/matches"" style=""display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;"">Hacer mis predicciones</a>
                   </td>
                 </tr>
               </table>
@@ -305,7 +305,7 @@ Hoy tienes {pendingCount} partido{(pendingCount > 1 ? "s" : "")} pendiente{(pend
 
 {matchListText}
 
-Entra ahora y haz tus predicciones: {siteUrl}/partidos
+Entra ahora y haz tus predicciones: {siteUrl}/matches
 
 Las predicciones cierran 1 minuto antes del inicio de cada partido.
 
