@@ -287,6 +287,12 @@ export interface ApplyChampionResponse {
 export const applyChampion = (champion: string): Promise<ApplyChampionResponse> =>
   post('/mgmt/apply-champion', { champion });
 
+export const sendPasswordResetLink = (userId: string): Promise<{ success: boolean; message: string; link: string; expiresInMinutes: number }> =>
+  post(`/mgmt/users/${userId}/send-reset-link`, {});
+
+export const resetPasswordWithToken = (token: string, newPassword: string): Promise<{ success: boolean; message: string }> =>
+  post('/auth/reset-password-with-token', { token, newPassword });
+
 // Endpoints de Perfil
 export interface UpdateProfileBody {
   displayName?: string;

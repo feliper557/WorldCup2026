@@ -28,9 +28,9 @@ import {
   MenuItem,
   InputAdornment,
 } from '@mui/material';
-import { Search, Lock, ToggleOff, ToggleOn, Refresh } from '@mui/icons-material';
+import { Search, Lock, ToggleOff, ToggleOn, Refresh, ContentCopy, Check } from '@mui/icons-material';
 import type { AdminUser, IdentityProvider } from '../../types/admin';
-import { recalculatePoints } from '../../services/apiClient';
+import { recalculatePoints, sendPasswordResetLink } from '../../services/apiClient';
 
 interface UserTableProps {
   users: AdminUser[];
@@ -39,14 +39,16 @@ interface UserTableProps {
   loading?: boolean;
 }
 
-export function UserTable({ users, onResetPassword, onToggleActive, loading = false }: UserTableProps) {
+export function UserTable({ users, onToggleActive, loading = false }: UserTableProps) {
   const theme = useTheme();
   const [searchText, setSearchText] = useState('');
   const [filterProvider, setFilterProvider] = useState<IdentityProvider | ''>('');
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [newPassword, setNewPassword] = useState('');
+  const [selectedUserEmail, setSelectedUserEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [resetLink, setResetLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [toggleLoading, setToggleLoading] = useState<string | null>(null);
   const [recalcLoading, setRecalcLoading] = useState(false);
   const [recalcResult, setRecalcResult] = useState<string | null>(null);
@@ -62,29 +64,33 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
     });
   }, [users, searchText, filterProvider]);
 
-  const handleResetClick = (userId: string) => {
+  const handleResetClick = (userId: string, email: string) => {
     setSelectedUserId(userId);
-    setNewPassword('');
+    setSelectedUserEmail(email);
+    setResetLink(null);
+    setCopied(false);
     setResetDialogOpen(true);
   };
 
-  const handleResetSubmit = async () => {
-    if (!selectedUserId || !newPassword.trim()) return;
-
+  const handleSendResetLink = async () => {
+    if (!selectedUserId) return;
     try {
       setResetLoading(true);
-      setResetResult(null);
-      await onResetPassword(selectedUserId, newPassword);
-      setResetDialogOpen(false);
-      setSelectedUserId(null);
-      setNewPassword('');
-      setResetResult('✅ Contraseña actualizada con éxito');
-      setTimeout(() => setResetResult(null), 5000);
+      const result = await sendPasswordResetLink(selectedUserId);
+      setResetLink(result.link);
     } catch (err) {
-      setResetResult(`❌ Error: ${err instanceof Error ? err.message : 'No se pudo resetear la contraseña'}`);
+      setResetResult(`❌ Error: ${err instanceof Error ? err.message : 'No se pudo generar el enlace'}`);
+      setResetDialogOpen(false);
     } finally {
       setResetLoading(false);
     }
+  };
+
+  const handleCopyLink = () => {
+    if (!resetLink) return;
+    navigator.clipboard.writeText(resetLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const handleRecalculate = async (userId: string) => {
@@ -278,7 +284,7 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
                             size="small"
                             variant="outlined"
                             startIcon={<Lock />}
-                            onClick={() => handleResetClick(user.userId)}
+                            onClick={() => handleResetClick(user.userId, user.email)}
                             disabled={resetLoading || loading}
                             sx={{
                               fontSize: '0.75rem',
@@ -336,39 +342,64 @@ export function UserTable({ users, onResetPassword, onToggleActive, loading = fa
         </CardContent>
       </Card>
 
-      {/* Dialog de Reset Password */}
-      <Dialog
-        open={resetDialogOpen}
-        onClose={() => setResetDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>🔑 Resetear Contraseña</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography variant="body2" sx={{ mb: 2, color: theme.palette.text.secondary }}>
-            Ingresa una nueva contraseña temporal para este usuario
-          </Typography>
-          <TextField
-            label="Nueva Contraseña"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            fullWidth
-            autoFocus
-            disabled={resetLoading}
-          />
+      {/* Dialog de Reset Password — enlace seguro */}
+      <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600 }}>🔑 Restablecer contraseña</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {!resetLink ? (
+            <>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Se generará un enlace seguro válido por <strong>30 minutos</strong> y se enviará
+                al correo <strong>{selectedUserEmail}</strong>.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                El usuario podrá abrir el enlace y elegir su nueva contraseña sin que el admin la vea.
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Enlace enviado a <strong>{selectedUserEmail}</strong>. También puedes copiarlo y enviarlo manualmente.
+              </Alert>
+              <Box
+                sx={{
+                  bgcolor: 'action.hover',
+                  borderRadius: 1,
+                  p: 1.5,
+                  fontFamily: 'monospace',
+                  fontSize: '0.75rem',
+                  wordBreak: 'break-all',
+                  color: 'text.secondary',
+                }}
+              >
+                {resetLink}
+              </Box>
+            </>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResetDialogOpen(false)} disabled={resetLoading}>
-            Cancelar
+          <Button onClick={() => setResetDialogOpen(false)}>
+            {resetLink ? 'Cerrar' : 'Cancelar'}
           </Button>
-          <Button
-            onClick={handleResetSubmit}
-            variant="contained"
-            disabled={!newPassword.trim() || resetLoading}
-          >
-            {resetLoading ? 'Reseteando...' : 'Confirmar'}
-          </Button>
+          {resetLink ? (
+            <Button
+              variant="contained"
+              startIcon={copied ? <Check /> : <ContentCopy />}
+              onClick={handleCopyLink}
+              color={copied ? 'success' : 'primary'}
+            >
+              {copied ? '¡Copiado!' : 'Copiar enlace'}
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              startIcon={resetLoading ? <CircularProgress size={16} color="inherit" /> : <Lock />}
+              onClick={handleSendResetLink}
+              disabled={resetLoading}
+            >
+              {resetLoading ? 'Enviando...' : 'Enviar enlace'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Stack>

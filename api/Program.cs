@@ -44,6 +44,7 @@ builder.Services.AddScoped<IRaffleRepository, RaffleRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IChampionPredictionRepository, ChampionPredictionRepository>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
 // Register services
 builder.Services.AddSingleton<ITimeProviderService, TimeProviderService>();

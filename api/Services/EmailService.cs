@@ -224,6 +224,93 @@ Si no esperabas esta invitación, ignora este mensaje.";
     }
 
     /// <summary>
+    /// Envía email con enlace para que el usuario cambie su propia contraseña (válido 30 min)
+    /// </summary>
+    public async Task SendPasswordResetEmailAsync(string email, string displayName, string resetLink)
+    {
+        var html = $@"<!DOCTYPE html>
+<html lang=""es"">
+<head>
+  <meta charset=""utf-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+  <title>Cambiar contraseña — Francachela</title>
+</head>
+<body style=""margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;"">
+
+  <span style=""display:none;max-height:0;overflow:hidden;"">Cambia tu contraseña de Francachela — enlace válido por 30 minutos</span>
+
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""background-color:#f4f4f5;"">
+    <tr>
+      <td align=""center"" style=""padding:32px 16px;"">
+        <table width=""100%"" cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""max-width:520px;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);"">
+
+          <!-- Header -->
+          <tr>
+            <td style=""background-color:#0f1923;padding:28px 32px;text-align:center;"">
+              <p style=""margin:0;font-size:22px;font-weight:700;color:#1D9E75;letter-spacing:1px;"">FRANCACHELA</p>
+              <p style=""margin:6px 0 0;font-size:12px;color:#8899a6;letter-spacing:2px;text-transform:uppercase;"">Polla Mundialista 2026</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style=""padding:36px 32px 28px;"">
+              <p style=""margin:0 0 16px;font-size:20px;font-weight:600;color:#0f1923;"">Hola, {displayName} 🔑</p>
+              <p style=""margin:0 0 20px;font-size:15px;color:#444;line-height:1.6;"">
+                Un administrador generó un enlace para que cambies tu contraseña. Haz clic en el botón para crear una nueva.
+              </p>
+
+              <table cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""margin:8px 0 20px;"">
+                <tr>
+                  <td style=""background-color:#1D9E75;border-radius:6px;"">
+                    <a href=""{resetLink}"" style=""display:inline-block;padding:13px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;"">Cambiar mi contraseña</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style=""margin:0 0 8px;font-size:13px;color:#888;"">
+                ⏱ Este enlace es válido por <strong>30 minutos</strong>. Si no lo usas a tiempo, pide al administrador que genere uno nuevo.
+              </p>
+              <p style=""margin:16px 0 0;font-size:12px;color:#999;word-break:break-all;background:#f5f5f5;padding:10px 12px;border-radius:4px;"">
+                {resetLink}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style=""background-color:#f9f9f9;padding:20px 32px;border-top:1px solid #eee;"">
+              <p style=""margin:0;font-size:12px;color:#aaa;line-height:1.6;"">
+                Si no solicitaste este cambio, puedes ignorar este mensaje. Tu contraseña actual sigue siendo válida.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>";
+
+        var text = $@"Hola {displayName},
+
+Un administrador generó un enlace para que cambies tu contraseña en Francachela.
+
+Haz clic aquí para cambiarla (válido por 30 minutos):
+{resetLink}
+
+Si no solicitaste este cambio, ignora este mensaje. Tu contraseña actual sigue siendo válida.";
+
+        await SendEmailAsync(
+            to: email,
+            subject: "🔑 Cambia tu contraseña — Francachela",
+            html: html,
+            text: text
+        );
+    }
+
+    /// <summary>
     /// Envía recordatorio a un usuario con partidos pendientes de predecir hoy
     /// </summary>
     public async Task SendReminderEmailAsync(string email, string displayName, int pendingCount, List<string> matchDescriptions)

@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<RaffleWinnerEntity> RaffleWinners => Set<RaffleWinnerEntity>();
     public DbSet<PaymentEntity> Payments => Set<PaymentEntity>();
     public DbSet<ChampionPredictionEntity> ChampionPredictions => Set<ChampionPredictionEntity>();
+    public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,14 @@ public class AppDbContext : DbContext
             e.Property(cp => cp.Team).HasMaxLength(100).IsRequired();
             e.Property(cp => cp.Flag).HasMaxLength(20).IsRequired();
             e.HasOne(cp => cp.User).WithMany().HasForeignKey(cp => cp.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PasswordResetTokenEntity
+        modelBuilder.Entity<PasswordResetTokenEntity>(e => {
+            e.HasKey(t => t.Id);
+            e.HasIndex(t => t.Token).IsUnique();
+            e.Property(t => t.Token).HasMaxLength(256).IsRequired();
+            e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // PaymentEntity
