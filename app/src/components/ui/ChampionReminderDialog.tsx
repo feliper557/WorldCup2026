@@ -40,11 +40,11 @@ export function ChampionReminderDialog() {
     if (new Date() >= DEADLINE) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    // Marcar siempre para no volver a llamar la API en esta sesión
-    sessionStorage.setItem(SESSION_KEY, '1');
-
     fetchHasChampion().then((hasChampion) => {
-      if (!hasChampion) setOpen(true);
+      if (!hasChampion) {
+        setOpen(true);
+        sessionStorage.setItem(SESSION_KEY, '1');
+      }
     });
   }, []);
 
