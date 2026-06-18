@@ -17,14 +17,16 @@ const SESSION_KEY = 'championReminderShown';
 
 async function fetchHasChampion(): Promise<boolean> {
   const token = getStoredToken();
-  if (!token) return true; // no logueado → no mostrar
+  if (!token) return true;
   try {
     const res = await fetch('/api/champion-prediction/me', {
       headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' },
     });
-    return res.ok && res.status !== 204;
+    // Solo 204 significa "sin campeón". Cualquier error HTTP (401, 500…) → no interrumpir
+    if (!res.ok) return true;
+    return res.status !== 204;
   } catch {
-    return true; // error de red → no interrumpir al usuario
+    return true;
   }
 }
 
@@ -38,11 +40,11 @@ export function ChampionReminderDialog() {
     if (new Date() >= DEADLINE) return;
     if (sessionStorage.getItem(SESSION_KEY)) return;
 
+    // Marcar siempre para no volver a llamar la API en esta sesión
+    sessionStorage.setItem(SESSION_KEY, '1');
+
     fetchHasChampion().then((hasChampion) => {
-      if (!hasChampion) {
-        setOpen(true);
-        sessionStorage.setItem(SESSION_KEY, '1');
-      }
+      if (!hasChampion) setOpen(true);
     });
   }, []);
 
