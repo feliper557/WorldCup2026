@@ -3,6 +3,7 @@ import { Box } from '@mui/material';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { BottomNav } from './BottomNav';
+import { ChampionReminderDialog } from '../ui/ChampionReminderDialog';
 
 export function Layout() {
   return (
@@ -25,6 +26,7 @@ export function Layout() {
       </Box>
       <Footer />
       <BottomNav />
+      <ChampionReminderDialog />
     </Box>
   );
 }

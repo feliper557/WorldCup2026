@@ -7,7 +7,8 @@ export interface ChampionPrediction {
   savedAt: string;
 }
 
-const CHAMPIONSHIP_DEADLINE = new Date('2026-06-18T23:59:59Z'); // Fin primera ronda de grupos
+// 18 Jun 11:59 PM hora Colombia (UTC-5) = 19 Jun 04:59 AM UTC
+const CHAMPIONSHIP_DEADLINE = new Date('2026-06-19T04:59:59Z');
 
 const getAuthHeaders = () => {
   const token = getStoredToken();

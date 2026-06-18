@@ -14,8 +14,8 @@ public class ChampionPredictionFunction
     private readonly JwtService _jwtService;
     private readonly ILogger<ChampionPredictionFunction> _logger;
 
-    // Fecha límite: primer partido del Mundial 2026
-    private static readonly DateTime Deadline = new(2026, 6, 18, 23, 59, 59, DateTimeKind.Utc);
+    // Fecha límite: 18 Jun 11:59 PM hora Colombia (UTC-5) = 19 Jun 04:59 AM UTC
+    private static readonly DateTime Deadline = new(2026, 6, 19, 4, 59, 59, DateTimeKind.Utc);
 
     public ChampionPredictionFunction(
         IChampionPredictionRepository repo,
