@@ -57,7 +57,7 @@ export function MatchesPage() {
     setVisibleCount((c) => c + PAGE_SIZE);
   }, []);
 
-  // Sync en background — no bloquea el render inicial ni crea tareas largas
+  // Sync en background al cargar la página
   useEffect(() => {
     let isMounted = true;
     syncResults()
@@ -65,6 +65,25 @@ export function MatchesPage() {
       .catch((err) => console.error('Error syncing results:', err));
     return () => { isMounted = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Polling automático en pestaña En Vivo: sync + refetch al entrar y cada 30 s
+  useEffect(() => {
+    if (tabValue !== 1) return;
+    let isMounted = true;
+
+    const doRefresh = () => {
+      syncResults()
+        .then(() => { if (isMounted) refetch(); })
+        .catch(() => { if (isMounted) refetch(); }); // si falla el sync igual refresca
+    };
+
+    doRefresh();
+    const interval = setInterval(doRefresh, 30_000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [tabValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Map de predicciones para búsqueda O(1) en lugar de O(n) por cada partido
   const predictionsMap = useMemo(
