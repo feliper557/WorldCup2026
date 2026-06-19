@@ -14,8 +14,8 @@ public class ChampionPredictionFunction
     private readonly JwtService _jwtService;
     private readonly ILogger<ChampionPredictionFunction> _logger;
 
-    // Fecha límite: 18 Jun 11:59 PM hora Colombia (UTC-5) = 19 Jun 04:59 AM UTC
-    private static readonly DateTime Deadline = new(2026, 6, 19, 4, 59, 59, DateTimeKind.Utc);
+    // Fecha límite: 21 Jun 11:59 PM hora Colombia (UTC-5) = 22 Jun 04:59 AM UTC
+    private static readonly DateTime Deadline = new(2026, 6, 22, 4, 59, 59, DateTimeKind.Utc);
 
     public ChampionPredictionFunction(
         IChampionPredictionRepository repo,

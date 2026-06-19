@@ -12,7 +12,8 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useNavigate } from 'react-router-dom';
 import { getStoredToken } from '../../services/auth';
 
-const DEADLINE = new Date('2026-06-19T04:59:59Z');
+// 21 Jun 11:59 PM hora Colombia (UTC-5) = 22 Jun 04:59 AM UTC
+const DEADLINE = new Date('2026-06-22T04:59:59Z');
 const SESSION_KEY = 'championReminderShown';
 
 async function fetchHasChampion(): Promise<boolean> {
@@ -68,7 +69,7 @@ export function ChampionReminderDialog() {
       <DialogContent>
         <Typography variant="body1" textAlign="center" color="text.secondary">
           Aún no has seleccionado tu campeón del Mundial 2026. El plazo cierra el{' '}
-          <strong>18 de junio a las 11:59 PM</strong> hora Colombia.
+          <strong>domingo 21 de junio a las 11:59 PM</strong> hora Colombia.
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', gap: 1, pb: 3, px: 3 }}>
