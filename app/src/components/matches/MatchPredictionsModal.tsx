@@ -5,15 +5,7 @@ import {
   Alert, Stack, useTheme,
 } from '@mui/material';
 import { Close, EmojiEvents, People } from '@mui/icons-material';
-import { get } from '../../services/apiClient';
-
-interface MatchPredictionEntry {
-  displayName: string;
-  predictedHome: number;
-  predictedAway: number;
-  pointsEarned: number;
-  diff: number;
-}
+import { getMatchPredictions, type MatchPredictionEntry } from '../../services/apiClient';
 
 interface Props {
   open: boolean;
@@ -41,9 +33,9 @@ export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeS
     if (!open) return;
     setLoading(true);
     setError(null);
-    get<MatchPredictionEntry[]>(`/predictions/match/${matchId}`)
+    getMatchPredictions(matchId)
       .then(setEntries)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Error al cargar predicciones'))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Error al cargar predicciones'))
       .finally(() => setLoading(false));
   }, [open, matchId]);
 

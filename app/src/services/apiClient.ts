@@ -118,6 +118,17 @@ export const getMyPredictions = async (): Promise<Prediction[]> => {
 export const getPredictionsByMatch = (matchId: string): Promise<Prediction[]> =>
   get(`/predictions/match/${matchId}`);
 
+export interface MatchPredictionEntry {
+  displayName: string;
+  predictedHome: number;
+  predictedAway: number;
+  pointsEarned: number;
+  diff: number;
+}
+
+export const getMatchPredictions = (matchId: string): Promise<MatchPredictionEntry[]> =>
+  get(`/predictions/match/${matchId}`);
+
 export interface UserPredictionResult {
   matchId: string;
   homeTeam: string;
