@@ -114,10 +114,19 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
             </Typography>
           </Box>
 
-          <Box sx={{ textAlign: 'center', px: 2 }}>
-            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
-              vs
-            </Typography>
+          <Box sx={{ textAlign: 'center', px: 2, minWidth: 64 }}>
+            {match.status === 'LIVE' && match.homeScoreFinal !== null && match.awayScoreFinal !== null ? (
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 800, color: theme.palette.error.main, letterSpacing: 2, lineHeight: 1 }}
+              >
+                {match.homeScoreFinal} - {match.awayScoreFinal}
+              </Typography>
+            ) : (
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600 }}>
+                vs
+              </Typography>
+            )}
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, justifyContent: 'flex-end', minWidth: 0, flex: 1 }}>
