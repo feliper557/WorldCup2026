@@ -1,8 +1,10 @@
-import { Card, CardContent, Box, Typography, Chip, Stack, useTheme } from '@mui/material';
-import { Assessment, EmojiEvents, WarningAmber } from '@mui/icons-material';
+import { useState } from 'react';
+import { Card, CardContent, Box, Typography, Chip, Stack, useTheme, Button } from '@mui/material';
+import { Assessment, EmojiEvents, WarningAmber, People } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { TeamCrest } from './TeamCrest';
 import { getStageLabel } from '../../utils/stageLabels';
+import { MatchPredictionsModal } from './MatchPredictionsModal';
 
 interface ResultCardProps {
   match: Match;
@@ -11,6 +13,7 @@ interface ResultCardProps {
 
 export function ResultCard({ match, prediction }: ResultCardProps) {
   const theme = useTheme();
+  const [showPredictions, setShowPredictions] = useState(false);
   const finishDate = new Date(match.kickoffAtUtc);
   const formattedDate = finishDate.toLocaleString('es-CO', {
     day: 'numeric',
@@ -92,6 +95,18 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
           </Box>
         </Box>
 
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1.5 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<People sx={{ fontSize: 16 }} />}
+            onClick={() => setShowPredictions(true)}
+            sx={{ textTransform: 'none', fontSize: '0.78rem', py: 0.5 }}
+          >
+            Ver predicciones
+          </Button>
+        </Box>
+
         {prediction ? (
           <Stack
             direction="row"
@@ -134,6 +149,16 @@ export function ResultCard({ match, prediction }: ResultCardProps) {
           />
         )}
       </CardContent>
+
+      <MatchPredictionsModal
+        open={showPredictions}
+        matchId={match.id}
+        homeTeam={match.homeTeam}
+        awayTeam={match.awayTeam}
+        homeScore={match.homeScoreFinal ?? 0}
+        awayScore={match.awayScoreFinal ?? 0}
+        onClose={() => setShowPredictions(false)}
+      />
     </Card>
   );
 }

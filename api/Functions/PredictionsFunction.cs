@@ -15,17 +15,20 @@ public class PredictionsFunction
 {
     private readonly IPredictionRepository _predictions;
     private readonly IMatchRepository _matches;
+    private readonly IUserRepository _users;
     private readonly ITimeProviderService _time;
     private readonly JwtService _jwtService;
 
     public PredictionsFunction(
         IPredictionRepository predictions,
         IMatchRepository matches,
+        IUserRepository users,
         ITimeProviderService time,
         JwtService jwtService)
     {
         _predictions = predictions;
         _matches = matches;
+        _users = users;
         _time = time;
         _jwtService = jwtService;
     }
@@ -223,6 +226,58 @@ public class PredictionsFunction
                     pointsEarned  = p.PointsEarned,
                 };
             })
+            .ToList();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(result);
+        return response;
+    }
+
+    [Function("GetMatchPredictions")]
+    public async Task<HttpResponseData> GetMatchPredictions(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "predictions/match/{matchId}")] HttpRequestData req,
+        string matchId)
+    {
+        var requesterId = ExtractUserIdFromJwt(req);
+        if (string.IsNullOrEmpty(requesterId))
+        {
+            var unauthorized = req.CreateResponse(HttpStatusCode.Unauthorized);
+            await unauthorized.WriteStringAsync("Usuario no autenticado.");
+            return unauthorized;
+        }
+
+        var match = await _matches.GetByIdAsync(matchId);
+        if (match == null || !match.HomeScore.HasValue || !match.AwayScore.HasValue)
+        {
+            var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+            await notFound.WriteStringAsync("Partido no encontrado o sin resultado.");
+            return notFound;
+        }
+
+        var predictions = await _predictions.GetByMatchIdAsync(matchId);
+        var allUsers = await _users.GetAllAsync();
+        var usersById = allUsers.ToDictionary(u => u.Id);
+
+        int realHome = match.HomeScore.Value;
+        int realAway = match.AwayScore.Value;
+
+        var result = predictions
+            .Select(p =>
+            {
+                usersById.TryGetValue(p.UserId, out var user);
+                int diff = Math.Abs(p.PredictedHomeScore - realHome) + Math.Abs(p.PredictedAwayScore - realAway);
+                return new
+                {
+                    displayName   = user?.DisplayName ?? "Usuario",
+                    predictedHome = p.PredictedHomeScore,
+                    predictedAway = p.PredictedAwayScore,
+                    pointsEarned  = p.PointsEarned,
+                    diff,
+                };
+            })
+            .OrderByDescending(p => p.pointsEarned)
+            .ThenBy(p => p.diff)
+            .ThenBy(p => p.displayName)
             .ToList();
 
         var response = req.CreateResponse(HttpStatusCode.OK);
