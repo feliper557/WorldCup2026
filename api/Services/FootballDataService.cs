@@ -321,8 +321,13 @@ public static class FootballDataMapper
             KickoffAtUtc = match.UtcDate ?? DateTime.UtcNow,
             Stage = match.Stage ?? "Grupos",
             Status = status,
-            HomeScoreFinal = status == "FINISHED" ? match.Score?.FullTime?.Home : null,
-            AwayScoreFinal = status == "FINISHED" ? match.Score?.FullTime?.Away : null
+            // Para LIVE: FullTime contiene el marcador parcial en tiempo real
+            HomeScoreFinal = status is "FINISHED" or "LIVE"
+                ? (match.Score?.FullTime?.Home ?? match.Score?.HalfTime?.Home)
+                : null,
+            AwayScoreFinal = status is "FINISHED" or "LIVE"
+                ? (match.Score?.FullTime?.Away ?? match.Score?.HalfTime?.Away)
+                : null
         };
     }
 

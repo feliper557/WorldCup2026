@@ -15,7 +15,7 @@ public class SyncResultsFunction
     private readonly IScoringService _scoringService;
     private readonly ILogger<SyncResultsFunction> _logger;
 
-    private const int BufferMinutes = 118;
+    private const int BufferMinutes = 100;
 
     public SyncResultsFunction(
         IFootballDataService footballDataService,
@@ -52,10 +52,45 @@ public class SyncResultsFunction
                 return response;
             }
 
+            // Partidos actualmente en LIVE en BD → actualizar marcador parcial
+            var liveMatches = allMatches
+                .Where(m => m.Status == "LIVE")
+                .ToList();
+
+            if (liveMatches.Count > 0)
+            {
+                _logger.LogInformation("Syncing {Count} LIVE matches for live scores...", liveMatches.Count);
+                var minDate = liveMatches.Min(m => m.MatchDate).Date;
+                var maxDate = liveMatches.Max(m => m.MatchDate).Date;
+                var liveFromApi = await _footballDataService.GetWorldCupMatches(dateFrom: minDate, dateTo: maxDate);
+
+                foreach (var match in liveMatches)
+                {
+                    var upd = liveFromApi.FirstOrDefault(m => m.Id == match.Id);
+                    if (upd == null) continue;
+
+                    // Guardar score parcial aunque no esté FINISHED
+                    match.HomeScore = upd.HomeScoreFinal;
+                    match.AwayScore = upd.AwayScoreFinal;
+                    match.Status = upd.Status; // puede pasar a FINISHED
+                    await _matchRepository.UpsertAsync(match);
+
+                    if (upd.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
+                    {
+                        await ProcessPredictions(upd);
+                    }
+
+                    updatedCount++;
+                    _logger.LogInformation("  ✓ LIVE {Id}: {Home} {H}-{A} {Away} [{Status}]",
+                        upd.Id, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam, upd.Status);
+                }
+            }
+
             // Only sync matches that:
             // 1. Don't have a final score yet (need results from API)
             // 2. Have passed 105 minutes since kickoff (in Colombia time)
             var matchesToSync = allMatches
+                .Where(m => m.Status != "LIVE") // ya procesados arriba
                 .Where(m => m.HomeScore == null || m.AwayScore == null) // No result yet
                 .Where(m => m.MatchDate.AddMinutes(BufferMinutes) <= colombiaTime) // 105+ minutes passed
                 .ToList();
@@ -121,7 +156,9 @@ public class SyncResultsFunction
             if (worldCupMatches.Count > 0)
             {
                 _logger.LogInformation("Fetching World Cup results from API for {Count} matches...", worldCupMatches.Count);
-                var updated = await _footballDataService.GetWorldCupMatches();
+                var minDate = worldCupMatches.Min(m => m.MatchDate).Date;
+                var maxDate = worldCupMatches.Max(m => m.MatchDate).Date;
+                var updated = await _footballDataService.GetWorldCupMatches(dateFrom: minDate, dateTo: maxDate);
                 _logger.LogInformation("API returned {Count} World Cup matches", updated.Count);
 
                 foreach (var match in worldCupMatches)
