@@ -168,6 +168,8 @@ export const getRanking = async (): Promise<Score[]> => {
     totalPredictions: item.TotalPredictions ?? item.totalPredictions ?? 0,
     exactScores: item.ExactScores ?? item.exactScores ?? 0,
     correctWinners: item.CorrectWinners ?? item.correctWinners ?? 0,
+    championTeam: item.ChampionTeam ?? item.championTeam ?? null,
+    championFlag: item.ChampionFlag ?? item.championFlag ?? null,
     rank: item.Rank ?? item.rank ?? 0,
   }));
 };

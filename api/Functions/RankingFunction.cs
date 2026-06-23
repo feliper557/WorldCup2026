@@ -48,11 +48,18 @@ public class RankingFunction
                 .Where(cp => cp.PointsAwarded > 0)
                 .ToDictionary(cp => cp.UserId, cp => cp.PointsAwarded);
 
+            // Equipo elegido como campeón por cada usuario (independiente de si acertó)
+            var championPicks = championPredictions
+                .ToDictionary(cp => cp.UserId, cp => new { cp.Team, cp.Flag });
+
             var ranking = users
                 .Select(user =>
                 {
                     aggregates.TryGetValue(user.Id, out var agg);
                     championPoints.TryGetValue(user.Id, out var champPts);
+                    championPicks.TryGetValue(user.Id, out var champPick);
+                    int exactScores = agg?.ExactScores ?? 0;
+                    int correctWinners = agg?.CorrectWinners ?? 0;
                     return new
                     {
                         user.Id,
@@ -60,13 +67,21 @@ public class RankingFunction
                         user.DisplayName,
                         TotalPoints = (agg?.TotalPoints ?? 0) + champPts,
                         TotalPredictions = agg?.TotalPredictions ?? 0,
-                        ExactScores = agg?.ExactScores ?? 0,
-                        CorrectWinners = agg?.CorrectWinners ?? 0,
+                        ExactScores = exactScores,
+                        CorrectWinners = correctWinners,
+                        ScoringMatches = exactScores + correctWinners,
+                        FirstScoringPredictionAt = agg?.FirstScoringPredictionAt ?? DateTime.MaxValue,
                         ChampionPoints = champPts,
+                        ChampionTeam = champPick?.Team,
+                        ChampionFlag = champPick?.Flag,
                         user.LeaderboardRank,
                     };
                 })
+                // Desempate: 1) marcadores exactos  2) partidos con puntos  3) quien acertó primero
                 .OrderByDescending(u => u.TotalPoints)
+                .ThenByDescending(u => u.ExactScores)
+                .ThenByDescending(u => u.ScoringMatches)
+                .ThenBy(u => u.FirstScoringPredictionAt)
                 .Select((u, index) => new
                 {
                     u.Id,
@@ -76,6 +91,8 @@ public class RankingFunction
                     u.TotalPredictions,
                     u.ExactScores,
                     u.CorrectWinners,
+                    u.ChampionTeam,
+                    u.ChampionFlag,
                     u.LeaderboardRank,
                     Rank = index + 1,
                 })

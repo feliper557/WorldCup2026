@@ -47,7 +47,8 @@ public class PredictionRepository : IPredictionRepository
                 g.Sum(p => p.PointsEarned),
                 g.Count(),
                 g.Count(p => p.PointsEarned >= 3),
-                g.Count(p => p.PointsEarned == 1)))
+                g.Count(p => p.PointsEarned == 1),
+                g.Where(p => p.PointsEarned > 0).Min(p => (DateTime?)p.CreatedAt)))
             .ToListAsync();
 
         return rows.ToDictionary(r => r.UserId);

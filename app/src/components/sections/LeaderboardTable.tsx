@@ -91,6 +91,8 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
     exactos: score.exactScores || 0,
     ganadores: score.correctWinners || 0,
     points: score.totalPoints || 0,
+    championTeam: score.championTeam || null,
+    championFlag: score.championFlag || null,
   })), [filteredAndSorted, sortBy]);
 
   // Agregados memoizados — solo recalculan cuando cambia ranking
@@ -442,6 +444,14 @@ export function LeaderboardTable({ ranking, loading, error }: LeaderboardTablePr
                                 </Typography>
                                 {isMe && <Chip label="Eres tú" size="small" color="secondary" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }} />}
                               </Box>
+                              {p.championTeam && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: theme.palette.text.secondary, fontSize: '0.7rem', display: 'block', mt: 0.25 }}
+                                >
+                                  🏆 {p.championFlag ? `${p.championFlag} ` : ''}{p.championTeam}
+                                </Typography>
+                              )}
                               {/* Mobile stats */}
                               <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'flex', sm: 'none' }, mt: 0.75, flexWrap: 'wrap' }}>
                                 <Chip label={`${p.exactos}E`} size="small" color="warning" sx={{ height: 20, fontSize: '0.65rem' }} />

@@ -7,7 +7,8 @@ public record PredictionAggregate(
     int TotalPoints,
     int TotalPredictions,
     int ExactScores,
-    int CorrectWinners);
+    int CorrectWinners,
+    DateTime? FirstScoringPredictionAt);
 
 public interface IPredictionRepository
 {

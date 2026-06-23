@@ -5,6 +5,8 @@ export interface Score {
   totalPredictions: number;
   exactScores: number;
   correctWinners: number;
+  championTeam?: string | null;
+  championFlag?: string | null;
   rank: number;
 }
 
