@@ -15,7 +15,7 @@ public class SyncResultsFunction
     private readonly IScoringService _scoringService;
     private readonly ILogger<SyncResultsFunction> _logger;
 
-    private const int BufferMinutes = 100;
+    private const int BufferMinutes = 115;
 
     public SyncResultsFunction(
         IFootballDataService footballDataService,
@@ -53,20 +53,20 @@ public class SyncResultsFunction
             }
 
             // Partidos actualmente en LIVE en BD → actualizar marcador parcial
+            // Se consulta cada partido individualmente por ExternalId (mismo motivo que abajo).
             var liveMatches = allMatches
                 .Where(m => m.Status == "LIVE")
+                .Where(m => m.ExternalId.HasValue)
                 .ToList();
 
             if (liveMatches.Count > 0)
             {
                 _logger.LogInformation("Syncing {Count} LIVE matches for live scores...", liveMatches.Count);
-                var minDate = liveMatches.Min(m => m.MatchDate).Date;
-                var maxDate = liveMatches.Max(m => m.MatchDate).Date;
-                var liveFromApi = await _footballDataService.GetWorldCupMatches(dateFrom: minDate, dateTo: maxDate);
 
                 foreach (var match in liveMatches)
                 {
-                    var upd = liveFromApi.FirstOrDefault(m => m.Id == match.Id);
+                    var externalId = match.ExternalId!.Value.ToString();
+                    var upd = await _footballDataService.GetMatchDetailsAsync(externalId);
                     if (upd == null) continue;
 
                     // Guardar score parcial aunque no esté FINISHED
@@ -77,12 +77,13 @@ public class SyncResultsFunction
 
                     if (upd.Status == "FINISHED" && upd.HomeScoreFinal.HasValue && upd.AwayScoreFinal.HasValue)
                     {
+                        upd.Id = match.Id; // usar Id interno para localizar predicciones en BD
                         await ProcessPredictions(upd);
                     }
 
                     updatedCount++;
-                    _logger.LogInformation("  ✓ LIVE {Id}: {Home} {H}-{A} {Away} [{Status}]",
-                        upd.Id, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam, upd.Status);
+                    _logger.LogInformation("  ✓ LIVE {Id} (ExternalId={ExternalId}): {Home} {H}-{A} {Away} [{Status}]",
+                        match.Id, externalId, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam, upd.Status);
                 }
             }
 
@@ -149,38 +150,43 @@ public class SyncResultsFunction
             }
 
             // Check World Cup 2026 matches (GROUP_STAGE, ROUND_OF_16, QUARTER_FINALS, SEMI_FINALS, FINAL)
+            // Se consulta cada partido individualmente por ExternalId — evita el mismatch de IDs
+            // que ocurre al comparar por lista cuando el Id interno difiere del externo.
             var worldCupMatches = matchesToSync
                 .Where(m => !m.Stage?.Contains("REGULAR", StringComparison.OrdinalIgnoreCase) ?? true) // Exclude La Liga
+                .Where(m => m.ExternalId.HasValue)
                 .ToList();
 
             if (worldCupMatches.Count > 0)
             {
-                _logger.LogInformation("Fetching World Cup results from API for {Count} matches...", worldCupMatches.Count);
-                var minDate = worldCupMatches.Min(m => m.MatchDate).Date;
-                var maxDate = worldCupMatches.Max(m => m.MatchDate).Date;
-                var updated = await _footballDataService.GetWorldCupMatches(dateFrom: minDate, dateTo: maxDate);
-                _logger.LogInformation("API returned {Count} World Cup matches", updated.Count);
+                _logger.LogInformation("Syncing {Count} World Cup matches individually by ExternalId...", worldCupMatches.Count);
 
                 foreach (var match in worldCupMatches)
                 {
-                    var upd = updated.FirstOrDefault(m => m.Id == match.Id);
+                    var externalId = match.ExternalId!.Value.ToString();
+                    var upd = await _footballDataService.GetMatchDetailsAsync(externalId);
                     if (upd == null)
                     {
-                        _logger.LogWarning("  ✗ No API match for DB Id={Id} ({Home} vs {Away})", match.Id, match.HomeTeam, match.AwayTeam);
+                        _logger.LogWarning("  ✗ ExternalId={ExternalId} no encontrado en football-data.org ({Home} vs {Away})",
+                            externalId, match.HomeTeam, match.AwayTeam);
                         continue;
                     }
                     if (upd.Status != "FINISHED" || !upd.HomeScoreFinal.HasValue || !upd.AwayScoreFinal.HasValue)
                     {
-                        _logger.LogInformation("  ~ API match {Id} status={Status} score={H}-{A} (not ready)",
-                            upd.Id, upd.Status, upd.HomeScoreFinal, upd.AwayScoreFinal);
+                        _logger.LogInformation("  ~ ExternalId={ExternalId} status={Status} score={H}-{A} (not ready)",
+                            externalId, upd.Status, upd.HomeScoreFinal, upd.AwayScoreFinal);
                         continue;
                     }
 
-                    _logger.LogInformation("  ✓ Updating {Id}: {Home} {H}-{A} {Away}",
-                        upd.Id, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
-                    // Convert UTC to Colombia time (UTC-5) to match stored format
-                    upd.MatchDate = upd.MatchDate.AddHours(-5);
-                    await _matchRepository.UpsertAsync(upd.ToEntity());
+                    _logger.LogInformation("  ✓ Updating {Id} (ExternalId={ExternalId}): {Home} {H}-{A} {Away}",
+                        match.Id, externalId, upd.HomeTeam, upd.HomeScoreFinal, upd.AwayScoreFinal, upd.AwayTeam);
+
+                    match.Status = upd.Status;
+                    match.HomeScore = upd.HomeScoreFinal;
+                    match.AwayScore = upd.AwayScoreFinal;
+                    await _matchRepository.UpsertAsync(match);
+
+                    upd.Id = match.Id; // usar Id interno para localizar predicciones en BD
                     await ProcessPredictions(upd);
                     updatedCount++;
                 }
