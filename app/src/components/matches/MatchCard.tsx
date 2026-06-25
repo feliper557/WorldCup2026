@@ -1,12 +1,13 @@
 import { useState, useEffect, memo } from 'react';
 import { Card, CardContent, Box, Typography, Chip, Button, Badge, Alert, useTheme, Snackbar } from '@mui/material';
-import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord } from '@mui/icons-material';
+import { Edit as EditIcon, SportsSoccer, AccessTime, FiberManualRecord, People } from '@mui/icons-material';
 import type { Match, Prediction } from '../../types';
 import { getTimeUntilMatch, getCountdownColor } from '../../utils/dateUtils';
 import { getTeamDisplayName } from '../../utils/teamAssets';
 import { getStageLabel } from '../../utils/stageLabels';
 import { getMatches } from '../../services/apiClient';
 import { TeamCrest } from './TeamCrest';
+import { MatchPredictionsModal } from './MatchPredictionsModal';
 
 interface MatchCardProps {
   match: Match;
@@ -18,6 +19,7 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
   const theme = useTheme();
   const [countdown, setCountdown] = useState<{ label: string; msLeft: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPredictions, setShowPredictions] = useState(false);
 
   // Backend already stores times in Colombia time (UTC-5)
   // No conversion needed
@@ -163,13 +165,24 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
           )}
 
           {match.status === 'LIVE' && (
-            <Chip
-              icon={<FiberManualRecord sx={{ fontSize: 10, animation: 'pulse 1s infinite' }} />}
-              label="EN VIVO"
-              size="small"
-              color="error"
-              sx={{ fontWeight: 700, letterSpacing: '0.08em' }}
-            />
+            <>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<People sx={{ fontSize: 16 }} />}
+                onClick={() => setShowPredictions(true)}
+                sx={{ textTransform: 'none', fontSize: '0.78rem', py: 0.5 }}
+              >
+                Ver predicciones
+              </Button>
+              <Chip
+                icon={<FiberManualRecord sx={{ fontSize: 10, animation: 'pulse 1s infinite' }} />}
+                label="EN VIVO"
+                size="small"
+                color="error"
+                sx={{ fontWeight: 700, letterSpacing: '0.08em' }}
+              />
+            </>
           )}
         </Box>
       </CardContent>
@@ -181,6 +194,19 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
         message={errorMessage}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
+
+      {match.status === 'LIVE' && (
+        <MatchPredictionsModal
+          open={showPredictions}
+          matchId={match.id}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          homeScore={match.homeScoreFinal ?? 0}
+          awayScore={match.awayScoreFinal ?? 0}
+          isLive
+          onClose={() => setShowPredictions(false)}
+        />
+      )}
     </Card>
   );
 });

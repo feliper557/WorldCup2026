@@ -14,6 +14,7 @@ interface Props {
   awayTeam: string;
   homeScore: number;
   awayScore: number;
+  isLive?: boolean;
   onClose: () => void;
 }
 
@@ -23,7 +24,7 @@ function pointsColor(pts: number): 'success' | 'warning' | 'default' {
   return 'default';
 }
 
-export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeScore, awayScore, onClose }: Props) {
+export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeScore, awayScore, isLive, onClose }: Props) {
   const theme = useTheme();
   const [entries, setEntries] = useState<MatchPredictionEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,8 +71,14 @@ export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeS
         ) : (
           <>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>
-              {entries.length} predicción{entries.length !== 1 ? 'es' : ''} · ordenadas por cercanía al resultado
+              {entries.length} predicción{entries.length !== 1 ? 'es' : ''} · ordenadas por cercanía al{' '}
+              {isLive ? 'marcador actual (EN VIVO)' : 'resultado'}
             </Typography>
+            {isLive && (
+              <Alert severity="info" sx={{ mb: 1.5, py: 0.5 }}>
+                El partido sigue en curso — los puntos se calcularán cuando finalice.
+              </Alert>
+            )}
             <Box sx={{ overflowX: 'auto' }}>
               <Table size="small">
                 <TableHead>
@@ -85,9 +92,11 @@ export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeS
                     <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary' }}>
                       Predicción
                     </TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary' }}>
-                      Pts
-                    </TableCell>
+                    {!isLive && (
+                      <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary' }}>
+                        Pts
+                      </TableCell>
+                    )}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -123,15 +132,17 @@ export function MatchPredictionsModal({ open, matchId, homeTeam, awayTeam, homeS
                             {e.predictedHome} – {e.predictedAway}
                           </Typography>
                         </TableCell>
-                        <TableCell align="center" sx={{ py: 1 }}>
-                          <Chip
-                            label={e.pointsEarned > 0 ? `+${e.pointsEarned}` : '0'}
-                            color={pointsColor(e.pointsEarned)}
-                            size="small"
-                            icon={e.pointsEarned >= 5 ? <EmojiEvents sx={{ fontSize: '12px !important' }} /> : undefined}
-                            sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
-                          />
-                        </TableCell>
+                        {!isLive && (
+                          <TableCell align="center" sx={{ py: 1 }}>
+                            <Chip
+                              label={e.pointsEarned > 0 ? `+${e.pointsEarned}` : '0'}
+                              color={pointsColor(e.pointsEarned)}
+                              size="small"
+                              icon={e.pointsEarned >= 5 ? <EmojiEvents sx={{ fontSize: '12px !important' }} /> : undefined}
+                              sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
+                            />
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
