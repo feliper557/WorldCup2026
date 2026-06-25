@@ -139,7 +139,7 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, flexWrap: 'wrap', rowGap: 1 }}>
           {prediction && (
             <Chip
               label={`Mi predicción: ${prediction.homeScorePred} - ${prediction.awayScorePred}`}
@@ -165,26 +165,29 @@ export const MatchCard = memo(function MatchCard({ match, prediction, onPredictC
           )}
 
           {match.status === 'LIVE' && (
-            <>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<People sx={{ fontSize: 16 }} />}
-                onClick={() => setShowPredictions(true)}
-                sx={{ textTransform: 'none', fontSize: '0.78rem', py: 0.5 }}
-              >
-                Ver predicciones
-              </Button>
-              <Chip
-                icon={<FiberManualRecord sx={{ fontSize: 10, animation: 'pulse 1s infinite' }} />}
-                label="EN VIVO"
-                size="small"
-                color="error"
-                sx={{ fontWeight: 700, letterSpacing: '0.08em' }}
-              />
-            </>
+            <Chip
+              icon={<FiberManualRecord sx={{ fontSize: 10, animation: 'pulse 1s infinite' }} />}
+              label="EN VIVO"
+              size="small"
+              color="error"
+              sx={{ fontWeight: 700, letterSpacing: '0.08em' }}
+            />
           )}
         </Box>
+
+        {match.status === 'LIVE' && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1.25 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<People sx={{ fontSize: 16 }} />}
+              onClick={() => setShowPredictions(true)}
+              sx={{ textTransform: 'none', fontSize: '0.78rem', py: 0.5 }}
+            >
+              Ver predicciones
+            </Button>
+          </Box>
+        )}
       </CardContent>
 
       <Snackbar
