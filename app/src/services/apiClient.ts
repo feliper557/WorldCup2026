@@ -240,6 +240,23 @@ export const syncMatches = (options: SyncOptions): Promise<{ success: boolean; m
 export const syncResults = (): Promise<{ message: string; updatedCount: number }> =>
   get('/sync-results');
 
+export interface SetMatchScoreResponse {
+  message: string;
+  matchId: string;
+  homeTeam: string;
+  awayTeam: string;
+  previousScore: string;
+  newScore: string;
+  predictionsUpdated: number;
+}
+
+export const setMatchScore = (
+  matchId: string,
+  homeScore: number,
+  awayScore: number
+): Promise<SetMatchScoreResponse> =>
+  post(`/mgmt/set-match-score/${matchId}`, { homeScore, awayScore });
+
 export const getUsers = (): Promise<AdminUser[]> => get('/mgmt/users');
 
 export const getInvitations = (): Promise<{ invitations: Invitation[]; total: number }> =>

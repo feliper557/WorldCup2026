@@ -13,6 +13,7 @@ import { InvitationForm } from '../components/admin/InvitationForm';
 import { UserTable } from '../components/admin/UserTable';
 import { RaffleManager } from '../components/admin/RaffleManager';
 import { MatchSyncPanel } from '../components/admin/MatchSyncPanel';
+import { CorrectScorePanel } from '../components/admin/CorrectScorePanel';
 import { ReminderPanel } from '../components/admin/ReminderPanel';
 import { ChampionAwardPanel } from '../components/admin/ChampionAwardPanel';
 import { useRaffles } from '../hooks/useRaffles';
@@ -88,6 +89,7 @@ export function AdminPage() {
           <Tab label="👥 Usuarios" />
           <Tab label="🎁 Rifas" />
           <Tab label="⚽ Partidos" />
+          <Tab label="📝 Corregir Marcador" />
           <Tab label="🔔 Recordatorios" />
           <Tab label="🏆 Campeón" />
         </Tabs>
@@ -129,11 +131,14 @@ export function AdminPage() {
       {/* Tab 3: Partidos */}
       {tabValue === 3 && <MatchSyncPanel />}
 
-      {/* Tab 4: Recordatorios */}
-      {tabValue === 4 && <ReminderPanel />}
+      {/* Tab 4: Corregir Marcador */}
+      {tabValue === 4 && <CorrectScorePanel />}
 
-      {/* Tab 5: Campeón */}
-      {tabValue === 5 && <ChampionAwardPanel />}
+      {/* Tab 5: Recordatorios */}
+      {tabValue === 5 && <ReminderPanel />}
+
+      {/* Tab 6: Campeón */}
+      {tabValue === 6 && <ChampionAwardPanel />}
     </Container>
   );
 }
