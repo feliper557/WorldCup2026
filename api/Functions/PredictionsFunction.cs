@@ -247,10 +247,10 @@ public class PredictionsFunction
         }
 
         var match = await _matches.GetByIdAsync(matchId);
-        if (match == null || !match.HomeScore.HasValue || !match.AwayScore.HasValue)
+        if (match == null)
         {
             var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-            await notFound.WriteStringAsync("Partido no encontrado o sin resultado.");
+            await notFound.WriteStringAsync("Partido no encontrado.");
             return notFound;
         }
 
@@ -258,8 +258,8 @@ public class PredictionsFunction
         var allUsers = await _users.GetAllAsync();
         var usersById = allUsers.ToDictionary(u => u.Id);
 
-        int realHome = match.HomeScore.Value;
-        int realAway = match.AwayScore.Value;
+        int realHome = match.HomeScore ?? 0;
+        int realAway = match.AwayScore ?? 0;
 
         var result = predictions
             .Select(p =>
