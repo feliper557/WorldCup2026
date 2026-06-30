@@ -292,6 +292,11 @@ public class FootballDataScore
 
     [JsonPropertyName("halfTime")]
     public FootballDataScoreDetails? HalfTime { get; set; }
+
+    // Marcador al final de los 120 min (solo presente si hubo tiempo extra).
+    // No mapeamos "penalties": el resultado del partido nunca debe ser el de la tanda de penaltis.
+    [JsonPropertyName("extraTime")]
+    public FootballDataScoreDetails? ExtraTime { get; set; }
 }
 
 public class FootballDataScoreDetails
@@ -321,12 +326,14 @@ public static class FootballDataMapper
             KickoffAtUtc = match.UtcDate ?? DateTime.UtcNow,
             Stage = match.Stage ?? "Grupos",
             Status = status,
-            // Para LIVE: FullTime contiene el marcador parcial en tiempo real
+            // Para LIVE: FullTime contiene el marcador parcial en tiempo real.
+            // Si el partido fue a tiempo extra, ExtraTime tiene el marcador de los 120 min
+            // y debe priorizarse sobre FullTime (90 min). Nunca se usa el marcador de penaltis.
             HomeScoreFinal = status is "FINISHED" or "LIVE"
-                ? (match.Score?.FullTime?.Home ?? match.Score?.HalfTime?.Home)
+                ? (match.Score?.ExtraTime?.Home ?? match.Score?.FullTime?.Home ?? match.Score?.HalfTime?.Home)
                 : null,
             AwayScoreFinal = status is "FINISHED" or "LIVE"
-                ? (match.Score?.FullTime?.Away ?? match.Score?.HalfTime?.Away)
+                ? (match.Score?.ExtraTime?.Away ?? match.Score?.FullTime?.Away ?? match.Score?.HalfTime?.Away)
                 : null
         };
     }
