@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { InfoPage } from './pages/InfoPage';
+import { ClosingPage } from './pages/ClosingPage';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import('./pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
@@ -37,7 +38,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <InfoPage />,
+        element: <ClosingPage />,
       },
       {
         path: 'info',
